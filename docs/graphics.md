@@ -115,8 +115,9 @@ BG attr byte
 7 6 5 4 3 2 1 0
 | | | | | | |_|__ BANK 0-3   (hardware)
 | | | | |_|______ PAL 0-3    (hardware)
-| | | |__________ FLIP_H/V   (hardware)
-| | |____________ SOLID      (software only, video ignores)
+| | | |__________ FLIP_H     (hardware)
+| | |____________ FLIP_V     (hardware)
+| |______________ SOLID      (software only, video ignores)
 |________________ ANIM       (software only, 4-frame strip B..B+3)
 ```
 
@@ -129,11 +130,12 @@ BG attr byte
 **128** OAM entries via `$FE20`/`$FE21` in **1284**. Entry: `Y, tile, attr, X` (**512 B** total).
 
 ```text
-OAM attr byte
+OAM attr byte (all bits hardware — 1284 sprite field / compositor)
 7 6 5 4 3 2 1 0
 | | | | | | |_|__ BANK 0-3
 | | | | |_|______ PAL 0-3
-| | | |__________ FLIP_H/V
+| | | |__________ FLIP_H
+| | |____________ FLIP_V
 | |______________ PRIORITY
 |________________ SIZE (0=8x8, 1=8x16 tile pair)
 ```
