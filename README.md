@@ -51,7 +51,7 @@ Main PCB - preliminary design, not tested:
 
 Cart PCB - preliminary design, not tested:
 
-<img src="app/assets/png/cart_v_06.png" alt="Cart PCB" />
+<img src="app/assets/png/cart_v_07.png" alt="Cart PCB" />
 
 
 ## Where to go next

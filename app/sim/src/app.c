@@ -459,6 +459,9 @@ void r01s_app_frame(R01sApp *app) {
             app->ui.probe_pad_p1 = r01s_pads_get(&board->pads, 0);
             app->ui.probe_pad_p2 = r01s_pads_get(&board->pads, 1);
             r01s_play_tick(board, pad0);
+            if (board->play.enabled && board->apu_impl.apu) {
+                r01s_atmega328p_viz_frame(board->apu_impl.apu, (uint32_t)SDL_GetTicks());
+            }
         }
         if (group) {
             if (group->running) {

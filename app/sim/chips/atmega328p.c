@@ -1,7 +1,9 @@
 #include "atmega328p.h"
 
+#include "r01_nes_synth.h"
 #include "retr01_sim/bus.h"
 
+#include <stdio.h>
 #include <string.h>
 
 static const uint8_t APU_DEFAULT_WAVE[R01S_APU_CH_N] = {
@@ -138,6 +140,7 @@ static void apu_reset_voices(R01sAtmega328p *c) {
     c->mix = 128;
     c->scope_w = 0;
     memset(c->scope, 128, sizeof(c->scope));
+    memset(&c->viz, 0, sizeof(c->viz));
 }
 
 static void apu_reset(R01sEntity *e) {
@@ -369,8 +372,8 @@ int r01s_apu_voice_wave_y(const R01sApuVoice *v, int x, int width) {
         return 0;
     }
     period = v->period;
-    /* Map display x across ~2 periods for readable shapes. */
-    ph = (uint16_t)(((uint32_t)(x < 0 ? 0 : x) * period * 2u / (uint32_t)w) % period);
+    /* Map display x across ~2 periods; offset by live phase so lanes scroll. */
+    ph = (uint16_t)(((uint32_t)v->phase + (uint32_t)(x < 0 ? 0 : x) * period * 2u / (uint32_t)w) % period);
 
     switch (v->wave) {
     case R01S_APU_WAVE_TRIANGLE: {
@@ -418,4 +421,186 @@ int r01s_apu_voice_wave_y(const R01sApuVoice *v, int x, int width) {
         return (int)amp;
     }
     }
+}
+
+/* Readable WAVE-lane periods from host Hz (not cycle-accurate AVR timer). */
+static uint16_t viz_hz_to_period(float hz) {
+    int p;
+    if (hz < 20.f) {
+        return 0;
+    }
+    p = (int)(22050.f / hz + 0.5f);
+    if (p < 2) {
+        p = 2;
+    }
+    if (p > 2047) {
+        p = 2047;
+    }
+    return (uint16_t)p;
+}
+
+static void viz_voice_off(R01sAtmega328p *chip, int ch) {
+    uint8_t wave = APU_DEFAULT_WAVE[ch];
+    r01s_atmega328p_voice_set(chip, ch, wave, 0, 0, 2, 0);
+}
+
+static void viz_apply_step(R01sAtmega328p *chip, int step) {
+    R01sApuViz *vz;
+    int ch;
+    if (!chip || !chip->viz.active) {
+        return;
+    }
+    vz = &chip->viz;
+    if (step < 0 || step >= vz->track_steps) {
+        return;
+    }
+    for (ch = 0; ch < R01S_APU_BGM_N; ch++) {
+        const char *tok = vz->cell[step][ch];
+        float hz = 0.f;
+        int hex = 0;
+        if (!tok || !tok[0] || (tok[0] == '-' && tok[1] == '-')) {
+            if (ch != 4) {
+                viz_voice_off(chip, ch);
+            }
+            continue;
+        }
+        if (ch == 0 || ch == 1) {
+            if (r01_nes_parse_note_hz(tok, &hz)) {
+                uint16_t per = viz_hz_to_period(hz);
+                r01s_atmega328p_voice_set(chip, ch, R01S_APU_WAVE_PULSE, per >= 2u, 12, ch == 0 ? 2 : 1, per);
+            } else {
+                viz_voice_off(chip, ch);
+            }
+        } else if (ch == 2) {
+            if (r01_nes_parse_note_hz(tok, &hz)) {
+                uint16_t per = viz_hz_to_period(hz);
+                r01s_atmega328p_voice_set(chip, ch, R01S_APU_WAVE_TRIANGLE, per >= 2u, 15, 0, per);
+            } else {
+                viz_voice_off(chip, ch);
+            }
+        } else if (ch == 3) {
+            if (r01_nes_parse_hex_u8(tok, &hex)) {
+                /* NES noise period codes -> shorter periods for busier hats. */
+                uint16_t per = (uint16_t)(8u + (unsigned)(hex & 0x0f) * 4u);
+                r01s_atmega328p_voice_set(chip, ch, R01S_APU_WAVE_NOISE, 1, 10, 0, per);
+            } else if (r01_nes_parse_note_hz(tok, &hz)) {
+                r01s_atmega328p_voice_set(chip, ch, R01S_APU_WAVE_NOISE, 1, 10, 0, 16);
+            } else {
+                viz_voice_off(chip, ch);
+            }
+        } else if (ch == 4) {
+            if (r01_nes_parse_hex_u8(tok, &hex) || r01_nes_parse_note_hz(tok, &hz)) {
+                int kick = (hex == 0xFD || hz > 0.f) ? 1 : 0;
+                r01s_atmega328p_voice_set(chip, 4, R01S_APU_WAVE_DPCM, 1, 12, 0, kick ? 40 : 24);
+                /* Musical ms already at 15x wall (ms_per_step scale). */
+                vz->dpcm_ms_left = kick ? 120 : 60;
+            }
+        }
+    }
+}
+
+static void viz_load_builtin_track1(R01sApuViz *vz) {
+    /* Same placeholder as app/common/r01_bgm_host.c Track 1. */
+    static const char *demo[][R01S_APU_BGM_N] = {
+        {"C4", "E4", "G3", "--", "--"}, {"--", "--", "--", "8F", "--"}, {"D4", "F4", "A3", "--", "FD"},
+        {"--", "--", "--", "--", "--"}, {"E4", "G4", "B3", "--", "--"}, {"--", "--", "G3", "8F", "--"},
+        {"C4", "--", "--", "--", "--"}, {"--", "E4", "--", "--", "--"},
+    };
+    int r, c;
+    memset(vz->cell, 0, sizeof(vz->cell));
+    vz->track_steps = (int)(sizeof(demo) / sizeof(demo[0]));
+    if (vz->track_steps > R01S_APU_VIZ_STEPS_MAX) {
+        vz->track_steps = R01S_APU_VIZ_STEPS_MAX;
+    }
+    for (r = 0; r < R01S_APU_VIZ_STEPS_MAX; r++) {
+        for (c = 0; c < R01S_APU_BGM_N; c++) {
+            snprintf(vz->cell[r][c], R01S_APU_VIZ_TOKEN, "--");
+        }
+    }
+    for (r = 0; r < vz->track_steps; r++) {
+        for (c = 0; c < R01S_APU_BGM_N; c++) {
+            snprintf(vz->cell[r][c], R01S_APU_VIZ_TOKEN, "%s", demo[r][c]);
+        }
+    }
+}
+
+void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms) {
+    R01sApuViz *vz;
+    int ch;
+    if (!chip) {
+        return;
+    }
+    vz = &chip->viz;
+    memset(vz, 0, sizeof(*vz));
+    viz_load_builtin_track1(vz);
+    vz->ms_per_step = 60000 / (R01S_APU_VIZ_TEMPO_BPM * R01S_APU_VIZ_TEMPO_SCALE);
+    if (vz->ms_per_step < 1) {
+        vz->ms_per_step = 1;
+    }
+    vz->last_ms = now_ms;
+    vz->step = 0;
+    vz->ms_accum = 0;
+    vz->active = 1;
+    for (ch = R01S_APU_BGM_N; ch < R01S_APU_CH_N; ch++) {
+        viz_voice_off(chip, ch);
+    }
+    viz_apply_step(chip, 0);
+}
+
+void r01s_atmega328p_viz_stop(R01sAtmega328p *chip) {
+    int ch;
+    if (!chip) {
+        return;
+    }
+    chip->viz.active = 0;
+    for (ch = 0; ch < R01S_APU_CH_N; ch++) {
+        viz_voice_off(chip, ch);
+    }
+}
+
+void r01s_atmega328p_viz_frame(R01sAtmega328p *chip, uint32_t now_ms) {
+    R01sApuViz *vz;
+    uint32_t dt;
+    int i;
+    if (!chip || !chip->viz.active) {
+        return;
+    }
+    vz = &chip->viz;
+    if (now_ms < vz->last_ms) {
+        vz->last_ms = now_ms;
+    }
+    dt = now_ms - vz->last_ms;
+    vz->last_ms = now_ms;
+    if (dt > 100u) {
+        /* Pause / hitch: don't skip half the track. */
+        dt = 100u;
+    }
+    vz->ms_accum += (int)dt;
+    if (vz->dpcm_ms_left > 0) {
+        vz->dpcm_ms_left -= (int)dt;
+        if (vz->dpcm_ms_left <= 0) {
+            vz->dpcm_ms_left = 0;
+            viz_voice_off(chip, 4);
+        }
+    }
+    while (vz->ms_accum >= vz->ms_per_step) {
+        vz->ms_accum -= vz->ms_per_step;
+        vz->step++;
+        if (vz->step >= vz->track_steps) {
+            vz->step = 0;
+        }
+        viz_apply_step(chip, vz->step);
+    }
+    /* Extra synth ticks so MIX lane A scrolls even when board steps are few. */
+    for (i = 0; i < R01S_APU_VIZ_SYNTH_PER_FRAME; i++) {
+        apu_synth_tick(chip, &chip->base);
+    }
+}
+
+int r01s_atmega328p_viz_active(const R01sAtmega328p *chip) {
+    return chip && chip->viz.active;
+}
+
+int r01s_atmega328p_viz_step(const R01sAtmega328p *chip) {
+    return chip && chip->viz.active ? chip->viz.step : -1;
 }

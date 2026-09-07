@@ -155,7 +155,7 @@ Needs: CMake, a C compiler, SDL2 (`sdl2` package).
 
 Same keyboard map is used by standalone **emu** and Studio Play.
 
-**Wave monitor (island K):** bottom-left overlay (drag like Islands / pin legend. Position saved in `ui_layout.json`). Lanes **B1-B5** (BGM pulse/pulse/tri/noise/DPCM) and **S6-S8** (SFX) draw mathematical waveforms from voice period/duty/type. Bottom **A** lane plots the mixed analog sample ring (R-2R stand-in). Bring-up smoke still drives B1 via `$FE40`. Sim does **not** play BGM/SFX on the host speaker (timebase). See TODO in [`docs/sound.md`](../../docs/sound.md) for richer WAVE monitor feed later.
+**Wave monitor (island K):** bottom-left overlay (drag; position in `ui_layout.json`). Lanes **B1-B5** / **S6-S8** draw math waveforms (phase-scrolled). **A** is the mixed analog scope ring. After Host Play starts, a silent Studio Track-1 demo drives B1-B5 at **15×** wall-clock tempo so note shapes change quickly. No host speaker audio. See [`docs/sound.md`](../../docs/sound.md).
 
 Live probe (top-right) shows **VDD / PHI2 / RESB**. Status bar shows CPU `PC` / `AB` / phase / cycle count.
 

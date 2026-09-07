@@ -10,6 +10,12 @@
 #define R01S_APU_BGM_N 5 /* channels 0-4 */
 #define R01S_APU_SFX_N 3 /* channels 5-7 */
 #define R01S_APU_SCOPE_N 160
+/* Silent WAVE-monitor BGM: Studio Track-1 demo at wall-clock tempo * scale (no speaker). */
+#define R01S_APU_VIZ_TEMPO_BPM 140
+#define R01S_APU_VIZ_TEMPO_SCALE 15
+#define R01S_APU_VIZ_STEPS_MAX 16
+#define R01S_APU_VIZ_TOKEN 5
+#define R01S_APU_VIZ_SYNTH_PER_FRAME 64
 
 /* Waveforms match docs/sound.md channel map. */
 typedef enum R01sApuWave {
@@ -43,6 +49,17 @@ typedef struct R01sApuVoice {
  * Eight software voices (BGM 1-5 + SFX 6-8) mix to an 8-bit analog sample
  * (R-2R stand-in). PWM pin still tracks voice-0 pulse for bring-up health.
  */
+typedef struct R01sApuViz {
+    int active;
+    int step;
+    int track_steps;
+    int ms_accum;
+    int ms_per_step; /* real tempo / R01S_APU_VIZ_TEMPO_SCALE */
+    uint32_t last_ms;
+    int dpcm_ms_left; /* DPCM one-shot remaining (wall ms @ viz tempo) */
+    char cell[R01S_APU_VIZ_STEPS_MAX][R01S_APU_BGM_N][R01S_APU_VIZ_TOKEN];
+} R01sApuViz;
+
 typedef struct R01sAtmega328p {
     R01sEntity base;
     uint8_t regs[R01S_APU_REGS];
@@ -53,6 +70,7 @@ typedef struct R01sAtmega328p {
     uint32_t pwm_hi_samples;
     uint32_t pwm_edges;
     R01sLevel pwm_prev;
+    R01sApuViz viz; /* Host Play WAVE feed (silent, 15x tempo) */
 } R01sAtmega328p;
 
 void r01s_atmega328p_init(R01sAtmega328p *chip, const char *refdes);
@@ -80,8 +98,16 @@ void r01s_atmega328p_voice_set(R01sAtmega328p *chip, int ch, uint8_t wave, uint8
 
 /*
  * Ideal waveform amplitude -128..127 for display column x in [0, width).
- * Uses voice period/duty/wave; independent of scope ring (math draw).
+ * Uses voice period/duty/wave + phase (scrolls as synth ticks).
  */
 int r01s_apu_voice_wave_y(const R01sApuVoice *v, int x, int width);
+
+/* Silent BGM for WAVE monitor (Studio Track-1 demo). No host speaker. */
+void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms);
+void r01s_atmega328p_viz_stop(R01sAtmega328p *chip);
+/* Advance viz timeline from wall clock; runs a burst of synth ticks for scope. */
+void r01s_atmega328p_viz_frame(R01sAtmega328p *chip, uint32_t now_ms);
+int r01s_atmega328p_viz_active(const R01sAtmega328p *chip);
+int r01s_atmega328p_viz_step(const R01sAtmega328p *chip);
 
 #endif

@@ -73,11 +73,14 @@ add_library(r01_play_common
   ${R01_COMMON_DIR}/r01_play_anim_cart.c
   ${R01_COMMON_DIR}/r01_play_camera.c
   ${R01_COMMON_DIR}/r01_custom_logic_scan.c
+  ${R01_COMMON_DIR}/r01_nes_synth.c
 )
 target_include_directories(r01_play_common PUBLIC ${R01_COMMON_DIR})
+target_link_libraries(r01_play_common PUBLIC m)
 target_include_directories(retr01_sim_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/chips
+  ${R01_COMMON_DIR}
 )
 target_link_libraries(retr01_sim_core PUBLIC r01_play_common)
 

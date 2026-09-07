@@ -585,6 +585,9 @@ int r01s_play_start(R01sBoard *board) {
     }
     board->play.enabled = 1;
     write_oam(board);
+    if (board->apu_impl.apu) {
+        r01s_atmega328p_viz_start(board->apu_impl.apu, 0);
+    }
     r01s_frame_log_note(R01S_FLOG_PLAY, "Host Play enabled (scroll latched, OAM written, beam rewind)");
     return 1;
 }

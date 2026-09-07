@@ -95,5 +95,15 @@ int main(void) {
         expect_true(n > 0, "analog scope has samples");
     }
 
+    /* Silent WAVE viz @ 15x wall tempo. */
+    r01s_atmega328p_viz_start(&chip, 1000);
+    expect_true(r01s_atmega328p_viz_active(&chip), "viz active");
+    expect_true(r01s_atmega328p_viz_step(&chip) == 0, "viz step 0");
+    expect_true(r01s_atmega328p_voice(&chip, 0)->enable, "viz B1 on at step 0");
+    r01s_atmega328p_viz_frame(&chip, 1000 + 30); /* ~one 15x step (28ms) */
+    expect_true(r01s_atmega328p_viz_step(&chip) == 1, "viz advanced");
+    r01s_atmega328p_viz_stop(&chip);
+    expect_true(!r01s_atmega328p_viz_active(&chip), "viz stopped");
+
     return test_done("test_atmega328p");
 }
