@@ -11,6 +11,7 @@
 #include "r01_play_anim_cart.h"
 #include "r01_play_camera.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 /* Studio/emu move+camera math; sim applies 1 logical px per sim VBlank (game frame). */
@@ -586,7 +587,17 @@ int r01s_play_start(R01sBoard *board) {
     board->play.enabled = 1;
     write_oam(board);
     if (board->apu_impl.apu) {
-        r01s_atmega328p_viz_start(board->apu_impl.apu, 0);
+        const char *bgm = NULL;
+#ifdef R01S_BGM_TRACK1
+        bgm = R01S_BGM_TRACK1;
+#endif
+        {
+            const char *env = getenv("R01S_BGM_BIN");
+            if (env && env[0]) {
+                bgm = env;
+            }
+        }
+        r01s_atmega328p_viz_start(board->apu_impl.apu, 0, bgm);
     }
     r01s_frame_log_note(R01S_FLOG_PLAY, "Host Play enabled (scroll latched, OAM written, beam rewind)");
     return 1;

@@ -204,7 +204,7 @@ The sequencer is driven entirely by the W65C02S **NMI** (~60x/s). **BGM** and **
 |-------|--------|
 | Design (this doc) | 8-ch mixer, DPCM-in-AVR-flash, semantic hex + NMI dual tracker |
 | HW BOM | 328P + `$FE40`-`$FE5F` + CPU HC245 domain |
-| Board sim | Island **K**: 8-voice math mix + `$FE40` smoke on ch1 + **WAVE** monitor. Host Play feeds Studio Track-1 demo into B1-B5 (silent; no host speaker). Full `$FE4x` hex protocol / cart BGM still later |
+| Board sim | Island **K**: 8-voice math mix + `$FE40` smoke on ch1 + **WAVE** monitor. Host Play drives B1-B5 from `output/data/bgm_track1.bin` (Studio Export; silent; no host speaker). Full `$FE4x` hex protocol / cart BGM still later |
 | Studio Audio tab | BGM editor persisted in `.r01proj` (`bgm`). Host softsynth Play/Stop. Compact BGM/SFX plane tabs. Not cart-protocol playback |
 | Studio / emu Host Play | `r01_bgm_play(ctx, 1)` loops Track 1. P1 **G** (X) / **H** (Y) play fixed SFX (pulse blip / noise tick). Host mix = softsynth / 4. Shared pad map via `r01_pad_keys` |
 

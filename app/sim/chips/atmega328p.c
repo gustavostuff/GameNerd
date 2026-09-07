@@ -4,6 +4,7 @@
 #include "retr01_sim/bus.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static const uint8_t APU_DEFAULT_WAVE[R01S_APU_CH_N] = {
@@ -372,8 +373,8 @@ int r01s_apu_voice_wave_y(const R01sApuVoice *v, int x, int width) {
         return 0;
     }
     period = v->period;
-    /* Map display x across ~2 periods; offset by live phase so lanes scroll. */
-    ph = (uint16_t)(((uint32_t)v->phase + (uint32_t)(x < 0 ? 0 : x) * period * 2u / (uint32_t)w) % period);
+    /* Map display x across ~2 periods (stable shape; pitch = period). */
+    ph = (uint16_t)(((uint32_t)(x < 0 ? 0 : x) * period * 2u / (uint32_t)w) % period);
 
     switch (v->wave) {
     case R01S_APU_WAVE_TRIANGLE: {
@@ -499,11 +500,12 @@ static void viz_apply_step(R01sAtmega328p *chip, int step) {
 }
 
 static void viz_load_builtin_track1(R01sApuViz *vz) {
-    /* Same placeholder as app/common/r01_bgm_host.c Track 1. */
+    /* Fallback when no Studio export bin is present. */
     static const char *demo[][R01S_APU_BGM_N] = {
-        {"C4", "E4", "G3", "--", "--"}, {"--", "--", "--", "8F", "--"}, {"D4", "F4", "A3", "--", "FD"},
-        {"--", "--", "--", "--", "--"}, {"E4", "G4", "B3", "--", "--"}, {"--", "--", "G3", "8F", "--"},
-        {"C4", "--", "--", "--", "--"}, {"--", "E4", "--", "--", "--"},
+        {"C4", "--", "--", "--", "--"}, {"C4", "--", "--", "--", "--"}, {"--", "F4", "--", "--", "--"},
+        {"--", "F4", "--", "--", "--"}, {"--", "--", "B3", "--", "--"}, {"--", "--", "G3", "--", "--"},
+        {"--", "--", "--", "80", "--"}, {"--", "--", "--", "80", "--"}, {"--", "--", "--", "80", "--"},
+        {"--", "--", "--", "--", "--"},
     };
     int r, c;
     memset(vz->cell, 0, sizeof(vz->cell));
@@ -523,7 +525,71 @@ static void viz_load_builtin_track1(R01sApuViz *vz) {
     }
 }
 
-void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms) {
+/* Flat bin from Studio export / Host Play: steps * BGM_CH * TOKEN bytes. */
+static int viz_load_bin(R01sApuViz *vz, const char *path) {
+    FILE *f;
+    long sz;
+    int steps;
+    int t, ch;
+    unsigned char *buf = NULL;
+    size_t need;
+    if (!vz || !path || !path[0]) {
+        return -1;
+    }
+    f = fopen(path, "rb");
+    if (!f) {
+        return -1;
+    }
+    if (fseek(f, 0, SEEK_END) != 0 || (sz = ftell(f)) < 0 || fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return -1;
+    }
+    need = (size_t)R01S_APU_BGM_N * (size_t)R01S_APU_VIZ_TOKEN;
+    if (sz < (long)need || ((size_t)sz % need) != 0) {
+        fclose(f);
+        return -1;
+    }
+    steps = (int)((size_t)sz / need);
+    if (steps < 1) {
+        fclose(f);
+        return -1;
+    }
+    if (steps > R01S_APU_VIZ_STEPS_MAX) {
+        steps = R01S_APU_VIZ_STEPS_MAX;
+    }
+    buf = (unsigned char *)malloc((size_t)sz);
+    if (!buf || fread(buf, 1, (size_t)sz, f) != (size_t)sz) {
+        free(buf);
+        fclose(f);
+        return -1;
+    }
+    fclose(f);
+    memset(vz->cell, 0, sizeof(vz->cell));
+    for (t = 0; t < steps; t++) {
+        for (ch = 0; ch < R01S_APU_BGM_N; ch++) {
+            size_t off = ((size_t)t * (size_t)R01S_APU_BGM_N + (size_t)ch) * (size_t)R01S_APU_VIZ_TOKEN;
+            char tok[R01S_APU_VIZ_TOKEN];
+            int i;
+            memcpy(tok, buf + off, (size_t)R01S_APU_VIZ_TOKEN);
+            tok[R01S_APU_VIZ_TOKEN - 1] = '\0';
+            for (i = 0; i < R01S_APU_VIZ_TOKEN; i++) {
+                if (tok[i] == '\0') {
+                    break;
+                }
+            }
+            if (i == 0) {
+                snprintf(vz->cell[t][ch], R01S_APU_VIZ_TOKEN, "--");
+            } else {
+                snprintf(vz->cell[t][ch], R01S_APU_VIZ_TOKEN, "%s", tok);
+            }
+        }
+    }
+    free(buf);
+    vz->track_steps = steps;
+    return 0;
+}
+
+void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms, const char *bgm_bin_path) {
     R01sApuViz *vz;
     int ch;
     if (!chip) {
@@ -531,8 +597,11 @@ void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms) {
     }
     vz = &chip->viz;
     memset(vz, 0, sizeof(*vz));
-    viz_load_builtin_track1(vz);
-    vz->ms_per_step = 60000 / (R01S_APU_VIZ_TEMPO_BPM * R01S_APU_VIZ_TEMPO_SCALE);
+    if (viz_load_bin(vz, bgm_bin_path) != 0) {
+        viz_load_builtin_track1(vz);
+    }
+    vz->ms_per_step =
+        60000 / (R01S_APU_VIZ_TEMPO_BPM * R01S_APU_VIZ_STEPS_PER_BEAT * R01S_APU_VIZ_TEMPO_SCALE);
     if (vz->ms_per_step < 1) {
         vz->ms_per_step = 1;
     }
@@ -540,7 +609,7 @@ void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms) {
     vz->step = 0;
     vz->ms_accum = 0;
     vz->active = 1;
-    for (ch = R01S_APU_BGM_N; ch < R01S_APU_CH_N; ch++) {
+    for (ch = 0; ch < R01S_APU_CH_N; ch++) {
         viz_voice_off(chip, ch);
     }
     viz_apply_step(chip, 0);

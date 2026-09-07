@@ -87,6 +87,8 @@ target_link_libraries(retr01_sim_core PUBLIC r01_play_common)
 set(R01_OUTPUT_DIR "${R01_REPO_ROOT}/output")
 set(R01_TEST_CART "${R01_OUTPUT_DIR}/test.retr01")
 set(R01_DEFAULT_CART "${R01_OUTPUT_DIR}/test_2.retr01")
+target_compile_definitions(retr01_sim_core PUBLIC
+  "R01S_BGM_TRACK1=\"${R01_OUTPUT_DIR}/data/bgm_track1.bin\"")
 
 add_library(retr01_sim_app
   src/ui.c

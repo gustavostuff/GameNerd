@@ -10,10 +10,14 @@
 #define R01S_APU_BGM_N 5 /* channels 0-4 */
 #define R01S_APU_SFX_N 3 /* channels 5-7 */
 #define R01S_APU_SCOPE_N 160
-/* Silent WAVE-monitor BGM: Studio Track-1 demo (no speaker). */
+/* Silent WAVE-monitor BGM (no speaker). Prefer exported Track-1 bin when present.
+ * Studio grid: BPM × steps-per-beat. TEMPO_SCALE is wall-clock preview rate vs that
+ * grid (1 = Studio tempo, 15 = 15× faster). IC board time is separately budget-limited
+ * in app.c (R01S_SIM_BUDGET_MS*); this knob only affects the WAVE sequencer. */
 #define R01S_APU_VIZ_TEMPO_BPM 140
-#define R01S_APU_VIZ_TEMPO_SCALE 15
-#define R01S_APU_VIZ_STEPS_MAX 16
+#define R01S_APU_VIZ_STEPS_PER_BEAT 1
+#define R01S_APU_VIZ_TEMPO_SCALE 1
+#define R01S_APU_VIZ_STEPS_MAX 256
 #define R01S_APU_VIZ_TOKEN 5
 #define R01S_APU_VIZ_SYNTH_PER_FRAME 64
 
@@ -54,7 +58,7 @@ typedef struct R01sApuViz {
     int step;
     int track_steps;
     int ms_accum;
-    int ms_per_step; /* 60000 / (BPM * TEMPO_SCALE) */
+    int ms_per_step; /* 60000 / (BPM * STEPS_PER_BEAT * TEMPO_SCALE) */
     uint32_t last_ms;
     int dpcm_ms_left; /* DPCM one-shot remaining (viz clock ms) */
     char cell[R01S_APU_VIZ_STEPS_MAX][R01S_APU_BGM_N][R01S_APU_VIZ_TOKEN];
@@ -102,8 +106,9 @@ void r01s_atmega328p_voice_set(R01sAtmega328p *chip, int ch, uint8_t wave, uint8
  */
 int r01s_apu_voice_wave_y(const R01sApuVoice *v, int x, int width);
 
-/* Silent BGM for WAVE monitor (Studio Track-1 demo). No host speaker. */
-void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms);
+/* Silent BGM for WAVE monitor. path may be NULL / missing → builtin demo.
+ * Prefer Studio export: output/data/bgm_track1.bin (flattened Track 1). */
+void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms, const char *bgm_bin_path);
 void r01s_atmega328p_viz_stop(R01sAtmega328p *chip);
 /* Advance viz timeline from wall clock; runs a burst of synth ticks for scope. */
 void r01s_atmega328p_viz_frame(R01sAtmega328p *chip, uint32_t now_ms);

@@ -96,11 +96,23 @@ int main(void) {
     }
 
     /* Silent WAVE viz sequencer. */
-    r01s_atmega328p_viz_start(&chip, 1000);
+    r01s_atmega328p_viz_start(&chip, 1000, NULL);
     expect_true(r01s_atmega328p_viz_active(&chip), "viz active");
     expect_true(r01s_atmega328p_viz_step(&chip) == 0, "viz step 0");
     expect_true(r01s_atmega328p_voice(&chip, 0)->enable, "viz B1 on at step 0");
-    r01s_atmega328p_viz_frame(&chip, 1000 + 30); /* past one ms_per_step at default scale */
+    /* Advance one grid step (dt per frame capped at 100 ms in viz_frame). */
+    {
+        int need_ms =
+            60000 / (R01S_APU_VIZ_TEMPO_BPM * R01S_APU_VIZ_STEPS_PER_BEAT * R01S_APU_VIZ_TEMPO_SCALE);
+        uint32_t t = 1000;
+        int left = need_ms < 1 ? 1 : need_ms;
+        while (left > 0) {
+            int chunk = left > 100 ? 100 : left;
+            t += (uint32_t)chunk;
+            left -= chunk;
+            r01s_atmega328p_viz_frame(&chip, t);
+        }
+    }
     expect_true(r01s_atmega328p_viz_step(&chip) == 1, "viz advanced");
     r01s_atmega328p_viz_stop(&chip);
     expect_true(!r01s_atmega328p_viz_active(&chip), "viz stopped");
