@@ -1593,9 +1593,11 @@ static uint8_t board_bg_master_at(R01sBoard *ctx, int lx, int ly) {
 
 
 
-/* Island N: paint one logical Y into the VBlank sprite field (soft poke). */
-static void linebuf_oam_paint_y(R01sBoard *ctx, int logical_y) {
-    int si;
+/* Island N: paint one logical Y into the VBlank sprite field (soft poke).
+ * Callers pass a Y-band sprite index list (phase-1 accelerator). */
+static void linebuf_oam_paint_y(R01sBoard *ctx, int logical_y, const uint8_t *band, int band_n,
+                                uint32_t *cycles_est) {
+    int bi;
     int painted = 0;
     uint32_t pixels = 0;
     uint8_t hit_x = 0;
@@ -1603,16 +1605,21 @@ static void linebuf_oam_paint_y(R01sBoard *ctx, int logical_y) {
     R01sAtmega1284p *mcu = ctx->mcu_lb_impl.mcu;
     R01sSpriteFetch *sf = ctx->sprites_impl.fetch;
 
-    for (si = 0; si < 64 && painted < 16; si++) {
-        uint8_t oy_u = r01s_atmega1284p_oam_peek(mcu, (uint8_t)(si * 4 + 0));
-        uint8_t tile = r01s_atmega1284p_oam_peek(mcu, (uint8_t)(si * 4 + 1));
-        uint8_t attr = r01s_atmega1284p_oam_peek(mcu, (uint8_t)(si * 4 + 2));
-        uint8_t ox_u = r01s_atmega1284p_oam_peek(mcu, (uint8_t)(si * 4 + 3));
+    for (bi = 0; bi < band_n && painted < 16; bi++) {
+        unsigned si = band[bi];
+        uint8_t oy_u = r01s_atmega1284p_oam_peek(mcu, (uint16_t)(si * 4u + 0u));
+        uint8_t tile = r01s_atmega1284p_oam_peek(mcu, (uint16_t)(si * 4u + 1u));
+        uint8_t attr = r01s_atmega1284p_oam_peek(mcu, (uint16_t)(si * 4u + 2u));
+        uint8_t ox_u = r01s_atmega1284p_oam_peek(mcu, (uint16_t)(si * 4u + 3u));
         int oy = r01s_oam_coord_from_u8(oy_u);
         int ox = r01s_oam_coord_from_u8(ox_u);
         int h = (attr & 0x80u) ? 16 : 8;
         int px;
 
+        /* ~12 cycles: load entry + Y reject (budget model for 1284 @ 20 MHz). */
+        if (cycles_est) {
+            *cycles_est += 12u;
+        }
         if (tile == 0xFFu) {
             continue;
         }
@@ -1650,6 +1657,10 @@ static void linebuf_oam_paint_y(R01sBoard *ctx, int logical_y) {
                     hit_color = master;
                 }
             }
+            /* ~40 cycles: CHR fetch + 8-dot plot into linebuf. */
+            if (cycles_est) {
+                *cycles_est += 40u;
+            }
         }
     }
 
@@ -1660,10 +1671,17 @@ static void linebuf_oam_paint_y(R01sBoard *ctx, int logical_y) {
     }
 }
 
-/* VBlank: clear + plot full 120x128 sprite field. HBlank must not steal this work. */
+/* VBlank: clear + plot full 120x128 sprite field. HBlank must not steal this work.
+ * Y-buckets (8 px) keep 128-OAM eval inside the ~25k cycle VBlank budget. */
 static void linebuf_oam_fill_field(R01sBoard *ctx) {
+    enum { BAND = 8, NBANDS = (R01S_LOGICAL_H + BAND - 1) / BAND };
+    uint8_t buckets[NBANDS][R01S_OAM_ENTRIES];
+    uint8_t bucket_n[NBANDS];
     int ly;
     int i;
+    unsigned si;
+    uint32_t cycles_est = 0;
+    R01sAtmega1284p *mcu = ctx->mcu_lb_impl.mcu;
 
     flash_yield_for_chr(ctx);
     linebuf_drive_addr(ctx, spr_field_addr(0, 0), 1);
@@ -1672,9 +1690,51 @@ static void linebuf_oam_fill_field(R01sBoard *ctx) {
     for (i = 0; i < R01S_LOGICAL_H * R01S_LOGICAL_W; i++) {
         r01s_as6c62256_poke(ctx->mcu_lb_impl.sram, (uint16_t)(R01S_SPR_FIELD_BASE + (unsigned)i), 0);
     }
-    for (ly = 0; ly < R01S_LOGICAL_H; ly++) {
-        linebuf_oam_paint_y(ctx, ly);
+    /* Field clear ~2k cycles (block store). */
+    cycles_est += 2000u;
+
+    for (i = 0; i < NBANDS; i++) {
+        bucket_n[i] = 0;
     }
+    for (si = 0; si < R01S_OAM_ENTRIES; si++) {
+        uint8_t tile = r01s_atmega1284p_oam_peek(mcu, (uint16_t)(si * 4u + 1u));
+        uint8_t oy_u = r01s_atmega1284p_oam_peek(mcu, (uint16_t)(si * 4u + 0u));
+        uint8_t attr = r01s_atmega1284p_oam_peek(mcu, (uint16_t)(si * 4u + 2u));
+        int oy;
+        int h;
+        int b0;
+        int b1;
+        int b;
+        cycles_est += 8u; /* bucket classify */
+        if (tile == 0xFFu) {
+            continue;
+        }
+        oy = r01s_oam_coord_from_u8(oy_u);
+        h = (attr & 0x80u) ? 16 : 8;
+        if (oy + h <= 0 || oy >= R01S_LOGICAL_H) {
+            continue;
+        }
+        b0 = oy / BAND;
+        b1 = (oy + h - 1) / BAND;
+        if (b0 < 0) {
+            b0 = 0;
+        }
+        if (b1 >= NBANDS) {
+            b1 = NBANDS - 1;
+        }
+        for (b = b0; b <= b1; b++) {
+            if (bucket_n[b] < R01S_OAM_ENTRIES) {
+                buckets[b][bucket_n[b]++] = (uint8_t)si;
+            }
+        }
+    }
+
+    for (ly = 0; ly < R01S_LOGICAL_H; ly++) {
+        int band = ly / BAND;
+        linebuf_oam_paint_y(ctx, ly, buckets[band], bucket_n[band], &cycles_est);
+    }
+
+    ctx->oam_fill_cycles_est = cycles_est;
 
     flash_chr_release(ctx);
     if (ctx->play.enabled) {

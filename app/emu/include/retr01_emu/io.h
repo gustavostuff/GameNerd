@@ -28,7 +28,7 @@ typedef struct R01eIo {
 
     uint16_t vram_addr; /* $FE10/$FE11 */
 
-    uint8_t oam_addr;              /* $FE20 */
+    uint16_t oam_addr;             /* $FE20 low byte; auto-inc wraps at 512 */
     uint8_t oam[R01E_OAM_ENTRIES * R01E_OAM_ENTRY_BYTES]; /* phase 6+ composite */
 
     uint8_t world; /* $FE30 0..7 */

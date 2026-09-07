@@ -139,9 +139,10 @@ Cart saves use the **cart 24C64** at `$FE22`-`$FE24`, not this window.
 | | |
 |--|--|
 | **CPU port** | `$FE20` addr, `$FE21` data (auto-inc) |
-| **Size** | **64** entries, 4 bytes each: `Y, tile, attr, X` |
-| **Who reads** | 1284 firmware each scanline for sprite evaluation |
+| **Size** | **128** entries, 4 bytes each: `Y, tile, attr, X` (**512 B** in 1284 SRAM) |
+| **Who reads** | 1284 firmware each VBlank for sprite-field fill (Y-buckets) |
 | **Unused slot** | `tile == 0xFF` |
+| **Addr pointer** | `$FE20` loads bits [7:0] (clears bit 8). `$FE21` auto-inc is 9-bit, wraps at 512 |
 
 ---
 

@@ -126,7 +126,7 @@ BG attr byte
 
 ## Sprites
 
-**64** OAM entries via `$FE20`/`$FE21` (in **1284**, not CPU RAM). Entry: `Y, tile, attr, X`.
+**128** OAM entries via `$FE20`/`$FE21` in **1284**. Entry: `Y, tile, attr, X` (**512 B** total).
 
 ```text
 OAM attr byte
@@ -138,15 +138,16 @@ OAM attr byte
 |________________ SIZE (0=8x8, 1=8x16 tile pair)
 ```
 
-**Locked raster split (with BG0):** fill the **full 120x128** sprite field in **VBlank** (walk Y in 8 px or 16 px bands). Give **HBlank** to BG0 line fill. Beam reads sprite pixels from the field during active display. Where BG1 color index is **0**, the compositor shows the prepared BG0 line (BG1 mask / show-through). Cap **16** sprites per **logical** scanline.
+**`$FE20` / `$FE21`:** `$FE20` loads pointer bits **[7:0]** and clears bit **8**. `$FE21` data auto-incs a **9-bit** pointer that wraps at **512**, so a sequential fill from `$FE20=0` covers all 128 entries. Cap **16** sprites per **logical** scanline (unchanged).
 
-**VBlank budget (1284 @ 20 MHz):** ~20 scanlines of vertical blank, about **25,000** CPU cycles. Evaluating all **64** OAM entries and plotting **8x16** tiles into the line-buffer SRAM costs about **9,600** cycles. Large margin before active video. Sim models this as `linebuf_oam_fill_field` during VBlank.
+**Locked raster split (with BG0):** fill the **full 120x128** sprite field in **VBlank** (Y-buckets of 8 px, then plot). Give **HBlank** to BG0 line fill. Beam reads sprite pixels from the field during active display. Where BG1 color index is **0**, the compositor shows the prepared BG0 line (BG1 mask / show-through).
+
+**VBlank budget (1284 @ 20 MHz):** ~20 scanlines of vertical blank, about **25,000** CPU cycles. With **128** OAM + Y-buckets, field fill targets about **12–16k** cycles (~50–65%). Sim models this as `linebuf_oam_fill_field` and records `oam_fill_cycles_est`. Entity / metasprite expansion on the 1284 is the next phase ([`temp/128_sprites_and_entities_design.md`](../temp/128_sprites_and_entities_design.md)).
 
 ```text
 Priority (opaque wins):
   sprite  >  BG1  >  BG0  >  backdrop
 ```
-
 ---
 
 ## Palettes
@@ -274,7 +275,7 @@ Ports **not** in this table (`$FE09` palette data, `$FE10`-`$FE12` VRAM, OAM, AP
 |-------|------------|
 | `PPUCTRL` camera bits | Bitfield above |
 | `$FExx` ownership | table above |
-| 8x16 sprite VBlank timing | ~9.6k / ~25k cycles ([sprites](#sprites)) |
+| 8x16 sprite VBlank timing | ~12–16k / ~25k cycles at 128 OAM ([sprites](#sprites)) |
 | BG0 HBlank fill | Next BG0 line into linebuf `$4000` ping-pong. BG1 color-0 mask on active dots |
 
 | Topic | Still open |

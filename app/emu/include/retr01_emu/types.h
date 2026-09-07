@@ -52,7 +52,7 @@
 #define R01E_PAL_PLANE_BYTES (R01E_PAL_ROWS * R01E_PAL_ROW_BYTES) /* 128 */
 #define R01E_ACTIVE_PAL_BYTES 32 /* 4 BG + 4 sprite pals loaded from one row */
 
-#define R01E_OAM_ENTRIES 64
+#define R01E_OAM_ENTRIES 128
 #define R01E_OAM_ENTRY_BYTES 4 /* Y, tile, attr, X */
 
 #define R01E_DOTS_X 341

@@ -21,7 +21,7 @@ AVR 8-bit MCU: **128 KB Flash**, **16 KB SRAM**, **4 KB EEPROM**, 32 GPIO lines 
 
 | Port / duty | Retr01 map |
 |-------------|------------|
-| OAM storage + evaluate | CPU writes via `$FE20` (addr) / `$FE21` (data), auto-inc. 64 entries `Y,tile,attr,X` |
+| OAM storage + evaluate | CPU writes via `$FE20` (addr) / `$FE21` (data), auto-inc. **128** entries `Y,tile,attr,X` (512 B). `$FE20` loads bits [7:0]; auto-inc wraps at 512 |
 | Sprite field + BG0 | During **VBlank**, write full **120x128** sprite field. During **HBlank**, write next BG0 line (ping-pong) |
 | Pads | Present `$FE60` / `$FE61`. Arcade GPIO or Retr01-C UART pads ([`controllers.md`](../../docs/controllers.md)) |
 | Machine EEPROM | Internal 4 KB. CPU mailbox `$FE70`-`$FE72` + `RDY` ([`memory.md`](../../docs/memory.md)) |

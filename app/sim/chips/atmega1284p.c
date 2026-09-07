@@ -51,8 +51,10 @@ static void mcu_eval(R01sEntity *e) {
     if (we && !c->we_prev) {
         v = (uint8_t)r01s_bus_read(e, "DQ", 8);
         if (data) {
-            c->oam[c->oam_addr++] = v;
+            c->oam[c->oam_addr] = v;
+            c->oam_addr = (uint16_t)((c->oam_addr + 1u) % R01S_OAM_BYTES);
         } else {
+            /* $FE20: load bits [7:0], clear bit 8. Sequential $FE21 fill crosses into high half. */
             c->oam_addr = v;
         }
     }
@@ -60,9 +62,10 @@ static void mcu_eval(R01sEntity *e) {
 
     if (oe && !c->oe_prev) {
         if (data) {
-            c->last_dq = c->oam[c->oam_addr++];
+            c->last_dq = c->oam[c->oam_addr];
+            c->oam_addr = (uint16_t)((c->oam_addr + 1u) % R01S_OAM_BYTES);
         } else {
-            c->last_dq = c->oam_addr;
+            c->last_dq = (uint8_t)(c->oam_addr & 0xFFu);
         }
     }
     c->oe_prev = oe;
@@ -151,16 +154,19 @@ R01sEntity *r01s_atmega1284p_entity(R01sAtmega1284p *chip) {
     return chip ? &chip->base : NULL;
 }
 
-uint8_t r01s_atmega1284p_oam_addr(const R01sAtmega1284p *chip) {
+uint16_t r01s_atmega1284p_oam_addr(const R01sAtmega1284p *chip) {
     return chip ? chip->oam_addr : 0;
 }
 
-uint8_t r01s_atmega1284p_oam_peek(const R01sAtmega1284p *chip, uint8_t addr) {
-    return chip ? chip->oam[addr] : 0;
+uint8_t r01s_atmega1284p_oam_peek(const R01sAtmega1284p *chip, uint16_t addr) {
+    if (!chip || addr >= R01S_OAM_BYTES) {
+        return 0;
+    }
+    return chip->oam[addr];
 }
 
-void r01s_atmega1284p_oam_poke(R01sAtmega1284p *chip, uint8_t addr, uint8_t data) {
-    if (chip) {
+void r01s_atmega1284p_oam_poke(R01sAtmega1284p *chip, uint16_t addr, uint8_t data) {
+    if (chip && addr < R01S_OAM_BYTES) {
         chip->oam[addr] = data;
     }
 }

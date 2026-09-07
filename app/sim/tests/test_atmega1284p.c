@@ -77,5 +77,16 @@ int main(void) {
     expect_true(r01s_atmega1284p_soft_map_addr(&chip) == 0x001234u, "soft map_addr");
     expect_true(chip.soft_cart_a14_18 == (uint8_t)((0x001234u >> 14) & 0x1Fu), "cart A14-18");
 
+    /* 128 OAM: sequential fill crosses into high half; ptr wraps at 512. */
+    write_port(e, 0, 0x00);
+    for (i = 0; i < 260; i++) {
+        write_port(e, 1, (uint8_t)(i & 0xFF));
+    }
+    expect_true(r01s_atmega1284p_oam_addr(&chip) == 260, "auto-inc into high half");
+    expect_true(r01s_atmega1284p_oam_peek(&chip, 256) == 0x00, "OAM[256] after wrap past 255");
+    expect_true(r01s_atmega1284p_oam_peek(&chip, 259) == (uint8_t)(259 & 0xFF), "OAM[259]");
+    r01s_atmega1284p_oam_poke(&chip, 400, 0x5A);
+    expect_true(r01s_atmega1284p_oam_peek(&chip, 400) == 0x5A, "direct poke high OAM");
+
     return test_done("test_atmega1284p");
 }

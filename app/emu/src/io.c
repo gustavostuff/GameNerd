@@ -94,7 +94,7 @@ uint8_t r01e_io_read(R01eMachine *m, uint16_t addr) {
         return v;
     case 0xFE21:
         v = io->oam[io->oam_addr];
-        io->oam_addr++;
+        io->oam_addr = (uint16_t)((io->oam_addr + 1u) % (R01E_OAM_ENTRIES * R01E_OAM_ENTRY_BYTES));
         return v;
     case 0xFE22:
         return io->cartee_fe22_last;
@@ -179,10 +179,12 @@ void r01e_io_write(R01eMachine *m, uint16_t addr, uint8_t v) {
         io->vram_addr = (uint16_t)((io->vram_addr + 1) & (R01E_VRAM_BYTES - 1));
         break;
     case 0xFE20:
+        /* Load bits [7:0], clear bit 8. Sequential $FE21 fill reaches OAM[256..511]. */
         io->oam_addr = v;
         break;
     case 0xFE21:
-        io->oam[io->oam_addr++] = v;
+        io->oam[io->oam_addr] = v;
+        io->oam_addr = (uint16_t)((io->oam_addr + 1u) % (R01E_OAM_ENTRIES * R01E_OAM_ENTRY_BYTES));
         break;
     case 0xFE22:
         io->cartee_fe22_last = v;

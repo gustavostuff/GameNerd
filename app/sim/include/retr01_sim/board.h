@@ -270,6 +270,7 @@ typedef struct R01sBoard {
     uint8_t health_saw_oam;
     uint8_t health_saw_linebuf;
     uint8_t health_saw_sprites;
+    uint32_t oam_fill_cycles_est; /* last VBlank sprite-field fill (1284 @ 20 MHz model) */
     uint8_t health_saw_nmi;
     R01sLevel nmi_prev; /* beam NMI# edge detect */
     uint32_t nmi_pulses;

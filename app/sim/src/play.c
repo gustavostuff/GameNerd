@@ -233,7 +233,7 @@ static int write_player_oam(R01sBoard *b, int *slot) {
         if (part_count > 4) {
             part_count = 4;
         }
-        for (pi = 0; pi < part_count && *slot < 64; pi++) {
+        for (pi = 0; pi < part_count && *slot < 128; pi++) {
             const uint8_t *part = parts + (size_t)pi * 4u;
             int origin_x = (int)st[0];
             int origin_y = (int)st[1];
@@ -247,10 +247,10 @@ static int write_player_oam(R01sBoard *b, int *slot) {
             if (r01s_oam_tile_off_screen(sx, sy)) {
                 continue;
             }
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 0), r01s_oam_coord_to_u8(sy));
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 1), part[0]);
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 2), attr);
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 3), r01s_oam_coord_to_u8(sx));
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 0), r01s_oam_coord_to_u8(sy));
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 1), part[0]);
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 2), attr);
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 3), r01s_oam_coord_to_u8(sx));
             (*slot)++;
             b->health_saw_oam = 1;
         }
@@ -266,7 +266,7 @@ static int write_player_oam(R01sBoard *b, int *slot) {
         if (part_count > 4) {
             part_count = 4;
         }
-        for (pi = 0; pi < part_count && *slot < 64; pi++) {
+        for (pi = 0; pi < part_count && *slot < 128; pi++) {
             const uint8_t *part = trec + 4 + pi * 4;
             int dx = (int)(int8_t)part[2];
             int dy = (int)(int8_t)part[3];
@@ -275,10 +275,10 @@ static int write_player_oam(R01sBoard *b, int *slot) {
             if (r01s_oam_tile_off_screen(sx, sy)) {
                 continue;
             }
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 0), r01s_oam_coord_to_u8(sy));
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 1), part[0]);
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 2), part[1]);
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(*slot * 4 + 3), r01s_oam_coord_to_u8(sx));
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 0), r01s_oam_coord_to_u8(sy));
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 1), part[0]);
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 2), part[1]);
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(*slot * 4 + 3), r01s_oam_coord_to_u8(sx));
             (*slot)++;
             b->health_saw_oam = 1;
         }
@@ -336,7 +336,7 @@ static void write_oam(R01sBoard *b) {
         return;
     }
     insts = img + b->cart_off_entity_insts;
-    for (ii = 0; ii < (int)b->cart_entity_inst_count && slot < 64; ii++) {
+    for (ii = 0; ii < (int)b->cart_entity_inst_count && slot < 128; ii++) {
         const uint8_t *irec = insts + (size_t)ii * 6u;
         uint8_t type_id = irec[0];
         int world_x = (int)((uint16_t)irec[2] | ((uint16_t)irec[3] << 8));
@@ -356,7 +356,7 @@ static void write_oam(R01sBoard *b) {
         if (part_count > 4) {
             part_count = 4;
         }
-        for (pi = 0; pi < part_count && slot < 64; pi++) {
+        for (pi = 0; pi < part_count && slot < 128; pi++) {
             const uint8_t *part = trec + 4 + pi * 4;
             int dx = (int)(int8_t)part[2];
             int dy = (int)(int8_t)part[3];
@@ -375,10 +375,10 @@ static void write_oam(R01sBoard *b) {
             if (r01s_oam_tile_off_screen(sx, sy)) {
                 continue;
             }
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(slot * 4 + 0), r01s_oam_coord_to_u8(sy));
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(slot * 4 + 1), part[0]);
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(slot * 4 + 2), attr);
-            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint8_t)(slot * 4 + 3), r01s_oam_coord_to_u8(sx));
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(slot * 4 + 0), r01s_oam_coord_to_u8(sy));
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(slot * 4 + 1), part[0]);
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(slot * 4 + 2), attr);
+            r01s_atmega1284p_oam_poke(&b->mcu1284, (uint16_t)(slot * 4 + 3), r01s_oam_coord_to_u8(sx));
             slot++;
             b->health_saw_oam = 1;
         }

@@ -810,7 +810,7 @@ static int write_asm_tree(const char *asm_dir, const R01World *w, char *err_buf,
     if (write_text(path,
                    "SCREEN_TILES_X = 16\nSCREEN_TILES_Y = 15\n"
                    "SCREEN_PX_W    = 128\nSCREEN_PX_H    = 120\n"
-                   "OAM_MAX        = 64\n",
+                   "OAM_MAX        = 128\n",
                    err_buf, err_cap) != 0) {
         return -1;
     }

@@ -5,15 +5,17 @@
 
 #include <stdint.h>
 
-#define R01S_OAM_BYTES 256u
+#define R01S_OAM_ENTRIES 128u
+#define R01S_OAM_ENTRY_BYTES 4u
+#define R01S_OAM_BYTES (R01S_OAM_ENTRIES * R01S_OAM_ENTRY_BYTES) /* 512 */
 #define R01S_MCU1284_EEPROM_MAILBOX 3u
 
 /*
  * Island L -- ATmega1284P stub (behavioral; not a full AVR core).
  *
  * Soft ports (board decode):
- *   $FE20  OAM address latch (A0=0)
- *   $FE21  OAM data + auto-inc (A0=1) -- 64 entries Y,tile,attr,X
+ *   $FE20  OAM address latch (A0=0) -- loads bits [7:0], clears bit 8
+ *   $FE21  OAM data + auto-inc (A0=1) -- 128 entries Y,tile,attr,X; ptr wraps at 512
  *   $FE70-$FE72 mailbox stub (board poke; protocol TBD)
  *   Soft $FExx: FE00/05/06/07/08/90-92 via soft_* API
  *     (mirrors fw/mcu1284; board also keeps R01sBoard soft mirrors)
@@ -27,7 +29,7 @@
 typedef struct R01sAtmega1284p {
     R01sEntity base;
     uint8_t oam[R01S_OAM_BYTES];
-    uint8_t oam_addr;
+    uint16_t oam_addr; /* 9-bit effective; wraps at R01S_OAM_BYTES */
     uint8_t eeprom_mb[R01S_MCU1284_EEPROM_MAILBOX];
     /* Soft $FExx bank. Same fields as fw/mcu1284/soft_fexx.h */
     uint8_t soft_ppuctrl;
@@ -51,9 +53,9 @@ typedef struct R01sAtmega1284p {
 void r01s_atmega1284p_init(R01sAtmega1284p *chip, const char *refdes);
 R01sEntity *r01s_atmega1284p_entity(R01sAtmega1284p *chip);
 
-uint8_t r01s_atmega1284p_oam_addr(const R01sAtmega1284p *chip);
-uint8_t r01s_atmega1284p_oam_peek(const R01sAtmega1284p *chip, uint8_t addr);
-void r01s_atmega1284p_oam_poke(R01sAtmega1284p *chip, uint8_t addr, uint8_t data);
+uint16_t r01s_atmega1284p_oam_addr(const R01sAtmega1284p *chip);
+uint8_t r01s_atmega1284p_oam_peek(const R01sAtmega1284p *chip, uint16_t addr);
+void r01s_atmega1284p_oam_poke(R01sAtmega1284p *chip, uint16_t addr, uint8_t data);
 
 uint8_t r01s_atmega1284p_eeprom_peek(const R01sAtmega1284p *chip, unsigned i);
 void r01s_atmega1284p_eeprom_poke(R01sAtmega1284p *chip, unsigned i, uint8_t data);
