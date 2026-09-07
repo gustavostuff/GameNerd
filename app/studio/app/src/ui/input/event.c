@@ -44,7 +44,6 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
         int shift = (SDL_GetModState() & KMOD_SHIFT) != 0;
         int mx = lx;
         int my = ly;
-        int ch, region, handle;
         sound_editor_layout(ui, &lo);
         /* Prefer live coords; fall back to last motion position. */
         if (mx == 0 && my == 0 && (ui->mouse_x || ui->mouse_y)) {
@@ -53,11 +52,11 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
         }
         ui->mouse_x = mx;
         ui->mouse_y = my;
-        /* Pitch only when wheel is over the selected strip; otherwise always scroll. */
-        if (ui->sound.sel_kind == UI_SOUND_SEL_REGION &&
-            sound_region_hit(ui, mx, my, &ch, &region, &handle) && handle >= 1 &&
-            ch == ui->sound.sel_ch && region == ui->sound.sel_region) {
+        /* Selected strip: wheel always nudges pitch. Otherwise scroll timeline. */
+        if (ui->sound.sel_kind == UI_SOUND_SEL_REGION) {
             int track = ui->sound.track_idx;
+            int ch = ui->sound.sel_ch;
+            int region = ui->sound.sel_region;
             if (track < 0 || track >= ui->sound.track_count) {
                 track = 0;
             }
@@ -165,17 +164,36 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
         }
         if ((e->key.keysym.sym == SDLK_DELETE || e->key.keysym.sym == SDLK_BACKSPACE) &&
             !ui->play.active && !ui->menu.open) {
-            if (ui->sel_instance >= 0) {
-                R01World *w = r01_project_active_world(ui->project);
-                if (w && r01_world_instance_remove(w, ui->sel_instance) == 0) {
-                    ui->sel_instance = -1;
-                    ui->inst_drag = 0;
-                    ui_toast(ui, "instance removed", 0);
+            /* Audio BGM must run before world-screen Delete (that path always consumes). */
+            if (ui->app_mode == UI_APP_SOUNDS && ui->sound.plane == UI_SOUND_PLANE_BGM &&
+                ui->sound.sel_kind == UI_SOUND_SEL_REGION) {
+                int track = ui->sound.track_idx;
+                int ch = ui->sound.sel_ch;
+                int region = ui->sound.sel_region;
+                if (track < 0 || track >= ui->sound.track_count) {
+                    track = 0;
+                }
+                if (ch >= 0 && ch < UI_SOUND_BGM_CH && region >= 0 &&
+                    region < ui->sound.region_count[track][ch]) {
+                    ui_bgm_remove_region(ui, track, ch, region);
+                    ui->sound.sel_kind = UI_SOUND_SEL_NONE;
+                    ui->sound.sel_region = -1;
                 }
                 return 1;
             }
-            if (ui_world_screen_remove(ui)) {
-                return 1;
+            if (ui->app_mode == UI_APP_GRAPHICS) {
+                if (ui->sel_instance >= 0) {
+                    R01World *w = r01_project_active_world(ui->project);
+                    if (w && r01_world_instance_remove(w, ui->sel_instance) == 0) {
+                        ui->sel_instance = -1;
+                        ui->inst_drag = 0;
+                        ui_toast(ui, "instance removed", 0);
+                    }
+                    return 1;
+                }
+                if (ui_world_screen_remove(ui)) {
+                    return 1;
+                }
             }
         }
         if (!ui->play.active && !ui->menu.open && ui->screen_layer == UI_SCREEN_LAYER_SPR &&
@@ -308,23 +326,6 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
             ui_sound_play_pause(ui);
             return 1;
         }
-        if ((e->key.keysym.sym == SDLK_DELETE || e->key.keysym.sym == SDLK_BACKSPACE) &&
-            ui->app_mode == UI_APP_SOUNDS && ui->sound.plane == UI_SOUND_PLANE_BGM &&
-            ui->sound.sel_kind == UI_SOUND_SEL_REGION) {
-            int track = ui->sound.track_idx;
-            int ch = ui->sound.sel_ch;
-            int region = ui->sound.sel_region;
-            if (track < 0 || track >= ui->sound.track_count) {
-                track = 0;
-            }
-            if (ch >= 0 && ch < UI_SOUND_BGM_CH && region >= 0 &&
-                region < ui->sound.region_count[track][ch]) {
-                ui_bgm_remove_region(ui, track, ch, region);
-                ui->sound.sel_kind = UI_SOUND_SEL_NONE;
-                ui->sound.sel_region = -1;
-            }
-            return 1;
-        }
         /* Face buttons: Sim map (P1 G/H) is sampled each frame in ui_tick. */
     }
     if (e->type == SDL_KEYUP) {
@@ -430,14 +431,28 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
                         return 1;
                     }
                     if (handle == 1) {
-                        /* Toggle: re-click selected strip clears selection. */
-                        if (ui->sound.sel_kind == UI_SOUND_SEL_REGION && ui->sound.sel_ch == ch &&
-                            ui->sound.sel_region == region) {
-                            ui->sound.sel_kind = UI_SOUND_SEL_NONE;
+                        int track = ui->sound.track_idx;
+                        const UiBgmRegion *rg;
+                        int grab;
+                        if (track < 0 || track >= ui->sound.track_count) {
+                            track = 0;
+                        }
+                        rg = &ui->sound.region[track][ch][region];
+                        /* Body drag moves along the lane; click without move keeps selection. */
+                        ui->sound.sel_kind = UI_SOUND_SEL_REGION;
+                        ui->sound.sel_ch = ch;
+                        ui->sound.sel_region = region;
+                        ui->sound.drag = UI_SOUND_DRAG_MOVE;
+                        ui->sound.drag_ch = ch;
+                        ui->sound.drag_region = region;
+                        ui->sound.drag_start0 = rg->start;
+                        ui->sound.drag_len0 = rg->len;
+                        ui->sound.drag_mx0 = lx;
+                        grab = 0;
+                        if (sound_timeline_hit(ui, lx, ly, NULL, &grab)) {
+                            ui->sound.drag_origin = grab - rg->start; /* grab offset in ticks */
                         } else {
-                            ui->sound.sel_kind = UI_SOUND_SEL_REGION;
-                            ui->sound.sel_ch = ch;
-                            ui->sound.sel_region = region;
+                            ui->sound.drag_origin = 0;
                         }
                         return 1;
                     }
@@ -723,7 +738,8 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
                 ui->sound.sel_kind = UI_SOUND_SEL_REGION;
                 ui->sound.sel_ch = ui->sound.drag_ch;
                 ui->sound.sel_region = ui->sound.drag_region;
-            } else if (drag == UI_SOUND_DRAG_RESIZE_L || drag == UI_SOUND_DRAG_RESIZE_R) {
+            } else if (drag == UI_SOUND_DRAG_RESIZE_L || drag == UI_SOUND_DRAG_RESIZE_R ||
+                       drag == UI_SOUND_DRAG_MOVE) {
                 ui->sound.sel_kind = UI_SOUND_SEL_REGION;
                 ui->sound.sel_ch = ui->sound.drag_ch;
                 ui->sound.sel_region = ui->sound.drag_region;
@@ -1056,6 +1072,40 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
             if (idx >= 0) {
                 ui->sound.drag_region = idx;
                 ui->sound.sel_region = idx;
+            }
+            return 1;
+        }
+        if (ui->sound.drag == UI_SOUND_DRAG_MOVE) {
+            int new_start = tick - ui->sound.drag_origin;
+            int len = ui->sound.drag_len0;
+            int idx;
+            int dx = lx - ui->sound.drag_mx0;
+            if (dx < 0) {
+                dx = -dx;
+            }
+            /* Tiny motion: treat as click-select (keep original start). */
+            if (dx < UI_SOUND_PX_PER_TICK / 2 && tick == ui->sound.drag_start0 + ui->sound.drag_origin) {
+                return 1;
+            }
+            if (len < 1) {
+                len = 1;
+            }
+            if (new_start < 0) {
+                new_start = 0;
+            }
+            if (new_start + len > UI_SOUND_STEPS_MAX) {
+                new_start = UI_SOUND_STEPS_MAX - len;
+            }
+            if (new_start < 0) {
+                new_start = 0;
+            }
+            /* Stay on the channel the strip started on. */
+            idx = ui_bgm_resize_region(ui, track, ui->sound.drag_ch, ui->sound.drag_region, new_start, len);
+            if (idx >= 0) {
+                ui->sound.drag_region = idx;
+                ui->sound.sel_ch = ui->sound.drag_ch;
+                ui->sound.sel_region = idx;
+                ui->sound.sel_kind = UI_SOUND_SEL_REGION;
             }
             return 1;
         }

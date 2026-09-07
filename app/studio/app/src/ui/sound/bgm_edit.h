@@ -27,6 +27,10 @@ int ui_bgm_resize_region(UiState *ui, int track, int ch, int idx, int new_start,
 void ui_bgm_copy_sel(UiState *ui);
 void ui_bgm_paste_sel(UiState *ui);
 
+/* Sync Studio Audio editor <-> project.bgm for save/load. */
+void ui_bgm_sync_to_project(UiState *ui);
+void ui_bgm_apply_from_project(UiState *ui);
+
 /* Flatten track into host cells; returns loop length (>= 1).
  * honor_solo: when non-zero, skip channels other than ui->sound.solo_ch. */
 int ui_bgm_flatten(const UiState *ui, int track,

@@ -63,7 +63,7 @@
 
 #define R01_NAME_MAX 64
 #define R01_PATH_MAX 512
-#define R01_JSON_VER 10
+#define R01_JSON_VER 11
 
 #define R01_OUTPUT_DIR "output"
 #define R01_DEFAULT_PROJECT R01_OUTPUT_DIR "/test.r01proj"
@@ -92,6 +92,28 @@
 #define R01_WARP_FADE_OUT 0x01u
 #define R01_WARP_FADE_IN 0x02u
 #define R01_WARP_FADE_WHITE 0x04u
+
+/* Studio BGM editor (Audio tab). Host flatten uses R01_BGM_* from r01_bgm_host.h. */
+#define R01_BGM_TRACKS_MAX 8
+#define R01_BGM_REGIONS_MAX 128
+#define R01_BGM_CH_COUNT 5
+#define R01_BGM_TOK_MAX 5
+#define R01_BGM_NAME_MAX 24
+
+typedef struct R01BgmRegion {
+    int start; /* ticks */
+    int len;   /* ticks, >= 1 */
+    int midi;
+    char tok[R01_BGM_TOK_MAX];
+} R01BgmRegion;
+
+typedef struct R01BgmData {
+    int present; /* 1 = authoring data saved/loaded (else UI may seed demos) */
+    int track_count;
+    char track_name[R01_BGM_TRACKS_MAX][R01_BGM_NAME_MAX];
+    int region_count[R01_BGM_TRACKS_MAX][R01_BGM_CH_COUNT];
+    R01BgmRegion region[R01_BGM_TRACKS_MAX][R01_BGM_CH_COUNT][R01_BGM_REGIONS_MAX];
+} R01BgmData;
 
 /* BG attr (docs/graphics) */
 #define R01_ATTR_BANK_MASK 0x03u
@@ -259,6 +281,7 @@ typedef struct R01Project {
     R01PalRow global_pal_spr[R01_PAL_ROWS][R01_PALS_PER_ROW];
     R01OtherScreen other_screens[R01_CART_OTHER_MAX]; /* [0]=title [1]=inter [2+]=credits */
     R01World worlds[R01_MAX_WORLDS];
+    R01BgmData bgm;
 } R01Project;
 
 static inline int r01_attr_bank(uint8_t a) {

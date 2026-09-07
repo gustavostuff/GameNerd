@@ -148,6 +148,8 @@ void ui_reset_after_project_load(UiState *ui) {
     ui->world_sel_col = -1;
     ui->world_sel_row = -1;
     ui->screen_clip_valid = 0;
+    ui_sound_play_stop(ui);
+    ui_bgm_apply_from_project(ui);
 }
 
 void ui_save(UiState *ui) {
@@ -156,6 +158,7 @@ void ui_save(UiState *ui) {
         ui_toast(ui, "drop a .r01proj to save", 1);
         return;
     }
+    ui_bgm_sync_to_project(ui);
     if (r01_project_save_json(ui->project, ui->project_path, err, sizeof(err)) != 0) {
         ui_toast(ui, err, 1);
         return;

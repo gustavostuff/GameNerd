@@ -1,7 +1,14 @@
 #include "ui/sound/bgm_edit.h"
 
+#include "ui/internal.h"
+
 #include <stdio.h>
 #include <string.h>
+
+#if UI_SOUND_BGM_CH != R01_BGM_CH_COUNT || UI_SOUND_TRACKS_MAX != R01_BGM_TRACKS_MAX || \
+    UI_SOUND_REGIONS_MAX != R01_BGM_REGIONS_MAX
+#error "Studio BGM sizes must match R01BgmData in types.h"
+#endif
 
 static int clampi(int v, int lo, int hi) {
     if (v < lo) {
@@ -428,4 +435,87 @@ int ui_bgm_flatten(const UiState *ui, int track,
         steps = 1;
     }
     return steps;
+}
+
+void ui_bgm_sync_to_project(UiState *ui) {
+    R01BgmData *bgm;
+    int t, ch, i;
+    if (!ui || !ui->project) {
+        return;
+    }
+    bgm = &ui->project->bgm;
+    memset(bgm, 0, sizeof(*bgm));
+    bgm->present = 1;
+    bgm->track_count = ui->sound.track_count;
+    if (bgm->track_count < 1) {
+        bgm->track_count = 1;
+    }
+    if (bgm->track_count > R01_BGM_TRACKS_MAX) {
+        bgm->track_count = R01_BGM_TRACKS_MAX;
+    }
+    for (t = 0; t < bgm->track_count; t++) {
+        snprintf(bgm->track_name[t], sizeof(bgm->track_name[t]), "%s",
+                 ui->sound.track_name[t][0] ? ui->sound.track_name[t] : "Track");
+        for (ch = 0; ch < R01_BGM_CH_COUNT; ch++) {
+            int n = ui->sound.region_count[t][ch];
+            if (n > R01_BGM_REGIONS_MAX) {
+                n = R01_BGM_REGIONS_MAX;
+            }
+            bgm->region_count[t][ch] = n;
+            for (i = 0; i < n; i++) {
+                const UiBgmRegion *src = &ui->sound.region[t][ch][i];
+                R01BgmRegion *dst = &bgm->region[t][ch][i];
+                dst->start = src->start;
+                dst->len = src->len;
+                dst->midi = src->midi;
+                snprintf(dst->tok, sizeof(dst->tok), "%s", src->tok[0] ? src->tok : "--");
+            }
+        }
+    }
+}
+
+void ui_bgm_apply_from_project(UiState *ui) {
+    const R01BgmData *bgm;
+    int t, ch, i;
+    if (!ui || !ui->project) {
+        return;
+    }
+    bgm = &ui->project->bgm;
+    if (!bgm->present || bgm->track_count < 1) {
+        /* Legacy projects without bgm: keep/seed demos. */
+        ui_sound_init(ui);
+        return;
+    }
+    memset(&ui->sound, 0, sizeof(ui->sound));
+    ui->sound.plane = UI_SOUND_PLANE_BGM;
+    ui->sound.track_count = bgm->track_count;
+    if (ui->sound.track_count > UI_SOUND_TRACKS_MAX) {
+        ui->sound.track_count = UI_SOUND_TRACKS_MAX;
+    }
+    ui->sound.track_idx = 0;
+    ui->sound.solo_ch = UI_SOUND_SOLO_ALL;
+    ui->sound.scroll_x = 0;
+    ui->sound.sel_kind = UI_SOUND_SEL_NONE;
+    ui->sound.playing = 0;
+    ui->sound.paused = 0;
+    ui->sound.play_pos = -1.f;
+    for (t = 0; t < ui->sound.track_count; t++) {
+        snprintf(ui->sound.track_name[t], sizeof(ui->sound.track_name[t]), "%s",
+                 bgm->track_name[t][0] ? bgm->track_name[t] : "Track");
+        for (ch = 0; ch < UI_SOUND_BGM_CH; ch++) {
+            int n = bgm->region_count[t][ch];
+            if (n > UI_SOUND_REGIONS_MAX) {
+                n = UI_SOUND_REGIONS_MAX;
+            }
+            ui->sound.region_count[t][ch] = n;
+            for (i = 0; i < n; i++) {
+                const R01BgmRegion *src = &bgm->region[t][ch][i];
+                UiBgmRegion *dst = &ui->sound.region[t][ch][i];
+                dst->start = src->start;
+                dst->len = src->len < 1 ? 1 : src->len;
+                dst->midi = src->midi;
+                snprintf(dst->tok, sizeof(dst->tok), "%s", src->tok[0] ? src->tok : "--");
+            }
+        }
+    }
 }

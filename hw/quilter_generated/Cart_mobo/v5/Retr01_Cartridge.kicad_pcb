@@ -1252,7 +1252,7 @@
 			(at 11 3.08 180)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "17272882-2fb4-4c4f-86ef-773e5227ea7c")
+			(uuid "cb5970b6-ad60-460a-aaea-0b718db4613f")
 			(effects
 				(font
 					(size 1 1)
@@ -1264,7 +1264,7 @@
 			(at 13 5.16 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "713e8ec1-1642-4d3e-8d67-de1ebcdf387e")
+			(uuid "e61103cf-c0c3-4e38-9f7d-c304a9df3d2a")
 			(effects
 				(font
 					(size 1 1)
@@ -1277,7 +1277,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "12b8edf6-2793-4af2-b1ba-bbd672991538")
+			(uuid "31405aef-b0ab-4a3d-b4eb-7da9d7bfdff5")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1290,7 +1290,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "0eab425f-283c-4072-bb60-66692d14ba05")
+			(uuid "574bbb63-e989-46c8-96f4-a4ea65939856")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9748,6 +9748,27 @@
 				(xy 59.430453 27.602072) (xy 59.393684 27.57275) (xy 59.199194 27.45665) (xy 58.983219 27.386521)
 				(xy 61.295151 20.508082) (xy 65.893534 20.508082)
 			)
+		)
+	)
+	(group ""
+		(uuid "465be529-3423-4cfb-8e21-546dfe121129")
+		(members "0051ee94-74df-4115-a9fd-71c5887ee485" "1cdb7c8c-e0ea-4702-a34e-bd35f42e0d3f"
+			"5779a228-76ae-4035-847d-cebfe46fadf3" "89fbde27-8c84-4b04-be59-7a7eefebb000"
+			"c492f7bf-003a-428e-b6e4-df4edcca2486" "c56a8ecd-72de-4cdc-9859-531d29fc1c9c"
+			"cc6ed8c8-f10f-48e3-b073-b66d5ca1a4af"
+		)
+	)
+	(group ""
+		(uuid "6040c78c-528d-4637-9922-81b6424c40b0")
+		(members "46e65be9-3a1e-474e-9ed4-e19ba402488c" "4d2c408b-c3c4-47f4-82f8-860d4be79efc"
+			"7c7e3644-2516-480d-845b-cc4b796b88e6" "c79803af-7cb6-41ca-b8b7-f890cc33a5d6"
+			"f38a7a97-1245-4e3b-8e7a-f04cf17fc267"
+		)
+	)
+	(group ""
+		(uuid "ab3dcb48-88d0-4cc1-aeca-704447da2098")
+		(members "465be529-3423-4cfb-8e21-546dfe121129" "6040c78c-528d-4637-9922-81b6424c40b0"
+			"65e20a10-0f73-47f4-b78c-70455fa40b6e" "fd244ee6-1666-4da6-a305-68434f5b04d4"
 		)
 	)
 	(embedded_fonts no)

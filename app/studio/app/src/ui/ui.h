@@ -114,6 +114,7 @@
 #define UI_SOUND_DRAG_PAINT 1
 #define UI_SOUND_DRAG_RESIZE_L 2
 #define UI_SOUND_DRAG_RESIZE_R 3
+#define UI_SOUND_DRAG_MOVE 4
 
 #define UI_ACC_NONE (-1)
 #define UI_ACC_WORLDS 0
@@ -331,7 +332,7 @@ typedef struct UiBgmRegion {
     char tok[5]; /* host token */
 } UiBgmRegion;
 
-/* UI-only BGM shell (not project JSON). */
+/* UI BGM shell (persisted in project.bgm). */
 typedef struct UiSoundEdit {
     int plane; /* UI_SOUND_PLANE_BGM or SFX */
     int track_idx;

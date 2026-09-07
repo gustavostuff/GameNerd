@@ -298,17 +298,13 @@ void draw_screen_editor(UiState *ui, SDL_Renderer *r, const R01Screen *s) {
         return;
     }
     /*
-     * Composite BG0 under BG1 color 0 (same as emu/hardware). Same absolute
-     * chess cell; orphan BG0 outside the BG1 present bbox is ignored when
-     * viewing BG1 (no underlay). Viewing BG0 alone still composites if a
-     * present BG1 screen shares that cell.
+     * BG1 plane: composite BG0 under BG1 color 0 (emu/hardware preview).
+     * BG0 plane: author BG0 alone — do not overlay BG1 or it looks like BG0
+     * is drawing BG1 tiles wherever BG1 is opaque.
      */
     if (plane_bg0) {
         bg0 = s;
-        bg1 = r01_world_screen_at(w, s->col, s->row);
-        if (bg1 && !bg1->present) {
-            bg1 = NULL;
-        }
+        bg1 = NULL;
     } else {
         bg1 = s;
         bg0 = r01_world_bg0_screen_at(w, s->col, s->row);

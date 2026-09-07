@@ -637,7 +637,49 @@ int r01_project_save_json(const R01Project *p, const char *path, char *err_buf, 
         free(tl);
         free(at);
     }
-    fprintf(f, "\n  ]\n");
+    fprintf(f, "\n  ],\n");
+    fprintf(f, "  \"bgm\": {\n");
+    fprintf(f, "    \"track_count\": %d,\n", p->bgm.present ? p->bgm.track_count : 0);
+    fprintf(f, "    \"tracks\": [\n");
+    {
+        int ti, first_t = 1;
+        int tc = p->bgm.present ? p->bgm.track_count : 0;
+        if (tc < 0) {
+            tc = 0;
+        }
+        if (tc > R01_BGM_TRACKS_MAX) {
+            tc = R01_BGM_TRACKS_MAX;
+        }
+        for (ti = 0; ti < tc; ti++) {
+            int ch, first_ch;
+            fprintf(f, "%s      {\"name\": \"%s\", \"channels\": [\n", first_t ? "" : ",\n",
+                    p->bgm.track_name[ti][0] ? p->bgm.track_name[ti] : "Track");
+            first_t = 0;
+            first_ch = 1;
+            for (ch = 0; ch < R01_BGM_CH_COUNT; ch++) {
+                int ri, n = p->bgm.region_count[ti][ch];
+                int first_r = 1;
+                if (n < 0) {
+                    n = 0;
+                }
+                if (n > R01_BGM_REGIONS_MAX) {
+                    n = R01_BGM_REGIONS_MAX;
+                }
+                fprintf(f, "%s        [", first_ch ? "" : ",\n");
+                first_ch = 0;
+                for (ri = 0; ri < n; ri++) {
+                    const R01BgmRegion *rg = &p->bgm.region[ti][ch][ri];
+                    fprintf(f, "%s{\"s\":%d,\"l\":%d,\"m\":%d,\"t\":\"%s\"}", first_r ? "" : ",", rg->start,
+                            rg->len, rg->midi, rg->tok[0] ? rg->tok : "--");
+                    first_r = 0;
+                }
+                fprintf(f, "]");
+            }
+            fprintf(f, "\n      ]}");
+        }
+    }
+    fprintf(f, "\n    ]\n");
+    fprintf(f, "  }\n");
     fprintf(f, "}\n");
     fclose(f);
     return 0;
@@ -1013,15 +1055,16 @@ int r01_project_load_json(R01Project *p, const char *path, char *err_buf, size_t
             int bg0_active = -1;
             json_int_after(buf, "\"bg0_active_screen\"", &bg0_active);
             if (bg0sec && w) {
+                const char *bg0_end = json_array_end(bg0sec);
                 r01_world_bg0_clear(w);
                 obj = strchr(bg0sec, '{');
-                while (obj && obj < buf + sz) {
+                while (obj && obj < buf + sz && (!bg0_end || obj < bg0_end)) {
                     const char *end = strchr(obj, '}');
                     size_t olen;
                     char *slice;
                     int col = 0, row = 0, si;
                     R01Screen *s;
-                    if (!end) {
+                    if (!end || (bg0_end && end > bg0_end)) {
                         break;
                     }
                     olen = (size_t)(end - obj + 1);
@@ -1636,6 +1679,145 @@ int r01_project_load_json(R01Project *p, const char *path, char *err_buf, size_t
     }
     /* File data lives in world 0; show that world after load. */
     p->active_world = 0;
+    {
+        const char *bgm_sec = json_find(buf, "\"bgm\"");
+        memset(&p->bgm, 0, sizeof(p->bgm));
+        if (bgm_sec) {
+            const char *tracks = json_find(bgm_sec, "\"tracks\"");
+            const char *tracks_end = json_array_end(tracks);
+            const char *tobj;
+            int ti = 0;
+            json_int_after(bgm_sec, "\"track_count\"", &p->bgm.track_count);
+            tobj = tracks ? strchr(tracks, '{') : NULL;
+            while (tobj && tracks_end && tobj < tracks_end && ti < R01_BGM_TRACKS_MAX) {
+                const char *tend = json_object_end(tobj);
+                char *slice;
+                size_t slen;
+                char *name;
+                const char *ch_sec;
+                const char *ch_end;
+                const char *carr;
+                int ch;
+                if (!tend || tend >= tracks_end) {
+                    break;
+                }
+                slen = (size_t)(tend - tobj + 1);
+                slice = (char *)malloc(slen + 1u);
+                if (!slice) {
+                    break;
+                }
+                memcpy(slice, tobj, slen);
+                slice[slen] = '\0';
+                name = json_string_field_dup(slice, "\"name\"");
+                if (name) {
+                    snprintf(p->bgm.track_name[ti], sizeof(p->bgm.track_name[ti]), "%s", name);
+                    free(name);
+                } else {
+                    snprintf(p->bgm.track_name[ti], sizeof(p->bgm.track_name[ti]), "Track %d", ti + 1);
+                }
+                ch_sec = json_find(slice, "\"channels\"");
+                ch_end = json_array_end(ch_sec);
+                carr = ch_sec ? strchr(ch_sec, '[') : NULL;
+                if (carr) {
+                    carr++; /* past outer '[' */
+                }
+                for (ch = 0; ch < R01_BGM_CH_COUNT && carr && ch_end && carr < ch_end; ch++) {
+                    const char *lb = strchr(carr, '[');
+                    const char *rb;
+                    int depth;
+                    int in_str;
+                    const char *robj;
+                    int n = 0;
+                    if (!lb || lb >= ch_end) {
+                        break;
+                    }
+                    depth = 0;
+                    in_str = 0;
+                    rb = NULL;
+                    for (robj = lb; *robj && robj < ch_end; robj++) {
+                        if (in_str) {
+                            if (*robj == '\\' && robj[1]) {
+                                robj++;
+                                continue;
+                            }
+                            if (*robj == '\"') {
+                                in_str = 0;
+                            }
+                            continue;
+                        }
+                        if (*robj == '\"') {
+                            in_str = 1;
+                            continue;
+                        }
+                        if (*robj == '[') {
+                            depth++;
+                        } else if (*robj == ']') {
+                            depth--;
+                            if (depth == 0) {
+                                rb = robj;
+                                break;
+                            }
+                        }
+                    }
+                    if (!rb) {
+                        break;
+                    }
+                    robj = strchr(lb, '{');
+                    while (robj && robj < rb && n < R01_BGM_REGIONS_MAX) {
+                        const char *ro_end = json_object_end(robj);
+                        char *rslice;
+                        size_t rlen;
+                        char *tok;
+                        int s = 0, l = 1, m = 0;
+                        if (!ro_end || ro_end > rb) {
+                            break;
+                        }
+                        rlen = (size_t)(ro_end - robj + 1);
+                        rslice = (char *)malloc(rlen + 1u);
+                        if (!rslice) {
+                            break;
+                        }
+                        memcpy(rslice, robj, rlen);
+                        rslice[rlen] = '\0';
+                        json_int_after(rslice, "\"s\"", &s);
+                        json_int_after(rslice, "\"l\"", &l);
+                        json_int_after(rslice, "\"m\"", &m);
+                        tok = json_string_field_dup(rslice, "\"t\"");
+                        free(rslice);
+                        if (l < 1) {
+                            l = 1;
+                        }
+                        p->bgm.region[ti][ch][n].start = s;
+                        p->bgm.region[ti][ch][n].len = l;
+                        p->bgm.region[ti][ch][n].midi = m;
+                        if (tok) {
+                            snprintf(p->bgm.region[ti][ch][n].tok, sizeof(p->bgm.region[ti][ch][n].tok), "%s",
+                                     tok);
+                            free(tok);
+                        } else {
+                            snprintf(p->bgm.region[ti][ch][n].tok, sizeof(p->bgm.region[ti][ch][n].tok), "--");
+                        }
+                        n++;
+                        robj = strchr(ro_end + 1, '{');
+                    }
+                    p->bgm.region_count[ti][ch] = n;
+                    carr = rb + 1;
+                }
+                free(slice);
+                ti++;
+                tobj = strchr(tend + 1, '{');
+            }
+            if (p->bgm.track_count < ti) {
+                p->bgm.track_count = ti;
+            }
+            if (p->bgm.track_count > R01_BGM_TRACKS_MAX) {
+                p->bgm.track_count = R01_BGM_TRACKS_MAX;
+            }
+            if (ti > 0 || p->bgm.track_count > 0) {
+                p->bgm.present = 1;
+            }
+        }
+    }
     free(buf);
     return 0;
 }
