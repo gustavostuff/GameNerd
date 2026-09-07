@@ -492,7 +492,6 @@ static void viz_apply_step(R01sAtmega328p *chip, int step) {
             if (r01_nes_parse_hex_u8(tok, &hex) || r01_nes_parse_note_hz(tok, &hz)) {
                 int kick = (hex == 0xFD || hz > 0.f) ? 1 : 0;
                 r01s_atmega328p_voice_set(chip, 4, R01S_APU_WAVE_DPCM, 1, 12, 0, kick ? 40 : 24);
-                /* Musical ms already at 15x wall (ms_per_step scale). */
                 vz->dpcm_ms_left = kick ? 120 : 60;
             }
         }

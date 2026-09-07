@@ -10,7 +10,7 @@
 #define R01S_APU_BGM_N 5 /* channels 0-4 */
 #define R01S_APU_SFX_N 3 /* channels 5-7 */
 #define R01S_APU_SCOPE_N 160
-/* Silent WAVE-monitor BGM: Studio Track-1 demo at wall-clock tempo * scale (no speaker). */
+/* Silent WAVE-monitor BGM: Studio Track-1 demo (no speaker). */
 #define R01S_APU_VIZ_TEMPO_BPM 140
 #define R01S_APU_VIZ_TEMPO_SCALE 15
 #define R01S_APU_VIZ_STEPS_MAX 16
@@ -54,9 +54,9 @@ typedef struct R01sApuViz {
     int step;
     int track_steps;
     int ms_accum;
-    int ms_per_step; /* real tempo / R01S_APU_VIZ_TEMPO_SCALE */
+    int ms_per_step; /* 60000 / (BPM * TEMPO_SCALE) */
     uint32_t last_ms;
-    int dpcm_ms_left; /* DPCM one-shot remaining (wall ms @ viz tempo) */
+    int dpcm_ms_left; /* DPCM one-shot remaining (viz clock ms) */
     char cell[R01S_APU_VIZ_STEPS_MAX][R01S_APU_BGM_N][R01S_APU_VIZ_TOKEN];
 } R01sApuViz;
 
@@ -70,7 +70,7 @@ typedef struct R01sAtmega328p {
     uint32_t pwm_hi_samples;
     uint32_t pwm_edges;
     R01sLevel pwm_prev;
-    R01sApuViz viz; /* Host Play WAVE feed (silent, 15x tempo) */
+    R01sApuViz viz; /* Host Play WAVE feed (silent) */
 } R01sAtmega328p;
 
 void r01s_atmega328p_init(R01sAtmega328p *chip, const char *refdes);
