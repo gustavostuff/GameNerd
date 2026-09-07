@@ -29,7 +29,7 @@ This is the overall hardware roadmap:
 
 In cartridge, same **32 KB PRG** as classic NES NROM games (Exitebike, Balloon Fight, Ice Climbers) but it buys far more game: **4.5x** more CPU cycles per frame at **8 MHz**, **32 KB** system RAM (not 2 KB). Scroll, sprite line fill and world map streaming are hardware jobs, so PRG stays game logic, not VBlank nametable tricks. A structured **BG0** far plane scrolls under BG1 (color **0** windows) for real dual-layer parallax, not a mapper hack. See [`docs/selling_points.md`](docs/selling_points.md).
 
-## Screenshots (scaled to 1x)
+## Screenshots
 
 Peek at Retr01 Studio:
 

@@ -718,7 +718,7 @@
 		(property "Reference" "CD1"
 			(at 2.5 -2.5 0)
 			(layer "F.SilkS")
-			(uuid "138d264f-e90e-4fc8-845e-cdfc3678fce4")
+			(uuid "1b96e8b4-b6c2-4b4c-b576-3b4f00c83cb3")
 			(effects
 				(font
 					(size 1 1)
@@ -729,7 +729,7 @@
 		(property "Value" "100nF"
 			(at 2.5 2.5 0)
 			(layer "F.Fab")
-			(uuid "f680374e-796e-4d20-a0b7-c58228df4952")
+			(uuid "46f0c5b1-c689-45da-8326-3d768c4d9526")
 			(effects
 				(font
 					(size 1 1)
@@ -741,7 +741,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "ba550c9b-4ff8-4518-8977-f93954e1f4b2")
+			(uuid "ee3695d0-eff7-4a6f-ac81-b48992b57bb6")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -752,7 +752,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d2ea1054-99bd-4447-ab58-425f46655a19")
+			(uuid "ebafa6e4-484c-4bea-bc1e-23b2f57b9748")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1242,16 +1242,15 @@
 		)
 	)
 	(footprint "Retr01_Lib:Cart_Edge_2x18_P2.54mm"
-		(locked yes)
 		(layer "F.Cu")
 		(uuid "c59a1827-d581-43e2-86bd-168a298fac3b")
 		(at 25.92 75 90)
 		(descr "Retr01 cart gold fingers 2x18 2.54mm. Pads 1-18=A1-A18 (F.Cu), 19-36=B1-B18 (B.Cu under A). Mate EDAC 395-036-520-201. Board 1.6mm. Place origin on Edge.Cuts insert edge, copper toward +X. docs/cart.md")
 		(tags "cart edge gold finger Retr01 EDAC 2.54mm")
 		(property "Reference" "J36"
-			(at 10 -2 90)
+			(at 12 0.08 180)
 			(layer "F.SilkS")
-			(uuid "30e18a31-1cfb-479d-b51f-13fb31411144")
+			(uuid "e5e89076-e39b-4d3a-95de-6b5aec08d9f9")
 			(effects
 				(font
 					(size 1 1)
@@ -1262,7 +1261,8 @@
 		(property "Value" "CART_EDGE_36"
 			(at 13 5.16 0)
 			(layer "F.Fab")
-			(uuid "6e0be5d7-f600-4ded-a313-b07954e90f2e")
+			(hide yes)
+			(uuid "84826d84-be3f-4b0c-aac8-8de637ed4a67")
 			(effects
 				(font
 					(size 1 1)
@@ -1275,7 +1275,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "293cab0c-ef9c-4b32-a39c-5e4607a0900d")
+			(uuid "7b3465ef-9aec-4606-9abf-eecfec8c81be")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1288,7 +1288,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "58f235b2-aa83-4cea-a7ef-2676920a7402")
+			(uuid "83f4ca24-a65d-4402-9f41-8cab6eadeae7")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1417,7 +1417,7 @@
 			(uuid "b91b1020-f905-4fde-a3e7-7c5d18d5dc78")
 		)
 		(fp_text user "A1"
-			(at 9.2 0 90)
+			(at 9.2 0 180)
 			(layer "F.SilkS")
 			(uuid "4fddc1ed-3132-438d-bdd2-78a79a46132c")
 			(effects
@@ -1428,7 +1428,7 @@
 			)
 		)
 		(fp_text user "A18"
-			(at 9.2 43.18 90)
+			(at 9.2 43.18 180)
 			(layer "F.SilkS")
 			(uuid "1e811afb-45ce-44ba-8cf5-8364fc47a43d")
 			(effects
@@ -2390,17 +2390,17 @@
 			)
 		)
 	)
-	(gr_poly
-		(pts
-			(xy 20 20) (xy 75 20) (xy 75 67) (xy 71 67) (xy 71 75) (xy 24 75) (xy 24 67) (xy 20 67)
-		)
+	(gr_rect
+		(start 24 20)
+		(end 71 75)
+		(radius 1)
 		(stroke
 			(width 0.05)
-			(type solid)
+			(type default)
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "b5b02d73-1184-4326-9f41-ae7dce8fd01a")
+		(uuid "1c0e84b8-a847-465f-8449-de6a59f36608")
 	)
 	(zone
 		(net "+5V")
