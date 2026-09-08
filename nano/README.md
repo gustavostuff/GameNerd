@@ -1,5 +1,7 @@
 # Retr01 Nano
 
+**The smallest, cutest, simplest cartridge-based dual gaming system (arcade + console).**
+
 **Status: design only.** No firmware or PCB in this tree yet.
 
 Retr01 Nano is a **spiritual child** of [Retr01](../README.md): same 128-wide arcade language, far less hardware. One **ATmega1284P** runs a **fixed, open console firmware**. Games live on a **tiny dual-sided cartridge** (SPI flash + save EEPROM). There is **no 6502** and **no external video ASIC**.
