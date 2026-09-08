@@ -10,6 +10,7 @@ void r01ne_play_reset(R01nePlay *pl) {
     memset(pl, 0, sizeof(*pl));
     pl->player_type = -1;
     pl->player_fg = 0;
+    pl->move_strategy = R01NE_MOVE_TILE_ENTER_PIXEL;
     r01_play_anim_init(&pl->anim);
 }
 
@@ -23,6 +24,14 @@ static void sync_tiles_from_pixels(R01nePlay *pl) {
     }
     pl->player_tx = pl->player_px / 8;
     pl->player_ty = pl->player_py / 8;
+}
+
+static int local_ox(const R01nePlay *pl) {
+    return pl->player_px - pl->player_tx * 8;
+}
+
+static int local_oy(const R01nePlay *pl) {
+    return pl->player_py - pl->player_ty * 8;
 }
 
 static int player_instance_spawn(R01neMachine *m, int *out_type, int *out_fg, int *out_x, int *out_y) {
@@ -85,17 +94,51 @@ static int tile_enter_ok(R01neMachine *m, int tx, int ty) {
     return 1;
 }
 
+static int try_enter_tile(R01neMachine *m, int ntx, int nty, int entry_ox, int entry_oy) {
+    R01nePlay *pl;
+    if (!m) {
+        return 0;
+    }
+    if (!tile_enter_ok(m, ntx, nty)) {
+        return 0;
+    }
+    pl = &m->play;
+    pl->player_tx = ntx;
+    pl->player_ty = nty;
+    pl->player_px = ntx * 8 + entry_ox;
+    pl->player_py = nty * 8 + entry_oy;
+    return 1;
+}
+
 /*
- * Integrate one axis in pixels. Visual tile updates only when the pixel path
- * crosses a tile boundary — and only if that tile is enterable.
+ * Default strategy (TILE_ENTER_PIXEL):
+ * - From tile rest (local 0,0) on a fresh direction press: immediately enter the
+ *   adjacent tile at the direction entry pixel (R:0,0 L:7,0 U:0,7 D:0,0).
+ * - While held afterward: 1 px/frame; crossing a boundary uses the same entry
+ *   pixels and the same solid/screen checks.
  */
-static void try_move_axis(R01neMachine *m, int dpx, int dpy) {
+static void try_move_axis_tile_enter_pixel(R01neMachine *m, int dpx, int dpy, int pressed) {
     R01nePlay *pl;
     int nx, ny, ntx, nty;
+    int entry_ox, entry_oy;
     if (!m || (dpx == 0 && dpy == 0)) {
         return;
     }
     pl = &m->play;
+
+    if (pressed && local_ox(pl) == 0 && local_oy(pl) == 0) {
+        if (dpx > 0) {
+            try_enter_tile(m, pl->player_tx + 1, pl->player_ty, 0, 0);
+        } else if (dpx < 0) {
+            try_enter_tile(m, pl->player_tx - 1, pl->player_ty, 7, 0);
+        } else if (dpy > 0) {
+            try_enter_tile(m, pl->player_tx, pl->player_ty + 1, 0, 0);
+        } else if (dpy < 0) {
+            try_enter_tile(m, pl->player_tx, pl->player_ty - 1, 0, 7);
+        }
+        return;
+    }
+
     nx = pl->player_px + dpx;
     ny = pl->player_py + dpy;
     if (nx < 0 || ny < 0) {
@@ -103,26 +146,49 @@ static void try_move_axis(R01neMachine *m, int dpx, int dpy) {
     }
     ntx = nx / 8;
     nty = ny / 8;
-    if (ntx != pl->player_tx || nty != pl->player_ty) {
-        if (!tile_enter_ok(m, ntx, nty)) {
-            /* Stay in current tile; park on the edge facing the block. */
-            if (dpx > 0) {
-                pl->player_px = pl->player_tx * 8 + 7;
-            } else if (dpx < 0) {
-                pl->player_px = pl->player_tx * 8;
-            }
-            if (dpy > 0) {
-                pl->player_py = pl->player_ty * 8 + 7;
-            } else if (dpy < 0) {
-                pl->player_py = pl->player_ty * 8;
-            }
-            return;
-        }
+    if (ntx == pl->player_tx && nty == pl->player_ty) {
+        pl->player_px = nx;
+        pl->player_py = ny;
+        return;
     }
-    pl->player_px = nx;
-    pl->player_py = ny;
-    pl->player_tx = ntx;
-    pl->player_ty = nty;
+
+    /* Boundary cross → direction entry pixel on the destination tile. */
+    entry_ox = 0;
+    entry_oy = 0;
+    if (dpx > 0) {
+        entry_ox = 0;
+        entry_oy = local_oy(pl);
+        ntx = pl->player_tx + 1;
+        nty = pl->player_ty;
+    } else if (dpx < 0) {
+        entry_ox = 7;
+        entry_oy = local_oy(pl);
+        ntx = pl->player_tx - 1;
+        nty = pl->player_ty;
+    } else if (dpy > 0) {
+        entry_ox = local_ox(pl);
+        entry_oy = 0;
+        ntx = pl->player_tx;
+        nty = pl->player_ty + 1;
+    } else if (dpy < 0) {
+        entry_ox = local_ox(pl);
+        entry_oy = 7;
+        ntx = pl->player_tx;
+        nty = pl->player_ty - 1;
+    }
+    try_enter_tile(m, ntx, nty, entry_ox, entry_oy);
+}
+
+static void try_move_axis(R01neMachine *m, int dpx, int dpy, int pressed) {
+    if (!m) {
+        return;
+    }
+    switch (m->play.move_strategy) {
+    case R01NE_MOVE_TILE_ENTER_PIXEL:
+    default:
+        try_move_axis_tile_enter_pixel(m, dpx, dpy, pressed);
+        break;
+    }
 }
 
 int r01ne_play_start(R01neMachine *m) {
@@ -131,9 +197,16 @@ int r01ne_play_start(R01neMachine *m) {
         return 0;
     }
     r01ne_play_reset(&m->play);
-    /* Defaults match exported custom_logic: Idle=0, Walk=1. */
+    /* Defaults match player entity: idle, slide_x, slide_up, slide_down. */
     r01_play_anim_set_idle_state(&m->play.anim, 0);
-    r01_play_anim_set_walk_all(&m->play.anim, 1);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_RIGHT, 1);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_LEFT, 1);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_DOWN_RIGHT, 1);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_DOWN_LEFT, 1);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP_RIGHT, 1);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP_LEFT, 1);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP, 2);
+    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_DOWN, 3);
     if (player_instance_spawn(m, &type, &fg, &sx, &sy)) {
         m->play.player_type = type;
         m->play.player_fg = fg;
@@ -182,14 +255,26 @@ void r01ne_play_sync_screen(R01neMachine *m) {
 void r01ne_play_tick(R01neMachine *m) {
     R01nePlay *pl;
     uint8_t pad;
+    uint8_t pressed;
+    uint8_t released;
     int dx = 0;
     int dy = 0;
+    int had_h;
+    int had_v;
+    int has_h;
+    int has_v;
     if (!m || !m->play.enabled) {
         return;
     }
     pl = &m->play;
     pad = pl->pad0;
-    pl->pad_prev = pad;
+    pressed = (uint8_t)(pad & (uint8_t)~pl->pad_prev);
+    released = (uint8_t)(pl->pad_prev & (uint8_t)~pad);
+
+    had_h = (pl->pad_prev & (R01NE_PAD_LEFT | R01NE_PAD_RIGHT)) != 0;
+    had_v = (pl->pad_prev & (R01NE_PAD_UP | R01NE_PAD_DOWN)) != 0;
+    has_h = (pad & (R01NE_PAD_LEFT | R01NE_PAD_RIGHT)) != 0;
+    has_v = (pad & (R01NE_PAD_UP | R01NE_PAD_DOWN)) != 0;
 
     if (pad & R01NE_PAD_LEFT) {
         dx = -1;
@@ -204,13 +289,25 @@ void r01ne_play_tick(R01neMachine *m) {
 
     r01_play_anim_update(&pl->anim, dx, dy);
 
-    /* Axis-separated pixel integration (speed); tile/visual updates on boundaries. */
     if (dx != 0) {
-        try_move_axis(m, dx, 0);
+        int edge = (dx < 0) ? (pressed & R01NE_PAD_LEFT) : (pressed & R01NE_PAD_RIGHT);
+        try_move_axis(m, dx, 0, edge != 0);
     }
     if (dy != 0) {
-        try_move_axis(m, 0, dy);
+        int edge = (dy < 0) ? (pressed & R01NE_PAD_UP) : (pressed & R01NE_PAD_DOWN);
+        try_move_axis(m, 0, dy, edge != 0);
     }
 
+    /* Release an axis → snap that axis to local 0 in the current tile. */
+    if (pl->move_strategy == R01NE_MOVE_TILE_ENTER_PIXEL) {
+        if (had_h && !has_h && (released & (R01NE_PAD_LEFT | R01NE_PAD_RIGHT))) {
+            pl->player_px = pl->player_tx * 8;
+        }
+        if (had_v && !has_v && (released & (R01NE_PAD_UP | R01NE_PAD_DOWN))) {
+            pl->player_py = pl->player_ty * 8;
+        }
+    }
+
+    pl->pad_prev = pad;
     r01ne_play_sync_screen(m);
 }

@@ -34,6 +34,7 @@ Later they are intended to **share common code** with the full Studio / Emu / Si
 |-----|--------|
 | [`docs/overview.md`](docs/overview.md) | Goals, cuts, roadmap |
 | [`docs/graphics.md`](docs/graphics.md) | Worlds, screens, attr byte, entities |
+| [`docs/movement.md`](docs/movement.md) | Pixel vs tile coords, default move strategy |
 | [`docs/video.md`](docs/video.md) | RGBS, 2x to 256x192, line buffers, VBlank loads |
 | [`docs/memory_and_software.md`](docs/memory_and_software.md) | MCU vs cart budgets, open firmware, SDK |
 | [`docs/cache_architecture.md`](docs/cache_architecture.md) | How 16 KB SRAM caches cart MAP/CHR without filling to the brim |

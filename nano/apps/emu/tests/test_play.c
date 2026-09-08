@@ -9,8 +9,6 @@ int main(int argc, char **argv) {
     R01neMachine m;
     char err[128];
     int tx0, ty0, px0;
-    int tile_moved = 0;
-    int pixel_moved = 0;
     int blocked = 0;
     int i;
 
@@ -26,48 +24,118 @@ int main(int argc, char **argv) {
     tx0 = m.play.player_tx;
     ty0 = m.play.player_ty;
     px0 = m.play.player_px;
-
-    /* Hold right: pixels integrate every frame; tile advances only every 8 px. */
-    r01ne_play_set_pad(&m, R01NE_PAD_RIGHT);
-    for (i = 0; i < 8; i++) {
-        int px = m.play.player_px;
-        int tx = m.play.player_tx;
-        r01ne_machine_frame(&m);
-        if (m.play.player_px != px) {
-            pixel_moved = 1;
-        }
-        if (i < 7 && m.play.player_tx != tx) {
-            fprintf(stderr, "tile advanced early at step %d (px=%d tx=%d)\n", i, m.play.player_px,
-                    m.play.player_tx);
-            return 1;
-        }
-    }
-    if (m.play.player_tx != tx0 + 1 || m.play.player_ty != ty0) {
-        fprintf(stderr, "expected tile +1 after 8 px, got tx=%d (from %d) px=%d\n", m.play.player_tx, tx0,
-                m.play.player_px);
+    if (px0 != tx0 * 8 || m.play.player_py != ty0 * 8) {
+        fprintf(stderr, "expected rest at local (0,0), got px=%d py=%d tx=%d ty=%d\n", m.play.player_px,
+                m.play.player_py, tx0, ty0);
         return 1;
     }
-    tile_moved = 1;
-    if (!pixel_moved) {
-        fprintf(stderr, "expected pixel integration\n");
+
+    /* Press right from rest: immediate enter of next tile at local (0,0). */
+    r01ne_play_set_pad(&m, R01NE_PAD_RIGHT);
+    r01ne_machine_frame(&m);
+    if (m.play.player_tx != tx0 + 1 || m.play.player_ty != ty0) {
+        fprintf(stderr, "expected immediate tile +1 on press, got tx=%d (from %d) px=%d\n", m.play.player_tx,
+                tx0, m.play.player_px);
+        return 1;
+    }
+    if (m.play.player_px != m.play.player_tx * 8 || m.play.player_py != m.play.player_ty * 8) {
+        fprintf(stderr, "expected entry at local (0,0), got px=%d py=%d\n", m.play.player_px, m.play.player_py);
         return 1;
     }
     if (!r01_play_anim_moving(&m.play.anim) || r01_play_anim_entity_state(&m.play.anim) != 1) {
-        fprintf(stderr, "expected walk state while moving\n");
+        fprintf(stderr, "expected slide_x state while moving right\n");
         return 1;
     }
 
-    r01ne_play_set_pad(&m, 0);
-    r01ne_machine_frame(&m);
+    /* Hold: 1 px/frame a few steps, then release → snap X to local 0 (same tile). */
+    for (i = 0; i < 3; i++) {
+        int px = m.play.player_px;
+        int tx = m.play.player_tx;
+        r01ne_machine_frame(&m);
+        if (m.play.player_tx != tx) {
+            fprintf(stderr, "tile changed early during pixel walk at step %d\n", i);
+            return 1;
+        }
+        if (m.play.player_px != px + 1) {
+            fprintf(stderr, "expected +1 px at step %d (px %d -> %d)\n", i, px, m.play.player_px);
+            return 1;
+        }
+    }
+    if (m.play.player_px != m.play.player_tx * 8 + 3) {
+        fprintf(stderr, "expected local x=3 before release, px=%d\n", m.play.player_px);
+        return 1;
+    }
+    {
+        int tx = m.play.player_tx;
+        r01ne_play_set_pad(&m, 0);
+        r01ne_machine_frame(&m);
+        if (m.play.player_tx != tx || m.play.player_px != tx * 8) {
+            fprintf(stderr, "expected release snap to local x=0, tx=%d px=%d\n", m.play.player_tx,
+                    m.play.player_px);
+            return 1;
+        }
+    }
     if (r01_play_anim_moving(&m.play.anim) || r01_play_anim_entity_state(&m.play.anim) != 0) {
         fprintf(stderr, "expected idle after release\n");
         return 1;
+    }
+
+    /* Left from rest: enter left tile at local (7,0); release snaps X to 0. */
+    {
+        int tx = m.play.player_tx;
+        int ty = m.play.player_ty;
+        /* Snap to rest in current tile first. */
+        m.play.player_px = tx * 8;
+        m.play.player_py = ty * 8;
+        r01ne_play_set_pad(&m, 0);
+        r01ne_machine_frame(&m);
+        r01ne_play_set_pad(&m, R01NE_PAD_LEFT);
+        r01ne_machine_frame(&m);
+        if (m.play.player_tx != tx - 1 || m.play.player_px != m.play.player_tx * 8 + 7 ||
+            m.play.player_py != ty * 8) {
+            fprintf(stderr, "expected left enter at local (7,0), tx=%d px=%d py=%d\n", m.play.player_tx,
+                    m.play.player_px, m.play.player_py);
+            return 1;
+        }
+        r01ne_play_set_pad(&m, 0);
+        r01ne_machine_frame(&m);
+        if (m.play.player_px != m.play.player_tx * 8) {
+            fprintf(stderr, "expected left release snap to local x=0, px=%d\n", m.play.player_px);
+            return 1;
+        }
+    }
+
+    /* Up / down use slide_up (2) and slide_down (3). */
+    {
+        int ty = m.play.player_ty;
+        m.play.player_px = m.play.player_tx * 8;
+        m.play.player_py = ty * 8;
+        r01ne_play_set_pad(&m, R01NE_PAD_UP);
+        r01ne_machine_frame(&m);
+        if (r01_play_anim_entity_state(&m.play.anim) != 2) {
+            fprintf(stderr, "expected slide_up state, got %d\n", r01_play_anim_entity_state(&m.play.anim));
+            return 1;
+        }
+        r01ne_play_set_pad(&m, 0);
+        r01ne_machine_frame(&m);
+        m.play.player_px = m.play.player_tx * 8;
+        m.play.player_py = m.play.player_ty * 8;
+        r01ne_play_set_pad(&m, R01NE_PAD_DOWN);
+        r01ne_machine_frame(&m);
+        if (r01_play_anim_entity_state(&m.play.anim) != 3) {
+            fprintf(stderr, "expected slide_down state, got %d\n", r01_play_anim_entity_state(&m.play.anim));
+            return 1;
+        }
+        r01ne_play_set_pad(&m, 0);
+        r01ne_machine_frame(&m);
     }
 
     /* Solid: walk into a solid tile to the right if one exists. */
     {
         int found_solid = 0;
         int sx;
+        m.play.player_px = m.play.player_tx * 8;
+        m.play.player_py = m.play.player_ty * 8;
         for (sx = (m.play.player_tx + 1) * 8 + 4; sx < m.play.player_tx * 8 + 4 + 64; sx += 8) {
             if (r01ne_cart_solid_at(&m.cart, 0, sx, m.play.player_ty * 8 + 4)) {
                 found_solid = 1;
@@ -92,8 +160,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    printf("ok play tile=(%d,%d)->(%d,%d) px=%d->%d moved_tile=%d blocked=%d\n", tx0, ty0, m.play.player_tx,
-           m.play.player_ty, px0, m.play.player_px, tile_moved, blocked);
+    printf("ok play tile=(%d,%d)->(%d,%d) px=%d->%d blocked=%d\n", tx0, ty0, m.play.player_tx, m.play.player_ty,
+           px0, m.play.player_px, blocked);
     r01ne_machine_shutdown(&m);
     return 0;
 }

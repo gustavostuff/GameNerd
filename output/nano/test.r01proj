@@ -12,8 +12,8 @@
   "grid_rows": 16,
   "global_pal_bg": [[0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51], [0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51], [0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51], [0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51], [0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51], [0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51], [0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51], [0, 16, 32, 48], [0, 17, 33, 49], [0, 18, 34, 50], [0, 19, 35, 51]],
   "global_pal_spr": [[0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34], [0, 34, 34, 34]],
-  "bg_bank0_tiles": 4,
-  "bg_bank0_b64": "AAAAAAAAAAAAAAAAAAAAAAA8bl5+fjwAAAAAAAAAAAA+dfV/PiJjYwAAAAAAAAAAPnX1fz5mzMwAAAAAAAAAAA==",
+  "bg_bank0_tiles": 6,
+  "bg_bank0_b64": "AAAAAAAAAAAAAAAAAAAAAAA8bl5+fjwAAAAAAAAAAAA+dfV/PiBjYwAAAAAAAAAAPnX1fz5AzMwAAAAAAAAAADx+fn4YJGZmAAAAAAAAAAAYPH5+Wlo8AAAAAAAAAAAA",
   "spr_banks": [
     {"tiles": 0, "b64": ""},
     {"tiles": 0, "b64": ""},
@@ -29,10 +29,10 @@
   "entities": [
     {
       "name": "Player",
-      "state_count": 2,
+      "state_count": 4,
       "states": [
         {
-          "name": "Idle",
+          "name": "idle",
           "origin_x": 0, "origin_y": 0,
           "hitbox_x": 0, "hitbox_y": 0, "hitbox_w": 8, "hitbox_h": 8,
           "frame_count": 1,
@@ -41,12 +41,30 @@
           ]
         },
         {
-          "name": "Walk",
+          "name": "slide_x",
           "origin_x": 0, "origin_y": 0,
           "hitbox_x": 0, "hitbox_y": 0, "hitbox_w": 8, "hitbox_h": 8,
           "frame_count": 1,
           "frames": [
             {"parts": [{"bank":0,"tile":3,"pal":4,"fh":0,"fv":0,"dx":0,"dy":0}]}
+          ]
+        },
+        {
+          "name": "slide_up",
+          "origin_x": 0, "origin_y": 0,
+          "hitbox_x": 0, "hitbox_y": 0, "hitbox_w": 8, "hitbox_h": 8,
+          "frame_count": 1,
+          "frames": [
+            {"parts": [{"bank":0,"tile":4,"pal":4,"fh":0,"fv":0,"dx":0,"dy":0}]}
+          ]
+        },
+        {
+          "name": "slide_down",
+          "origin_x": 0, "origin_y": 0,
+          "hitbox_x": 0, "hitbox_y": 0, "hitbox_w": 8, "hitbox_h": 8,
+          "frame_count": 1,
+          "frames": [
+            {"parts": [{"bank":0,"tile":5,"pal":4,"fh":0,"fv":0,"dx":0,"dy":0}]}
           ]
         }
       ]

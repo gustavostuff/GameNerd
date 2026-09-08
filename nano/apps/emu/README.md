@@ -2,7 +2,7 @@
 
 Software picture emulator for **`.r01nano`** carts. Independent of full [`app/emu`](../../../app/emu/) for now (see [`nano/README.md`](../../README.md)).
 
-**v1 scope:** load cart → world 0 CHR + spawn MAP → Host Play (pixel integrate / **tile draw**, Walk state, solid MAP) → stamp soft entities → compose **128×96** → present **256×192** (2×). No audio yet.
+**v1 scope:** load cart → world 0 CHR + spawn MAP → Host Play (`TILE_ENTER_PIXEL` move — see [`../../docs/movement.md`](../../docs/movement.md)) → stamp soft entities → compose **128×96** → present **256×192** (2×). No audio yet.
 
 Studio **Ctrl+E** also writes `output/nano/C/` (`base_game.c`, `custom_logic.c`, headers) — same export contract as full Retr01. Host Play mirrors that API (Idle=0, Walk=1 from `custom_logic`).
 
