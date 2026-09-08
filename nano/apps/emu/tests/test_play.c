@@ -75,8 +75,13 @@ int main(int argc, char **argv) {
             return 1;
         }
     }
-    if (r01_play_anim_moving(&m.play.anim) || r01_play_anim_entity_state(&m.play.anim) != 0) {
-        fprintf(stderr, "expected idle after release\n");
+    if (r01_play_anim_moving(&m.play.anim)) {
+        fprintf(stderr, "expected not-moving after release\n");
+        return 1;
+    }
+    if (r01_play_anim_entity_state(&m.play.anim) != 1) {
+        fprintf(stderr, "expected to keep slide_x after release, got %d\n",
+                r01_play_anim_entity_state(&m.play.anim));
         return 1;
     }
 

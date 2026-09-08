@@ -161,10 +161,7 @@ void r01_player_anim_update(R01GameCtx *ctx, int dx, int dy) {
     }
     if (ctx->player_anim_moving) {
         ctx->player_anim_moving = 0;
-        ctx->player_anim_state = ctx->player_idle_state;
-        ctx->player_anim_frame = 0;
-        ctx->player_anim_ctr = 0;
-        /* Keep player_anim_dir / player_anim_flip_h from last movement. */
+        /* Keep last movement state/tile/flip — do not snap back to idle. */
     }
 }
 
