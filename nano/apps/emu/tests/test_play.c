@@ -79,8 +79,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "expected not-moving after release\n");
         return 1;
     }
-    if (r01_play_anim_entity_state(&m.play.anim) != 1) {
-        fprintf(stderr, "expected to keep slide_x after release, got %d\n",
+    if (r01_play_anim_entity_state(&m.play.anim) != 0) {
+        fprintf(stderr, "expected slide_x release to return to idle, got %d\n",
                 r01_play_anim_entity_state(&m.play.anim));
         return 1;
     }
@@ -123,6 +123,11 @@ int main(int argc, char **argv) {
         }
         r01ne_play_set_pad(&m, 0);
         r01ne_machine_frame(&m);
+        if (r01_play_anim_entity_state(&m.play.anim) != 2) {
+            fprintf(stderr, "expected slide_up kept after release, got %d\n",
+                    r01_play_anim_entity_state(&m.play.anim));
+            return 1;
+        }
         m.play.player_px = m.play.player_tx * 8;
         m.play.player_py = m.play.player_ty * 8;
         r01ne_play_set_pad(&m, R01NE_PAD_DOWN);
@@ -133,6 +138,11 @@ int main(int argc, char **argv) {
         }
         r01ne_play_set_pad(&m, 0);
         r01ne_machine_frame(&m);
+        if (r01_play_anim_entity_state(&m.play.anim) != 3) {
+            fprintf(stderr, "expected slide_down kept after release, got %d\n",
+                    r01_play_anim_entity_state(&m.play.anim));
+            return 1;
+        }
     }
 
     /* Solid: walk into a solid tile to the right if one exists. */

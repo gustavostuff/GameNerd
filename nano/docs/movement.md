@@ -50,7 +50,13 @@ Host Play and future game code pick a **movement strategy** per entity (or globa
 
 So mid-tile progress only lasts while held; release returns that axis to rest origin so the next press can snap cleanly again.
 
-**Pose / state on release:** keep the **last movement state** (and its CHR tile / flip). Do **not** switch back to `idle` when the stick is released. `idle` is the spawn / never-moved pose only. Same rule for any entity that uses directional states.
+**Pose / state on release** (policy in `custom_logic.c`, not base_game):
+
+- By default, keep the **last movement state** tile/flip when movement stops.
+- **Exception:** `slide_x` is configured with `r01_player_anim_set_release_to_idle` so release returns to **`idle`**.
+- `slide_up` / `slide_down` keep their pose after release.
+
+Runtime / base_game only **draw** the entity’s active state index (`player_anim_state`). Dir→state mapping and release rules belong in `custom_logic.c`.
 
 **Why the press snap:** from rest, Right/Down would otherwise only inch inside the current tile. The snap makes the first response a full cell enter so motion feels immediate; later frames are time-based at pixel rate.
 

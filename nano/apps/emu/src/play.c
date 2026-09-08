@@ -197,7 +197,7 @@ int r01ne_play_start(R01neMachine *m) {
         return 0;
     }
     r01ne_play_reset(&m->play);
-    /* Defaults match player entity: idle, slide_x, slide_up, slide_down. */
+    /* Host Play mirrors custom_logic pose policy (see output/nano/C/custom_logic.c). */
     r01_play_anim_set_idle_state(&m->play.anim, 0);
     r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_RIGHT, 1);
     r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_LEFT, 1);
@@ -207,6 +207,7 @@ int r01ne_play_start(R01neMachine *m) {
     r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP_LEFT, 1);
     r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP, 2);
     r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_DOWN, 3);
+    r01_play_anim_set_release_to_idle(&m->play.anim, 1, 1); /* slide_x → idle */
     if (player_instance_spawn(m, &type, &fg, &sx, &sy)) {
         m->play.player_type = type;
         m->play.player_fg = fg;

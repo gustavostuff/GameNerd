@@ -31,12 +31,15 @@ typedef struct R01PlayAnimCtx {
     int player_idle_state;
     int player_walk_state[8];
     int player_state_delay[R01_PLAY_ANIM_STATES_MAX];
+    /* If set for a state index, release (stop moving) snaps that state back to idle. */
+    int player_release_to_idle[R01_PLAY_ANIM_STATES_MAX];
 } R01PlayAnimCtx;
 
 void r01_play_anim_init(R01PlayAnimCtx *ctx);
 void r01_play_anim_set_idle_state(R01PlayAnimCtx *ctx, int entity_state_idx);
 void r01_play_anim_set_walk_state(R01PlayAnimCtx *ctx, int dir8, int entity_state_idx);
 void r01_play_anim_set_walk_all(R01PlayAnimCtx *ctx, int entity_state_idx);
+void r01_play_anim_set_release_to_idle(R01PlayAnimCtx *ctx, int entity_state_idx, int enable);
 void r01_play_default_face_set(R01PlayAnimCtx *ctx, int face);
 void r01_play_state_frame_delay_set(R01PlayAnimCtx *ctx, int entity_state_idx, int ticks);
 void r01_play_anim_update(R01PlayAnimCtx *ctx, int dx, int dy);

@@ -76,6 +76,7 @@ void r01_player_anim_init(R01GameCtx *ctx) {
     }
     for (i = 0; i < R01_ENTITY_STATES_MAX; i++) {
         ctx->player_state_delay[i] = R01_PLAYER_ANIM_DELAY_DEFAULT;
+        ctx->player_release_to_idle[i] = 0;
     }
     apply_idle_facing(ctx);
 }
@@ -113,6 +114,13 @@ void r01_player_anim_set_walk_all(R01GameCtx *ctx, int entity_state_idx) {
     if (ctx->player_anim_moving) {
         ctx->player_anim_state = entity_state_idx;
     }
+}
+
+void r01_player_anim_set_release_to_idle(R01GameCtx *ctx, int entity_state_idx, int enable) {
+    if (!ctx || entity_state_idx < 0 || entity_state_idx >= R01_ENTITY_STATES_MAX) {
+        return;
+    }
+    ctx->player_release_to_idle[entity_state_idx] = enable ? 1 : 0;
 }
 
 void r01_player_default_face_set(R01GameCtx *ctx, int face) {
@@ -161,7 +169,13 @@ void r01_player_anim_update(R01GameCtx *ctx, int dx, int dy) {
     }
     if (ctx->player_anim_moving) {
         ctx->player_anim_moving = 0;
-        /* Keep last movement state/tile/flip — do not snap back to idle. */
+        if (ctx->player_anim_state >= 0 && ctx->player_anim_state < R01_ENTITY_STATES_MAX &&
+            ctx->player_release_to_idle[ctx->player_anim_state]) {
+            ctx->player_anim_state = ctx->player_idle_state;
+            ctx->player_anim_frame = 0;
+            ctx->player_anim_ctr = 0;
+        }
+        /* Else keep last movement state/tile/flip (configured in custom_logic). */
     }
 }
 

@@ -58,6 +58,7 @@ struct R01GameCtx {
     int player_idle_state;
     int player_walk_state[8];
     int player_state_delay[R01_ENTITY_STATES_MAX];
+    int player_release_to_idle[R01_ENTITY_STATES_MAX];
     R01Projectile projectiles[R01_MAX_PROJECTILES];
 };
 
