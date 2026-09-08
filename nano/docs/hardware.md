@@ -67,7 +67,7 @@ Shared power and ground on both sides as needed. Remaining pads carry roughly:
 | VCC, GND | Shared |
 | Optional detect / WP | If pad count allows |
 
-Exact pin map freezes with the first cart schematic. HOLD/WP on the flash can be tied on the cart PCB to save edge pins.
+Exact pin map freezes with the first cart schematic; until then use [`pinmap.md`](pinmap.md) (Sim + SKiDL SoT). HOLD/WP on the flash can be tied on the cart PCB to save edge pins.
 
 ### Flashing carts
 

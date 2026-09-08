@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
         fprintf(stderr, "expected 3 islands\n");
         return 1;
     }
-    /* No 6502 island / part. */
     for (i = 0; i < board.builder.mount_count; i++) {
         const R01sEntity *e = board.builder.mounts[i].entity;
         if (e && e->part && strstr(e->part, "6502")) {
@@ -39,20 +38,21 @@ int main(int argc, char **argv) {
         fprintf(stderr, "boot: %s\n", r01ns_atmega1284p_nano_err(&board.mcu));
         return 1;
     }
-    r01ns_board_set_pad(&board, 0);
-    for (i = 0; i < 4; i++) {
+    r01ns_board_set_pads(&board, 0, 0);
+    /* One full field (active + VBlank) so kernel runs Host Play once. */
+    for (i = 0; i < R01NS_FIELD_LINES + 8; i++) {
         r01s_island_group_step(group);
     }
-    if (board.mcu.frames < 1 || board.sink.frames < 1) {
-        fprintf(stderr, "no frames after steps\n");
+    if (board.mcu.frames < 1) {
+        fprintf(stderr, "no completed fields after %d steps\n", R01NS_FIELD_LINES + 8);
         return 1;
     }
     if (board.mcu.vblank_refills < 1) {
         fprintf(stderr, "expected SPI MAP refill\n");
         return 1;
     }
-    printf("ok: islands=%d mounts=%d frames=%u spi=%u\n", group->island_count, board.builder.mount_count,
-           board.mcu.frames, board.mcu.map_bytes_spi);
+    printf("ok: islands=%d fields=%u steps=%u spi=%u line=%d\n", group->island_count, board.mcu.frames,
+           board.steps, board.mcu.map_bytes_spi, board.mcu.field_line);
     r01ns_board_shutdown(&board);
     return 0;
 }

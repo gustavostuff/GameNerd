@@ -1,24 +1,29 @@
 # Retr01 Nano Simulator
 
-**Board IC / netlist sim** for Retr01 Nano — not a second emulator window.
+**Board IC / netlist sim** for Retr01 Nano — foundation for SKiDL → Quilter, not a second emulator window.
 
-| vs | Nano Sim |
-|----|----------|
-| **Full Sim** | Same idea (entities, pins, islands, wire settle, SDL board UI). Nano is a **tiny** netlist — no 6502 / PLD / OAM / parallel SST39. |
-| **Nano Emu** | Picture + Host Play only. Sim **owns** the motherboard model; emu core is linked inside the behavioral 1284 firmware services (compose / play / `custom_logic`). |
-| **AVR ISA** | **Not yet** — 1284 stands in for open console firmware (VBlank compose, SPI MAP refill, pads). |
+## Is ~60 FPS “because Nano is simple?”
 
-## Board (v1)
+**Yes, now — with one caveat.**
+
+After fixing multi-field catchup, each UI frame advances **exactly one RGBS field** (~232 scanline steps). Scanline work is cheap on this tiny netlist, so the host finishes a field within one vsync easily. Full Retr01 Sim stays ~1 FPS because each step still does heavy beam/VRAM settle across ~23 ICs.
+
+| Still soft (OK for now) | Pin-accurate / board-true |
+|-------------------------|---------------------------|
+| Soft compose via emu core (= FW SRAM compose) | Nets in [`nano/docs/pinmap.md`](../../docs/pinmap.md) |
+| No AVR instruction ISA | SPI/I2C/PWM/XTAL/pad/sync on real PORT names |
+| No pixel-timed FG GPIO DAC shift | SST25 + 24C64 cart entities, WP#/HOLD# tied |
+| I2C protocol stub | 1 step = 1 RGBS line + VBlank SPI byte clocks |
+
+## Board
 
 | Island | Parts |
 |--------|--------|
-| **VIDEO** | `SCREEN_SINK` 256×192 RGBS |
-| **MCU** | `PWR5V`, `OSC8M`, `ATMEGA1284P` (Nano role), `PADS`, `PWM2CH` |
-| **CART** | `SST25VF010A` SPI flash + `24C64` I2C EEPROM |
+| **VIDEO** | `SCREEN_SINK` 256×192 |
+| **MCU** | `PWR5V`, crystal stand-in (`OSC8M` entity @ 20 MHz timing), `ATMEGA1284P` PDIP-40 signals, `PADS` P1+P2, `PWM2CH` |
+| **CART** | `SST25VF010A` + `24C64` |
 
-Wiring (explicit settle, not a SPICE net): power rail → chips; PHI2 → MCU CLK; SPI SS#/SCK/MOSI/MISO; I2C SDA/SCL; VSYNC → sink.
-
-Cart `.r01nano` loads into SST25. MCU boots via `r01ne_machine_boot_mem`. Each board step = one coarse VBlank (Host Play + soft compose + optional 384 B SPI MAP refill model).
+PCB target package for the MCU is **TQFP-44**; sim draws PDIP-40 with the **same PORT names** (wire by net, not DIP number).
 
 ## Build / run
 
@@ -27,16 +32,4 @@ Cart `.r01nano` loads into SST25. MCU boots via `r01ne_machine_boot_mem`. Each b
 ./nano_sim output/nano/test.r01nano
 ```
 
-You should see **islands and DIP packages**, with the game picture on **SCR1** — not a fullscreen emu viewport.
-
-**Controls:** SPACE pause · WASD + G pads · Esc quit · RMB/MMB pan · click/drag ICs · Ctrl+1/2/3 scale
-
-## Layout
-
-| Path | Role |
-|------|------|
-| `src/board.c` | Netlist recipe + `wire_*` + group step |
-| `chips/atmega1284p_nano.c` | Nano console MCU entity |
-| `chips/sst25vf010a.c` | SPI cart flash entity |
-| `chips/video_sink.c` | 256×192 display entity |
-| `src/ui.c` | Board canvas (islands / pins / SCR / arcade) |
+**Controls:** SPACE pause · WASD+G = P1 · arrows+,.= P2 · Esc · RMB pan · Ctrl+1/2/3 scale

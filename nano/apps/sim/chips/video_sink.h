@@ -21,6 +21,8 @@ void r01ns_video_sink_init(R01nsVideoSink *chip, const char *refdes);
 R01sEntity *r01ns_video_sink_entity(R01nsVideoSink *chip);
 
 void r01ns_video_sink_blit_rgb(R01nsVideoSink *chip, const uint8_t *rgb, size_t nbytes);
+/* Copy one RGBS scanline (y in 0..191) from a full 256x192 RGB24 framebuffer. */
+void r01ns_video_sink_plot_line_from_fb(R01nsVideoSink *chip, int y, const uint8_t *fb);
 void r01ns_video_sink_on_vblank(R01nsVideoSink *chip);
 const uint8_t *r01ns_video_sink_rgb(const R01nsVideoSink *chip);
 

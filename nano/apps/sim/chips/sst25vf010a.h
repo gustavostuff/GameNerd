@@ -25,7 +25,7 @@ void r01ns_sst25_init(R01nsSst25 *chip, const char *refdes);
 R01sEntity *r01ns_sst25_entity(R01nsSst25 *chip);
 
 int r01ns_sst25_load_path(R01nsSst25 *chip, const char *path, char *err, size_t err_cap);
-/* Coarse SPI READ: updates CE#/SCK/SI/SO pin levels while copying. */
-int r01ns_sst25_spi_read(R01nsSst25 *chip, uint32_t addr, uint8_t *dst, size_t len);
+/* Single-byte SPI READ pulse (updates CE#/SCK/SI/SO). */
+int r01ns_sst25_spi_read_byte(R01nsSst25 *chip, uint32_t addr, uint8_t *out);
 
 #endif

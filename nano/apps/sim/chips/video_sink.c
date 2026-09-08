@@ -60,6 +60,18 @@ void r01ns_video_sink_blit_rgb(R01nsVideoSink *chip, const uint8_t *rgb, size_t 
     r01s_entity_drive(&chip->base, "HSYNC", R01S_LVL_H);
 }
 
+void r01ns_video_sink_plot_line_from_fb(R01nsVideoSink *chip, int y, const uint8_t *fb) {
+    size_t off;
+    if (!chip || !fb || y < 0 || y >= R01NS_VIDEO_H) {
+        return;
+    }
+    off = (size_t)y * (size_t)R01NS_VIDEO_W * 3u;
+    memcpy(chip->rgb + off, fb + off, (size_t)R01NS_VIDEO_W * 3u);
+    r01s_entity_drive(&chip->base, "RGB", R01S_LVL_H);
+    r01s_entity_drive(&chip->base, "HSYNC", R01S_LVL_L);
+    r01s_entity_drive(&chip->base, "HSYNC", R01S_LVL_H);
+}
+
 void r01ns_video_sink_on_vblank(R01nsVideoSink *chip) {
     if (!chip) {
         return;

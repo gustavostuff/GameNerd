@@ -98,10 +98,10 @@ int r01ns_app_run(const char *cart_path) {
     r01ns_ui_mount_builder(&ui);
     group = r01ns_board_group(&board);
 
-    printf("nano_sim: IC board (VIDEO | MCU | CART) — not an emu window\n");
+    printf("nano_sim: IC board (VIDEO | MCU | CART) — scanline RGBS kernel\n");
     printf("  cart: %s (%zu bytes in SST25VF010A)\n", path, board.flash.image_len);
     printf("  parts: ATMEGA1284P + OSC8M + PWR5V + PADS + PWM2CH + SST25 + 24C64 + SCREEN_SINK\n");
-    printf("  1284 is behavioral FW services (compose/Host Play), not AVR ISA yet\n");
+    printf("  fidelity: 1 board step = 1 RGBS line (or VBlank line); not one emu frame/UI frame\n");
     printf("  SPACE pause. WASD+G pads. Esc quit. RMB pan.\n");
 
     fps_last = SDL_GetTicks();
@@ -140,12 +140,25 @@ int r01ns_app_run(const char *cart_path) {
         }
 
         r01ns_ui_sync_gamepads(&ui);
-        r01ns_board_set_pad(&board, r01ns_ui_pad_byte(&ui));
+        r01ns_board_set_pads(&board, r01ns_ui_pad_byte(&ui), r01s_gamepad_encode(&ui.gamepad[1]));
 
         ui.sim_steps = 0;
         if (group && group->running) {
-            r01s_island_group_step(group);
-            ui.sim_steps = 1;
+            /*
+             * Advance exactly one RGBS field per UI frame.
+             * Scanline steps are cheap — a wall-time budget would finish 2+ fields
+             * per vsync and Host Play would run >60 Hz (looks like frame-skip / turbo).
+             */
+            uint32_t fields0 = board.mcu.frames;
+            int n = 0;
+            while (n < R01NS_FIELD_LINES + 2) {
+                r01s_island_group_step(group);
+                n++;
+                if (board.mcu.frames > fields0) {
+                    break;
+                }
+            }
+            ui.sim_steps = n;
         } else if (group) {
             r01s_island_group_eval_idle(group);
         }

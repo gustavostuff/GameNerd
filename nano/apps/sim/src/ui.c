@@ -213,6 +213,25 @@ void r01ns_ui_sync_gamepads(R01nsUi *ui) {
     ui->gamepad[0].btn_y = (bits & R01_PAD_Y) ? 1 : 0;
     ui->gamepad[0].btn_coin = (bits & R01_PAD_COIN) ? 1 : 0;
     ui->gamepad[0].btn_start = (bits & R01_PAD_START) ? 1 : 0;
+
+    bits = r01_pad_bits_p2(keys);
+    r01s_gamepad_input_clear(&ui->gamepad[1]);
+    if (bits & R01_PAD_RIGHT) {
+        ui->gamepad[1].stick_x = R01S_GAMEPAD_STICK_RADIUS;
+    }
+    if (bits & R01_PAD_LEFT) {
+        ui->gamepad[1].stick_x = -R01S_GAMEPAD_STICK_RADIUS;
+    }
+    if (bits & R01_PAD_DOWN) {
+        ui->gamepad[1].stick_y = R01S_GAMEPAD_STICK_RADIUS;
+    }
+    if (bits & R01_PAD_UP) {
+        ui->gamepad[1].stick_y = -R01S_GAMEPAD_STICK_RADIUS;
+    }
+    ui->gamepad[1].btn_x = (bits & R01_PAD_X) ? 1 : 0;
+    ui->gamepad[1].btn_y = (bits & R01_PAD_Y) ? 1 : 0;
+    ui->gamepad[1].btn_coin = (bits & R01_PAD_COIN) ? 1 : 0;
+    ui->gamepad[1].btn_start = (bits & R01_PAD_START) ? 1 : 0;
 }
 
 uint8_t r01ns_ui_pad_byte(const R01nsUi *ui) {

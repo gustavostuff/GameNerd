@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-/* PHI2 half-period ns @ 8 MHz (matches full-sim OSC8M spirit). */
-#define R01NS_PHI2_HALF_NS 62ull
+/* Crystal half-period ns @ 20 MHz (nano/docs: 20 MHz preferred). OSC entity still toggles. */
+#define R01NS_XTAL_HALF_NS 25ull
 
 static R01nsBoard *board_from_group(R01sIslandGroup *group) {
     return group ? (R01nsBoard *)group->impl : NULL;
@@ -23,18 +23,16 @@ R01sIslandGroup *r01ns_board_group(R01nsBoard *board) {
 
 static void wire_power(R01nsBoard *b) {
     R01sLevel vdd;
-    /* VIN/EN strapped high so regulator comes up. */
     r01s_entity_drive(&b->pwr.base, "VIN", R01S_LVL_H);
     r01s_entity_drive(&b->pwr.base, "EN", R01S_LVL_H);
     r01s_entity_eval(&b->pwr.base);
     vdd = r01s_entity_sense(&b->pwr.base, "VDD");
 
     r01s_entity_drive(&b->osc.base, "VDD", vdd);
-    r01s_entity_drive(&b->osc.base, "OE#", R01S_LVL_L); /* active-low enable: L = on? check osc */
-    /* osc8m: OE#!=L means enabled, so drive OE# H or Z. Full sim wires OE# from HC14. Use Z. */
     r01s_entity_drive(&b->osc.base, "OE#", R01S_LVL_Z);
 
     r01s_entity_drive(&b->mcu.base, "VCC", vdd);
+    r01s_entity_drive(&b->mcu.base, "AVCC", vdd);
     r01s_entity_drive(&b->mcu.base, "RESET#", r01s_level_is_high(vdd) ? R01S_LVL_H : R01S_LVL_L);
     r01s_entity_drive(&b->flash.base, "VCC", vdd);
     r01s_entity_drive(&b->flash.base, "WP#", R01S_LVL_H);
@@ -46,25 +44,32 @@ static void wire_power(R01nsBoard *b) {
 }
 
 static void wire_clock(R01nsBoard *b) {
-    R01sLevel phi2 = r01s_entity_sense(&b->osc.base, "PHI2");
-    r01s_entity_drive(&b->mcu.base, "CLK", phi2);
+    /* Board crystal stand-in → XTAL1 (pinmap). OSC PHI2 pin is the toggling rail. */
+    R01sLevel xtal = r01s_entity_sense(&b->osc.base, "PHI2");
+    r01s_entity_drive(&b->mcu.base, "XTAL1", xtal);
 }
 
 static void wire_spi(R01nsBoard *b) {
-    /* MCU master → flash slave. */
-    r01s_entity_drive(&b->flash.base, "CE#", r01s_entity_sense(&b->mcu.base, "SS#"));
-    r01s_entity_drive(&b->flash.base, "SCK", r01s_entity_sense(&b->mcu.base, "SCK"));
-    r01s_entity_drive(&b->flash.base, "SI", r01s_entity_sense(&b->mcu.base, "MOSI"));
-    r01s_entity_drive(&b->mcu.base, "MISO", r01s_entity_sense(&b->flash.base, "SO"));
+    /* PB4/5/6/7 ↔ SST25 CE#/SI/SO/SCK (nano/docs/pinmap.md). */
+    r01s_entity_drive(&b->flash.base, "CE#", r01s_entity_sense(&b->mcu.base, "PB4"));
+    r01s_entity_drive(&b->flash.base, "SCK", r01s_entity_sense(&b->mcu.base, "PB7"));
+    r01s_entity_drive(&b->flash.base, "SI", r01s_entity_sense(&b->mcu.base, "PB5"));
+    r01s_entity_drive(&b->mcu.base, "PB6", r01s_entity_sense(&b->flash.base, "SO"));
 }
 
 static void wire_i2c(R01nsBoard *b) {
-    r01s_entity_drive(&b->eeprom.base, "SCL", r01s_entity_sense(&b->mcu.base, "SCL"));
-    r01s_entity_drive(&b->eeprom.base, "SDA", r01s_entity_sense(&b->mcu.base, "SDA"));
+    r01s_entity_drive(&b->eeprom.base, "SCL", r01s_entity_sense(&b->mcu.base, "PC0"));
+    r01s_entity_drive(&b->eeprom.base, "SDA", r01s_entity_sense(&b->mcu.base, "PC1"));
 }
 
 static void wire_video(R01nsBoard *b) {
-    r01s_entity_drive(&b->sink.base, "VSYNC", r01s_entity_sense(&b->mcu.base, "VSYNC"));
+    r01s_entity_drive(&b->sink.base, "HSYNC", r01s_entity_sense(&b->mcu.base, "PD0"));
+    r01s_entity_drive(&b->sink.base, "VSYNC", r01s_entity_sense(&b->mcu.base, "PD1"));
+}
+
+static void wire_pwm(R01nsBoard *b) {
+    r01s_entity_drive(&b->pwm.base, "PWM0", r01s_entity_sense(&b->mcu.base, "PD5"));
+    r01s_entity_drive(&b->pwm.base, "PWM1", r01s_entity_sense(&b->mcu.base, "PD4"));
 }
 
 static void board_wire(R01sIslandGroup *group) {
@@ -77,6 +82,7 @@ static void board_wire(R01sIslandGroup *group) {
     wire_spi(b);
     wire_i2c(b);
     wire_video(b);
+    wire_pwm(b);
     r01s_pads_refresh_preview(&b->pads);
     r01s_entity_eval(&b->mcu.base);
 }
@@ -101,17 +107,14 @@ static void board_step(R01sIslandGroup *group) {
     if (!b) {
         return;
     }
-    b->sim_ns += R01NS_PHI2_HALF_NS * 2ull; /* one full PHI2 period (coarse VBlank step) */
+    /* One PHI2 half + one RGBS scanline (or VBlank line) of the video kernel. */
+    b->sim_ns += R01NS_XTAL_HALF_NS;
     b->steps++;
     board_settle(b);
-    /* Toggle oscillator so PHI2 pin animates on the DIP. */
     r01s_entity_tick(&b->osc.base);
     board_settle(b);
     r01s_entity_tick(&b->mcu.base);
-    /* Behavioral FW: one Host Play / compose / SPI-refill service per board step. */
-    r01ns_atmega1284p_nano_vblank(&b->mcu);
-    board_settle(b);
-    r01s_entity_tick(&b->osc.base);
+    r01ns_atmega1284p_nano_kernel_tick(&b->mcu);
     board_settle(b);
 }
 
@@ -156,10 +159,10 @@ static void board_status(R01sIslandGroup *group, char *buf, size_t buf_len) {
         return;
     }
     snprintf(buf, buf_len,
-             "%s  steps=%u  frames=%u  SPI_MAP=%uB  PHI2=%s  VDD=%s",
-             group->running ? "RUN" : "PAUSE", b->steps, b->mcu.frames, b->mcu.map_bytes_spi,
-             r01s_level_is_high(r01s_entity_sense(&b->osc.base, "PHI2")) ? "H" : "L",
-             r01s_level_is_high(r01s_entity_sense(&b->pwr.base, "VDD")) ? "H" : "L");
+             "%s  steps=%u  fields=%u  line=%d/%d%s  SPI_MAP=%uB  PHI2=%s",
+             group->running ? "RUN" : "PAUSE", b->steps, b->mcu.frames, b->mcu.field_line,
+             R01NS_FIELD_LINES, b->mcu.in_vblank ? " VB" : "", b->mcu.map_bytes_spi,
+             r01s_level_is_high(r01s_entity_sense(&b->osc.base, "PHI2")) ? "H" : "L");
 }
 
 static void board_update_probes(R01sIslandGroup *group, int *probe_vdd, int *probe_phi2,
@@ -321,10 +324,11 @@ int r01ns_board_boot(R01nsBoard *board) {
     return r01ns_atmega1284p_nano_boot(&board->mcu);
 }
 
-void r01ns_board_set_pad(R01nsBoard *board, uint8_t p1) {
+void r01ns_board_set_pads(R01nsBoard *board, uint8_t p1, uint8_t p2) {
     if (!board) {
         return;
     }
     r01s_pads_set(&board->pads, 0, p1);
+    r01s_pads_set(&board->pads, 1, p2);
     r01s_pads_refresh_preview(&board->pads);
 }

@@ -30,18 +30,20 @@ int main(int argc, char **argv) {
     }
     px0 = board.mcu.machine.play.player_px;
     py0 = board.mcu.machine.play.player_py;
-    r01ns_board_set_pad(&board, R01S_PAD_RIGHT);
+    r01ns_board_set_pads(&board, R01S_PAD_RIGHT, 0);
     r01s_entity_eval(&board.mcu.base);
-    for (i = 0; i < 16; i++) {
+    /* Hold RIGHT across several fields (play advances on each VBlank enter). */
+    for (i = 0; i < R01NS_FIELD_LINES * 3; i++) {
         r01s_island_group_step(r01ns_board_group(&board));
     }
     if (board.mcu.machine.play.player_px == px0 && board.mcu.machine.play.player_py == py0) {
-        fprintf(stderr, "pad RIGHT did not move player (pad0=0x%02x)\n", board.mcu.machine.play.pad0);
+        fprintf(stderr, "pad RIGHT did not move player (pad0=0x%02x fields=%u)\n",
+                board.mcu.machine.play.pad0, board.mcu.frames);
         r01ns_board_shutdown(&board);
         return 1;
     }
-    printf("ok: moved dx=%d pad0=0x%02x\n", board.mcu.machine.play.player_px - px0,
-           board.mcu.machine.play.pad0);
+    printf("ok: moved dx=%d fields=%u pad0=0x%02x\n", board.mcu.machine.play.player_px - px0,
+           board.mcu.frames, board.mcu.machine.play.pad0);
     r01ns_board_shutdown(&board);
     return 0;
 }

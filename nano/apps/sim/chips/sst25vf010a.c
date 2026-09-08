@@ -81,6 +81,26 @@ int r01ns_sst25_load_path(R01nsSst25 *chip, const char *path, char *err, size_t 
     return 0;
 }
 
+int r01ns_sst25_spi_read_byte(R01nsSst25 *chip, uint32_t addr, uint8_t *out) {
+    uint8_t b;
+    int bit;
+    if (!chip || !out || addr >= R01NS_SST25_SIZE) {
+        return -1;
+    }
+    b = chip->mem[addr];
+    r01s_entity_drive(&chip->base, "CE#", R01S_LVL_L);
+    for (bit = 7; bit >= 0; bit--) {
+        r01s_entity_drive(&chip->base, "SI", R01S_LVL_L);
+        r01s_entity_drive(&chip->base, "SCK", R01S_LVL_L);
+        r01s_entity_drive(&chip->base, "SO", (b & (1u << bit)) ? R01S_LVL_H : R01S_LVL_L);
+        r01s_entity_drive(&chip->base, "SCK", R01S_LVL_H);
+    }
+    r01s_entity_drive(&chip->base, "SCK", R01S_LVL_L);
+    *out = b;
+    chip->spi_bytes_read++;
+    return 0;
+}
+
 int r01ns_sst25_spi_read(R01nsSst25 *chip, uint32_t addr, uint8_t *dst, size_t len) {
     size_t i;
     if (!chip || !dst || len < 1) {
@@ -89,18 +109,15 @@ int r01ns_sst25_spi_read(R01nsSst25 *chip, uint32_t addr, uint8_t *dst, size_t l
     if ((size_t)addr + len > R01NS_SST25_SIZE) {
         return -1;
     }
-    r01s_entity_drive(&chip->base, "CE#", R01S_LVL_L);
     for (i = 0; i < len; i++) {
-        uint8_t b = chip->mem[addr + (uint32_t)i];
-        r01s_entity_drive(&chip->base, "SI", R01S_LVL_L); /* host MOSI collapsed */
-        r01s_entity_drive(&chip->base, "SCK", (i & 1u) ? R01S_LVL_H : R01S_LVL_L);
-        r01s_entity_drive(&chip->base, "SO", (b & 0x80u) ? R01S_LVL_H : R01S_LVL_L);
-        dst[i] = b;
+        if (r01ns_sst25_spi_read_byte(chip, addr + (uint32_t)i, &dst[i]) != 0) {
+            r01s_entity_drive(&chip->base, "CE#", R01S_LVL_H);
+            r01s_entity_drive(&chip->base, "SO", R01S_LVL_Z);
+            return -1;
+        }
     }
     r01s_entity_drive(&chip->base, "CE#", R01S_LVL_H);
     r01s_entity_drive(&chip->base, "SO", R01S_LVL_Z);
-    r01s_entity_drive(&chip->base, "SCK", R01S_LVL_L);
-    chip->spi_bytes_read += (uint32_t)len;
     chip->spi_txns++;
     return 0;
 }
