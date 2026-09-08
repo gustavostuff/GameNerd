@@ -158,6 +158,8 @@ static void mcu_destroy(R01sEntity *e) {
 static const R01sEntityVTable MCU_VT = {mcu_reset, mcu_eval, mcu_tick, mcu_destroy};
 
 void r01ns_atmega1284p_nano_init(R01nsAtmega1284pNano *chip, const char *refdes) {
+    static const char *const pad_names[8] = {"PAD0", "PAD1", "PAD2", "PAD3",
+                                             "PAD4", "PAD5", "PAD6", "PAD7"};
     int i;
     if (!chip) {
         return;
@@ -176,9 +178,7 @@ void r01ns_atmega1284p_nano_init(R01nsAtmega1284pNano *chip, const char *refdes)
     r01s_entity_add_pin(&chip->base, 9, "OC1A", R01S_PIN_OUT);
     r01s_entity_add_pin(&chip->base, 10, "OC1B", R01S_PIN_OUT);
     for (i = 0; i < 8; i++) {
-        char name[8];
-        snprintf(name, sizeof(name), "PAD%d", i);
-        r01s_entity_add_pin(&chip->base, 11 + i, name, R01S_PIN_IN);
+        r01s_entity_add_pin(&chip->base, 11 + i, pad_names[i], R01S_PIN_IN);
     }
     r01s_entity_add_pin(&chip->base, 19, "VSYNC", R01S_PIN_OUT);
     r01s_entity_add_pin(&chip->base, 20, "VCC", R01S_PIN_PWR);

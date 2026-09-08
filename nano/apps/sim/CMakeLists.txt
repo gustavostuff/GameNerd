@@ -66,3 +66,7 @@ enable_testing()
 add_executable(test_nano_sim_boot tests/test_boot.c)
 target_link_libraries(test_nano_sim_boot PRIVATE retr01_nano_sim_core)
 add_test(NAME test_nano_sim_boot COMMAND test_nano_sim_boot ${R01_TEST_CART})
+
+add_executable(test_nano_sim_pads tests/test_pads_move.c)
+target_link_libraries(test_nano_sim_pads PRIVATE retr01_nano_sim_core)
+add_test(NAME test_nano_sim_pads COMMAND test_nano_sim_pads ${R01_TEST_CART})
