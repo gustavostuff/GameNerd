@@ -24,10 +24,29 @@ void ui_paint_stamp_set(UiState *ui, uint8_t tile, uint8_t attr) {
 
 void ui_paint_stamp_from_bank(UiState *ui, int bank, int tile_id) {
     uint8_t attr;
+    R01World *w;
+    int si, cell;
     if (!ui || bank < 0 || bank >= R01_BG_BANKS || tile_id < 0 || tile_id >= R01_TILES_PER_BANK) {
         return;
     }
     attr = r01_attr_pack(bank, ui->brush.pal & 7, ui->brush.flip_h, ui->brush.flip_v);
+    w = r01_project_active_world(ui->project);
+    if (w) {
+        for (si = 0; si < w->screen_count; si++) {
+            const R01Screen *s = &w->screens[si];
+            if (!s->present) {
+                continue;
+            }
+            for (cell = 0; cell < R01_TILES_PER_SCREEN; cell++) {
+                if (s->tiles[cell] == (uint8_t)tile_id && r01_attr_bank(s->attrs[cell]) == bank &&
+                    r01_attr_solid(s->attrs[cell])) {
+                    attr |= R01_ATTR_SOLID;
+                    goto solid_done;
+                }
+            }
+        }
+    }
+solid_done:
     ui->brush.armed = 1;
     ui->brush.bank = bank;
     ui->brush.tile_id = tile_id;

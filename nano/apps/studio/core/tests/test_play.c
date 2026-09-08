@@ -106,16 +106,18 @@ TEST_MAIN() {
     }
 
     {
-        uint8_t hw = r01_attr_hw(r01_attr_pack(1, 2, 0, 1));
         int touched;
         s = &p->worlds[0].screens[p->worlds[0].default_screen];
+        s->tiles[0] = 5;
+        s->tiles[1] = 5;
+        s->tiles[2] = 7;
         s->attrs[0] = r01_attr_pack(1, 2, 0, 1);
-        s->attrs[1] = r01_attr_pack(1, 2, 0, 1);
-        s->attrs[2] = r01_attr_pack(0, 0, 0, 0);
-        touched = r01_world_apply_solid_hw(&p->worlds[0], hw, 1);
-        EXPECT(touched >= 2, "solid by hw touches matching tiles");
-        EXPECT(r01_attr_solid(s->attrs[0]) && r01_attr_solid(s->attrs[1]), "matching attrs solid");
-        EXPECT(!r01_attr_solid(s->attrs[2]), "non-matching attrs unchanged");
+        s->attrs[1] = r01_attr_pack(1, 3, 0, 0); /* same bank+tile, different FG/flips */
+        s->attrs[2] = r01_attr_pack(1, 2, 0, 1); /* same attrs, different tile */
+        touched = r01_world_apply_solid_tile(&p->worlds[0], 1, 5, 1);
+        EXPECT(touched >= 2, "solid by bank+tile touches matching cells");
+        EXPECT(r01_attr_solid(s->attrs[0]) && r01_attr_solid(s->attrs[1]), "matching bank+tile solid");
+        EXPECT(!r01_attr_solid(s->attrs[2]), "different tile_id unchanged");
     }
 
     /* Seam: solid on neighboring screen blocks crossing the edge. */

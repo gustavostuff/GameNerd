@@ -176,7 +176,14 @@ void menu_open_tile(UiState *ui, int x, int y, int tx, int ty) {
     ui->menu.item_sub[ui->menu.item_count++] = 0;
     snprintf(ui->menu.items[ui->menu.item_count], 32, "Set tile palette");
     ui->menu.item_sub[ui->menu.item_count++] = UI_MENU_SUB_PAL;
-    snprintf(ui->menu.items[ui->menu.item_count], 32, "Set Solid");
+    {
+        R01Screen *s = ui_edit_map_screen(ui);
+        int solid = 0;
+        if (s && tx >= 0 && tx < R01_SCREEN_TILES_X && ty >= 0 && ty < R01_SCREEN_TILES_Y) {
+            solid = r01_attr_solid(s->attrs[ty * R01_SCREEN_TILES_X + tx]);
+        }
+        snprintf(ui->menu.items[ui->menu.item_count], 32, solid ? "Unset solid" : "Set solid");
+    }
     ui->menu.item_sub[ui->menu.item_count++] = 0;
     memset(ui->menu.item_disabled, 0, sizeof(ui->menu.item_disabled));
     if (screen_sel_is_multi(ui)) {

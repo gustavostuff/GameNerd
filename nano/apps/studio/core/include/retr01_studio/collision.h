@@ -3,7 +3,7 @@
 
 #include "retr01_studio/types.h"
 
-/* Hardware attr fields used for solid grouping (bank, FG, flips). Solid is bit7. */
+/* Attr without SOLID (bit7). Used by tile-edit “apply all” matching. */
 #define R01_ATTR_HW_MASK 0x7Fu
 
 static inline uint8_t r01_attr_hw(uint8_t a) {
@@ -26,9 +26,10 @@ int r01_world_aabb_ok(const R01World *w, int px, int py, int bw, int bh);
 int r01_world_player_aabb_ok(const R01World *w, int px, int py);
 
 /*
- * Set or clear R01_ATTR_SOLID on every tile in w whose hardware attrs match hw_key.
+ * Set or clear R01_ATTR_SOLID on every MAP cell in w that uses CHR bank+tile_id.
+ * (Matching bank/FG/flips alone would solid empty cells en masse — wrong for Nano.)
  * Returns number of cells touched.
  */
-int r01_world_apply_solid_hw(R01World *w, uint8_t hw_key, int set_solid);
+int r01_world_apply_solid_tile(R01World *w, int bank, uint8_t tile_id, int set_solid);
 
 #endif

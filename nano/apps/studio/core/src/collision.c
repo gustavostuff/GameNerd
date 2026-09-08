@@ -86,19 +86,18 @@ int r01_world_player_aabb_ok(const R01World *w, int px, int py) {
     return r01_world_aabb_ok(w, px, py, R01_PLAY_PLAYER_W, R01_PLAY_PLAYER_H);
 }
 
-int r01_world_apply_solid_hw(R01World *w, uint8_t hw_key, int set_solid) {
+int r01_world_apply_solid_tile(R01World *w, int bank, uint8_t tile_id, int set_solid) {
     int si, cell, touched = 0;
-    if (!w) {
+    if (!w || bank < 0 || bank >= R01_BG_BANKS) {
         return 0;
     }
-    hw_key &= R01_ATTR_HW_MASK;
     for (si = 0; si < w->screen_count; si++) {
         R01Screen *s = &w->screens[si];
         if (!s->present) {
             continue;
         }
         for (cell = 0; cell < R01_TILES_PER_SCREEN; cell++) {
-            if (r01_attr_hw(s->attrs[cell]) != hw_key) {
+            if (s->tiles[cell] != tile_id || r01_attr_bank(s->attrs[cell]) != bank) {
                 continue;
             }
             if (set_solid) {

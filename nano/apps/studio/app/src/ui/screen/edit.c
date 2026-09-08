@@ -102,7 +102,8 @@ void screen_set_solid_by_hw(UiState *ui, int ref_tx, int ref_ty) {
     R01Screen *s = ui_edit_map_screen(ui);
     int cell;
     uint8_t ref_attr;
-    uint8_t hw_key;
+    uint8_t tile_id;
+    int bank;
     int set_solid;
     int touched;
 
@@ -111,11 +112,21 @@ void screen_set_solid_by_hw(UiState *ui, int ref_tx, int ref_ty) {
     }
     cell = ref_ty * R01_SCREEN_TILES_X + ref_tx;
     ref_attr = s->attrs[cell];
-    hw_key = r01_attr_hw(ref_attr);
+    tile_id = s->tiles[cell];
+    bank = r01_attr_bank(ref_attr);
     set_solid = !r01_attr_solid(ref_attr);
-    touched = r01_world_apply_solid_hw(w, hw_key, set_solid);
+    touched = r01_world_apply_solid_tile(w, bank, tile_id, set_solid);
+    /* Keep paint brush solid bit in sync when it targets this CHR. */
+    if (ui->paint_stamp_valid && ui->paint_stamp_tile == tile_id &&
+        r01_attr_bank(ui->paint_stamp_attr) == bank) {
+        if (set_solid) {
+            ui->paint_stamp_attr |= R01_ATTR_SOLID;
+        } else {
+            ui->paint_stamp_attr &= (uint8_t)~R01_ATTR_SOLID;
+        }
+    }
     screen_refresh_sel(ui);
     if (touched > 0) {
-        ui_toast(ui, set_solid ? "solid set (matching attrs)" : "solid cleared (matching attrs)", 0);
+        ui_toast(ui, set_solid ? "solid set (same bank+tile)" : "solid cleared (same bank+tile)", 0);
     }
 }
