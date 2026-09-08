@@ -25,7 +25,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 
 | Feature | Value | Notes |
 |---------|-------|-------|
-| Resolution | **128x96** | Letterboxing / empty bands OK for some layouts |
+| Resolution | **128x96** logical, **256x192** RGBS (2x) | Letterboxing / empty bands OK in the logical grid |
 | Frame rate | **60 Hz** stable | Progressive RGBS only (v1) |
 | Pixels | **1 bpp** | FG color from per-tile attr (8 colors). Backdrop always **black** |
 | Tiles | **8x8** | |
@@ -34,7 +34,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 | BG banks | **4** per world | Selected by attr bank bits |
 | Sprites | **None** | Up to **64** RAM entities instead |
 | Scroll | **None** | Instant screen switch in VBlank |
-| Audio | 1 PWM channel | VBlank updates |
+| Audio | **2 PWM channels** | Music pulse + SFX. Resistor mix to one jack ([`sound.md`](sound.md)) |
 | Input | **2 players** | Retr01 `$FE60` / `$FE61` bit spirit |
 | Console Flash | 128 KB on 1284 | Open firmware + kernel only |
 | Cart Flash | SST25VF010A **128 KB** | PRG data, MAP, CHR, music |
@@ -60,7 +60,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 
 ## Build roadmap (firmware first)
 
-1. Rock-solid **128x96** 1 bpp RGBS kernel with double line buffer.
+1. Rock-solid **128x96** compose + **256x192** (2x) RGBS kernel with double line buffer.
 2. In-RAM nametable renderer (tile + attr, black backdrop).
 3. SPI cart read + **instant screen load** in VBlank.
 4. Entity stamp pass (priority over MAP).

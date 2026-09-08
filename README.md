@@ -13,7 +13,9 @@ This is the overall hardware roadmap:
 
 ## Apps
 
-`./build-all` builds Release **Studio**, **Emu**, and **Sim** into `bin/`. `./studio`, `./emu`, and `./sim` (at root) run those binaries. `./unit-tests` runs their test suites.
+`./build-all` builds Release **Studio**, **Emu**, **Sim**, and **Nano Studio** into `bin/`. `./studio`, `./emu`, and `./sim` (at root) run the full Retr01 binaries. `./unit-tests` runs their test suites.
+
+**Retr01 Nano** (design + Studio fork under [`nano/`](nano/README.md)): `./nano_studio` (optional project path), `./nano_emu`, and `./nano_sim`. Emu and Sim launchers are no-ops until those apps exist.
 
 ## Main specs
 

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Retr01 Nano board sim launcher (placeholder).
+set -euo pipefail
+
+echo "nano_sim: not implemented yet (no-op)" >&2
+exit 0

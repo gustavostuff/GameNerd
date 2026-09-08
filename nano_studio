@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Run the Release Nano Studio binary from bin/ (build Nano Studio first).
+# Project path is optional: omit it to start with a blank / default session.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+BIN="$ROOT/bin/nano_studio"
+PROJECT="${1:-}"
+
+die() { echo "error: $*" >&2; exit 1; }
+
+[[ -x "$BIN" ]] || die "missing $BIN -- Nano Studio build not installed yet (see nano/apps/studio)"
+
+if [[ -z "$PROJECT" ]]; then
+  exec "$BIN"
+fi
+
+if [[ "$PROJECT" != /* ]]; then
+  if [[ -f "$ROOT/$PROJECT" ]]; then
+    PROJECT="$ROOT/$PROJECT"
+  elif [[ -f "$PROJECT" ]]; then
+    PROJECT="$(cd "$(dirname "$PROJECT")" && pwd)/$(basename "$PROJECT")"
+  else
+    PROJECT="$ROOT/$PROJECT"
+  fi
+fi
+[[ -f "$PROJECT" ]] || die "project not found: $1"
+
+exec "$BIN" "$PROJECT"

@@ -33,16 +33,14 @@ Rule: active scanline code never SPI-reads. Refills happen on world/screen enter
 
 ## Cart flash budget (128 KB)
 
-Rough planning only (format not frozen):
+Rough planning (see [`cart_format.md`](cart_format.md) for the exported layout):
 
 | Region | Order-of-magnitude |
 |--------|--------------------|
 | Header / directory | small |
 | Up to 8 worlds x 16 screens x 384 B MAP | up to ~48 KB if dense |
-| CHR (4 banks/world, 1 bpp) | fits if tile counts stay modest |
+| CHR (4 banks/world, 1 bpp, 8 KB/world) | fits if worlds share or stay modest |
 | Music / tables / extras | remainder |
-
-Authors should not assume every world uses unique full banks. Sharing CHR across screens is expected.
 
 ## Save EEPROM
 
@@ -72,10 +70,11 @@ Match the **spirit** of full Retr01 pad ports:
 
 ## Audio software
 
-- One hardware **PWM** channel
-- Updated in **VBlank**
+- **Two** hardware **PWM** channels: music (pulse) and SFX
+- Updated in **VBlank** / on SFX trigger (not in the active video kernel)
+- Analog resistor mix to one jack ([`sound.md`](sound.md))
 
-Music data can live on the cart. The console firmware owns the PWM tick.
+Music data can live on the cart. The console firmware owns both PWM ticks.
 
 ## Open firmware / C SDK (TBD)
 

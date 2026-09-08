@@ -26,8 +26,9 @@ Reference class to beat on mobo size: early Uzebox-style boards (DIP AVR, RCA pa
                         +-------------+
   Crystal ------------->| ATmega1284P |<-- ISP
                         |  (open FW)  |
-  P1 / P2 arcade ------>|             |---- PWM ---> audio
-                        |             |---- FG GPIOs + sync ---> RGBS
+  P1 / P2 arcade ------>|             |---- FG GPIOs + sync ---> RGBS
+                        |             |---- PWM music --+
+                        |             |---- PWM SFX ----+-- R mix --> audio jack
                         |             |
                         |             |---- SPI ---> cart flash CS/SCK/MOSI/MISO
                         |             |---- I2C ---> cart EEPROM SDA/SCL
@@ -79,7 +80,7 @@ Bench path TBD (clip, pogo fixture, or a tiny USB bridge). Motherboard ISP stays
 |  [5V in]              [ISP]              |
 |           ATmega1284P (TQFP)             |
 |        xtal + decoupling                 |
-|   FG resistor pack     PWM R             |
+|   FG resistor pack     PWM music/SFX mix |
 |  [RGBS + AUD]                            |
 |  [cute cart slot]                        |
 |  J_P1 arcade              J_P2 arcade    |
@@ -102,7 +103,7 @@ Bench path TBD (clip, pogo fixture, or a tiny USB bridge). Motherboard ISP stays
 | 20 MHz crystal + load caps | Clock |
 | 5V LDO / protection | Power |
 | Resistor network | 8 FG colors + black / sync into RGBS |
-| Series R + DC block | PWM audio |
+| Series R pack + DC block | Mix **two PWM** channels (music + SFX) to one audio out |
 | 2x arcade headers | P1 / P2 |
 | Cute cart connector | <= 8 pads/side dual |
 | 2x3 ISP | Firmware |

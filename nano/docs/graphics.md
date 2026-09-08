@@ -6,7 +6,7 @@
 
 | Item | Value |
 |------|-------|
-| Active display | **128x96** pixels |
+| Active display | **128x96** logical pixels (**256x192** on RGBS after 2x) |
 | Tile size | **8x8** |
 | Tiles per screen | **16x12** |
 | Pixel format | **1 bpp** in CHR |
@@ -45,7 +45,7 @@ BG attr byte
 7 6 5 4 3 2 1 0
 | | | | | | |_|__ BANK 0-3
 | | | | |_|______ FLIP_H (bit2), FLIP_V (bit3)
-| | |_|__________ FG color 0-7
+| |_|_|__________ FG color 0-7
 |________________ SOLID (world collision, software)
 ```
 
