@@ -68,7 +68,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 6. Tiny sample cart game.
 7. Only then push vertical resolution.
 
-PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardware.md); motherboard outline starts at **100 × 100 mm**, provisional). Provisional port pin map for Sim/SKiDL: [`pinmap.md`](pinmap.md). SRAM cache policy: [`cache_architecture.md`](cache_architecture.md).
+PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardware.md); motherboard outline starts at **100 × 100 mm**, provisional). SKiDL: [`../schematic_generator/`](../schematic_generator/). Provisional port pin map: [`pinmap.md`](pinmap.md). SRAM cache policy: [`cache_architecture.md`](cache_architecture.md).
 
 ## Open items
 

@@ -4,7 +4,8 @@
 
 Reference class to beat on mobo size: early Uzebox-style boards (DIP AVR, RCA pair, NES plugs, NTSC encoder). See [uzebox.org](https://uzebox.org/). Nano wins by deleting parts and using a tiny cart, not by packing a large BOM tighter.
 
-Port / edge electrical SoT: [`pinmap.md`](pinmap.md).
+Port / edge electrical SoT: [`pinmap.md`](pinmap.md).  
+SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mobo.net`, `nano_cart.net`).
 
 ## Why Nano can be smaller
 

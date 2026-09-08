@@ -4,33 +4,38 @@
 Connectors / cart mechanics: [`hardware.md`](hardware.md).  
 Package on PCB: **TQFP-44**. Sim DIP-40 uses the same **PORT** names — wire by **net / PORT**, not DIP number.
 
-Reference pinout: [`hw/md/ATmega1284P.md`](../../hw/md/ATmega1284P.md). TQFP-44 mapping follows the Microchip datasheet when the KiCad symbol is chosen.
+Reference pinout: [`hw/md/ATmega1284P.md`](../../hw/md/ATmega1284P.md).  
+**TQFP-44 pad numbers:** KiCad **`ATmega1284P-A`** (extends `ATmega164A-A`). Extract: `nano/schematic_generator/nano_schem/kicad_pin_extract.json`. Generator: [`nano/schematic_generator/`](../schematic_generator/).
 
-## Console MCU — net ↔ PORT
+## Console MCU — net ↔ PORT ↔ TQFP pin
 
-| Net | ATmega1284P | Notes |
-|-----|-------------|-------|
-| `SPI_SS#` | **PB4** (SS) | Cart flash CE# / edge |
-| `SPI_MOSI` | **PB5** | Cart SI; shared with **J_ISP** MOSI |
-| `SPI_MISO` | **PB6** | Cart SO; shared with **J_ISP** MISO |
-| `SPI_SCK` | **PB7** | Cart SCK; shared with **J_ISP** SCK |
-| `I2C_SCL` | **PC0** | Cart 24C64 (+ pull-up) |
-| `I2C_SDA` | **PC1** | Cart 24C64 (+ pull-up) |
-| `PWM_MUSIC` | **PD5** (OC1A) | → mix → `AUD` |
-| `PWM_SFX` | **PD4** (OC1B) | → mix → `AUD` |
-| `HSYNC` / `VSYNC` | **PD0** / **PD1** | Combined to `CSYNC` for **J_AV** (FW or tiny glue) |
-| `P1_D0..D7` | **PA0..PA7** | **J_P1** |
-| `P2_D0..D7` | **PC2..PC7**, **PD2**, **PD3** | **J_P2** |
-| `XTAL1` / `XTAL2` | XTAL1 / XTAL2 | **20 MHz** + load caps |
-| `RESET#` | RESET | **J_ISP** + **J_PWR** |
-| `VCC` / `GND` / `AVCC` / `AREF` | power | Decoupling per datasheet |
-| `CART_DET#` | (GPIO TBD, e.g. **PB3**) | Mobo pull-up; cart B8 → GND |
+| Net | PORT | TQFP-44 | Notes |
+|-----|------|---------|-------|
+| `SPI_SS#` | **PB4** | **44** | Cart flash CE# / edge |
+| `SPI_MOSI` | **PB5** | **1** | Cart SI; shared with **J_ISP** MOSI |
+| `SPI_MISO` | **PB6** | **2** | Cart SO; shared with **J_ISP** MISO |
+| `SPI_SCK` | **PB7** | **3** | Cart SCK; shared with **J_ISP** SCK |
+| `I2C_SCL` | **PC0** | **19** | Cart 24C64 (+ pull-up) |
+| `I2C_SDA` | **PC1** | **20** | Cart 24C64 (+ pull-up) |
+| `PWM_MUSIC` | **PD5** (OC1A) | **14** | → mix → `AUD` |
+| `PWM_SFX` | **PD4** (OC1B) | **13** | → mix → `AUD` |
+| `HSYNC` / `VSYNC` | **PD0** / **PD1** | **9** / **10** | Resistor-mix → `CSYNC` on **J_AV** (FW XOR later) |
+| `P1_D0..D7` | **PA0..PA7** | **37..30** | **J_P1** |
+| `P2_D0..D5` | **PC2..PC7** | **21..26** | **J_P2** |
+| `P2_D6..D7` | **PD2**, **PD3** | **11**, **12** | **J_P2** |
+| `FG0..FG2` | **PB0..PB2** | **40..42** | Bring-up RGB enables |
+| `CART_DET#` | **PB3** | **43** | Mobo pull-up; cart B8 → GND |
+| `XTAL1` / `XTAL2` | XTAL1 / XTAL2 | **8** / **7** | **20 MHz** + load caps |
+| `RESET#` | RESET | **4** | **J_ISP** + **J_PWR** |
+| `VCC` | VCC | **5**, **17**, **38** | + decoupling |
+| `GND` | GND | **6**, **18**, **28**, **39** | |
+| `AVCC` / `AREF` | AVCC / AREF | **27** / **29** | AVCC to +5V; AREF bypass to GND |
 
 ### FG color (bring-up stub)
 
-| Net | Candidate | Role |
-|-----|-----------|------|
-| `FG0..FG2` | **PB0..PB2** | 3-bit FG index during active pixels |
+| Net | PORT / TQFP | Role |
+|-----|-------------|------|
+| `FG0..FG2` | PB0..PB2 / 40..42 | Bring-up: FG0→R, FG1→G, FG2→B via 470R + 75R |
 | (backdrop) | grounded black | |
 
 ## Cart edge — **8 + 8 locked**
@@ -97,7 +102,8 @@ Standard AVR ISP: `MOSI`, `MISO`, `SCK`, `RESET#`, `VCC`, `GND` (same assignment
 
 ## SKiDL / Quilter handoff
 
-1. Import this pinmap + [`hardware.md`](hardware.md) connector table.
-2. Symbols: ATmega1284P **TQFP-44**, SST25VF010A, 24C64, PJ-063AH, PinSocket 2×8 / headers.
-3. Cart footprint: truncate Retr01 gold-finger recipe to **2×8**.
-4. Keep PORT names stable when TQFP pin numbers are filled in.
+1. Generator: [`nano/schematic_generator/`](../schematic_generator/) (`python generate.py`).
+2. Symbols locked via KiCad extract (`ATmega1284P-A`, SST25VF080B twin, `24LC64`).
+3. Cart footprint: `Retr01_Lib:Cart_Edge_2x8_P2.54mm` (same pad recipe as 2x18).
+4. Keep PORT names stable; TQFP numbers are filled in the table above.
+5. Import `output/nano_mobo.net` + `output/nano_cart.net` into separate KiCad projects.

@@ -1,0 +1,7 @@
+output/
+.venv/
+*.erc
+*.log
+__pycache__/
+*.pyc
+.skidl_lib/

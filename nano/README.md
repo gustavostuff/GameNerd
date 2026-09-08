@@ -2,7 +2,7 @@
 
 **The smallest, cutest, simplest cartridge-based dual gaming system (arcade + console).**
 
-**Status: design only.** No firmware or PCB in this tree yet.
+**Status: design + first SKiDL netlists.** Firmware / layout still early. Console MCU is a fixed open ATmega1284P image; games live on the cart.
 
 Retr01 Nano is a **spiritual child** of [Retr01](../README.md): same 128-wide arcade language, far less hardware. One **ATmega1284P** runs a **fixed, open console firmware**. Games live on a **tiny dual-sided cartridge** (SPI flash + save EEPROM). There is **no 6502** and **no external video ASIC**.
 
@@ -41,6 +41,8 @@ Later they are intended to **share common code** with the full Studio / Emu / Si
 | [`docs/sound.md`](docs/sound.md) | 2-channel music + SFX PWM |
 | [`docs/cart_format.md`](docs/cart_format.md) | `.r01proj` + `.r01nano` / 128 KB flash layout |
 | [`docs/hardware.md`](docs/hardware.md) | Mobo + cute cart connector, BOM sketch |
+| [`docs/pinmap.md`](docs/pinmap.md) | MCU PORT / TQFP map, headers, cart edge |
+| [`schematic_generator/`](schematic_generator/) | SKiDL → `nano_mobo.net` + `nano_cart.net` |
 
 From the repo root:
 
