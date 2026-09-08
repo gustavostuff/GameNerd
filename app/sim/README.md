@@ -155,7 +155,7 @@ Needs: CMake, a C compiler, SDL2 (`sdl2` package).
 
 Same keyboard map is used by standalone **emu** and Studio Play.
 
-**Wave monitor (island K):** bottom-left overlay (drag; position in `ui_layout.json`). Lanes **B1-B5** / **S6-S8** draw stable math waveforms from the active voice (period = pitch). **A** is the mixed analog scope ring. After Host Play, silent Track-1 playback drives B1-B5 from `output/data/bgm_track1.bin` (Studio **Export**; falls back to a short built-in pattern). No host speaker. See [`docs/sound.md`](../../docs/sound.md).
+**Wave monitor (island K):** bottom-left overlay (drag; position in `ui_layout.json`). Lanes **B1-B5** / **S6-S8** draw stable math waveforms from the active voice (period = pitch). **A** is the mixed analog scope ring. After Host Play, silent BGM matches emu: scans `custom_logic.c` for `r01_bgm_play(ctx, N)` and drives B1-B5 from `output/data/bgm_trackN.bin` (Studio **Export**). No host speaker. See [`docs/sound.md`](../../docs/sound.md).
 
 Live probe (top-right) shows **VDD / PHI2 / RESB**. Status bar shows CPU `PC` / `AB` / phase / cycle count.
 

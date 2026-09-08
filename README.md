@@ -47,11 +47,11 @@ Sim:
 
 Main PCB - preliminary design, not tested:
 
-<img src="app/assets/png/pcb_v8_proto.jpg" alt="Main PCB" />
+<img src="app/assets/png/main_mobo.png" alt="Main PCB" />
 
 Cart PCB - preliminary design, not tested:
 
-<img src="app/assets/png/cart_render.jpg" alt="Cart PCB" />
+<img src="app/assets/png/cart_render.png" alt="Cart PCB" />
 
 
 ## Where to go next

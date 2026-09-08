@@ -1,9 +1,13 @@
 #include "ui/sound/bgm_edit.h"
 
 #include "ui/internal.h"
+#include "retr01_studio/paths.h"
+#include "r01_custom_logic_scan.h"
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #if UI_SOUND_BGM_CH != R01_BGM_CH_COUNT || UI_SOUND_TRACKS_MAX != R01_BGM_TRACKS_MAX || \
     UI_SOUND_REGIONS_MAX != R01_BGM_REGIONS_MAX
@@ -435,6 +439,45 @@ int ui_bgm_flatten(const UiState *ui, int track,
         steps = 1;
     }
     return steps;
+}
+
+void ui_bgm_write_export_bins(const UiState *ui) {
+    char root[R01_PATH_MAX];
+    char path[R01_PATH_MAX];
+    char cells[R01_BGM_STEPS][R01_BGM_CH][R01_BGM_TOKEN];
+    int t, n, steps;
+    if (!ui) {
+        return;
+    }
+    if (r01_path_resolve(R01_OUTPUT_DIR, root, sizeof(root)) != 0) {
+        snprintf(root, sizeof(root), "%s", R01_OUTPUT_DIR);
+    }
+    {
+        char data_dir[R01_PATH_MAX];
+        if (snprintf(data_dir, sizeof(data_dir), "%s/data", root) < (int)sizeof(data_dir)) {
+            mkdir(data_dir, 0755);
+        }
+    }
+    n = ui->sound.track_count;
+    if (n < 1) {
+        n = 1;
+    }
+    if (n > UI_SOUND_TRACKS_MAX) {
+        n = UI_SOUND_TRACKS_MAX;
+    }
+    for (t = 0; t < n; t++) {
+        FILE *f;
+        steps = ui_bgm_flatten(ui, t, cells, 0);
+        if (r01_bgm_track_bin_path(root, t + 1, path, sizeof(path)) != 0) {
+            continue;
+        }
+        f = fopen(path, "wb");
+        if (!f) {
+            continue;
+        }
+        fwrite(cells, 1, (size_t)steps * R01_BGM_CH * R01_BGM_TOKEN, f);
+        fclose(f);
+    }
 }
 
 void ui_bgm_sync_to_project(UiState *ui) {

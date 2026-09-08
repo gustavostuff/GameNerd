@@ -10,9 +10,12 @@
 #include "video_sink.h"
 #include "r01_play_anim_cart.h"
 #include "r01_play_camera.h"
+#include "r01_custom_logic_scan.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 /* Studio/emu move+camera math; sim applies 1 logical px per sim VBlank (game frame). */
 
@@ -545,6 +548,119 @@ void r01s_play_reset(R01sPlay *play) {
     play->origin_row = -1;
 }
 
+static int path_is_file(const char *path) {
+    struct stat st;
+    return path && path[0] && stat(path, &st) == 0 && S_ISREG(st.st_mode);
+}
+
+static void cart_output_dir(const char *cart_path, char *out, size_t out_cap) {
+    const char *slash;
+    size_t n;
+    if (!out || out_cap < 2) {
+        return;
+    }
+    if (!cart_path || !cart_path[0]) {
+        snprintf(out, out_cap, ".");
+        return;
+    }
+    slash = strrchr(cart_path, '/');
+    if (!slash) {
+        slash = strrchr(cart_path, '\\');
+    }
+    if (!slash) {
+        snprintf(out, out_cap, ".");
+        return;
+    }
+    n = (size_t)(slash - cart_path);
+    if (n + 1 > out_cap) {
+        n = out_cap - 1;
+    }
+    memcpy(out, cart_path, n);
+    out[n] = '\0';
+}
+
+/* Match emu: scan custom_logic for r01_bgm_play and feed that track into WAVE. */
+static void play_start_bgm_viz(R01sBoard *board) {
+    char out_dir[512];
+    char logic[576];
+    char bin[576];
+    int track = 0;
+    int i;
+    const char *bgm_path = NULL;
+    static const char *const logic_fallbacks[] = {
+        "output/C/custom_logic.c",
+        "../output/C/custom_logic.c",
+        "../../output/C/custom_logic.c",
+        NULL,
+    };
+#ifndef R01S_OUTPUT_DIR
+#define R01S_OUTPUT_DIR "../output"
+#endif
+
+    if (!board || !board->apu_impl.apu) {
+        return;
+    }
+    {
+        const char *env = getenv("R01S_BGM_BIN");
+        if (env && env[0]) {
+            r01s_atmega328p_viz_start(board->apu_impl.apu, 0, env);
+            return;
+        }
+    }
+
+    cart_output_dir(board->cart_path[0] ? board->cart_path : NULL, out_dir, sizeof(out_dir));
+    if (r01_custom_logic_path_for_output(out_dir, logic, sizeof(logic)) != 0) {
+        snprintf(logic, sizeof(logic), "%s/C/custom_logic.c", out_dir);
+    }
+    if (!path_is_file(logic)) {
+        for (i = 0; logic_fallbacks[i]; i++) {
+            if (path_is_file(logic_fallbacks[i])) {
+                snprintf(logic, sizeof(logic), "%s", logic_fallbacks[i]);
+                break;
+            }
+        }
+    }
+    if (!path_is_file(logic) && path_is_file(R01S_OUTPUT_DIR "/C/custom_logic.c")) {
+        snprintf(logic, sizeof(logic), "%s/C/custom_logic.c", R01S_OUTPUT_DIR);
+    }
+
+    if (r01_custom_logic_scan_bgm_play(logic, &track) != 0) {
+        /* No r01_bgm_play in custom_logic — leave WAVE quiet (same as emu). */
+        r01s_atmega328p_viz_stop(board->apu_impl.apu);
+        return;
+    }
+
+    if (r01_bgm_track_bin_path(out_dir, track, bin, sizeof(bin)) == 0 && path_is_file(bin)) {
+        bgm_path = bin;
+    } else {
+        static const char *const root_fallbacks[] = {
+            R01S_OUTPUT_DIR,
+            "output",
+            "../output",
+            "../../output",
+            NULL,
+        };
+        for (i = 0; root_fallbacks[i]; i++) {
+            char try_bin[576];
+            if (r01_bgm_track_bin_path(root_fallbacks[i], track, try_bin, sizeof(try_bin)) == 0 &&
+                path_is_file(try_bin)) {
+                snprintf(bin, sizeof(bin), "%s", try_bin);
+                bgm_path = bin;
+                break;
+            }
+        }
+    }
+
+    if (!bgm_path && track != 1) {
+        /* Non-1 tracks need an exported bin; don't substitute Track-1 builtin. */
+        r01s_atmega328p_viz_stop(board->apu_impl.apu);
+        r01s_frame_log_note(R01S_FLOG_PLAY, "Host Play BGM: missing bgm_track bin");
+        return;
+    }
+    r01s_atmega328p_viz_start(board->apu_impl.apu, 0, bgm_path);
+    r01s_frame_log_note(R01S_FLOG_PLAY, "Host Play BGM viz started");
+}
+
 int r01s_play_start(R01sBoard *board) {
     int col = 0, row = 0;
     int sx, sy;
@@ -586,19 +702,7 @@ int r01s_play_start(R01sBoard *board) {
     }
     board->play.enabled = 1;
     write_oam(board);
-    if (board->apu_impl.apu) {
-        const char *bgm = NULL;
-#ifdef R01S_BGM_TRACK1
-        bgm = R01S_BGM_TRACK1;
-#endif
-        {
-            const char *env = getenv("R01S_BGM_BIN");
-            if (env && env[0]) {
-                bgm = env;
-            }
-        }
-        r01s_atmega328p_viz_start(board->apu_impl.apu, 0, bgm);
-    }
+    play_start_bgm_viz(board);
     r01s_frame_log_note(R01S_FLOG_PLAY, "Host Play enabled (scroll latched, OAM written, beam rewind)");
     return 1;
 }

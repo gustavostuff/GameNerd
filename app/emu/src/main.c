@@ -69,16 +69,11 @@ static void emu_start_host_bgm(const char *cart_path) {
         "../../output/C/custom_logic.c",
         NULL,
     };
-    static const char *const bin_fallbacks[] = {
-        "output/data/bgm_track1.bin",
-        "../output/data/bgm_track1.bin",
-        "../../output/data/bgm_track1.bin",
-        NULL,
-    };
 
     cart_output_dir(cart_path && cart_path[0] ? cart_path : R01E_DEFAULT_CART, out_dir, sizeof(out_dir));
-    snprintf(logic, sizeof(logic), "%s/C/custom_logic.c", out_dir);
-    snprintf(bin, sizeof(bin), "%s/data/bgm_track1.bin", out_dir);
+    if (r01_custom_logic_path_for_output(out_dir, logic, sizeof(logic)) != 0) {
+        snprintf(logic, sizeof(logic), "%s/C/custom_logic.c", out_dir);
+    }
 
     if (!path_is_file(logic)) {
         for (i = 0; logic_fallbacks[i]; i++) {
@@ -88,17 +83,24 @@ static void emu_start_host_bgm(const char *cart_path) {
             }
         }
     }
-    if (!path_is_file(bin)) {
-        for (i = 0; bin_fallbacks[i]; i++) {
-            if (path_is_file(bin_fallbacks[i])) {
-                snprintf(bin, sizeof(bin), "%s", bin_fallbacks[i]);
-                break;
-            }
-        }
-    }
 
     if (r01_custom_logic_scan_bgm_play(logic, &track) != 0) {
         return;
+    }
+    if (r01_bgm_track_bin_path(out_dir, track, bin, sizeof(bin)) != 0) {
+        bin[0] = '\0';
+    }
+    if (!path_is_file(bin)) {
+        /* Fall back to known relative output trees (cwd may not be repo root). */
+        static const char *const root_fallbacks[] = {"output", "../output", "../../output", NULL};
+        for (i = 0; root_fallbacks[i]; i++) {
+            char try_bin[576];
+            if (r01_bgm_track_bin_path(root_fallbacks[i], track, try_bin, sizeof(try_bin)) == 0 &&
+                path_is_file(try_bin)) {
+                snprintf(bin, sizeof(bin), "%s", try_bin);
+                break;
+            }
+        }
     }
     if (r01_bgm_host_play(track, path_is_file(bin) ? bin : NULL) != 0) {
         if (r01_bgm_host_play(track, NULL) != 0) {

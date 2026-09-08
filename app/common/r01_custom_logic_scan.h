@@ -12,4 +12,10 @@ int r01_custom_logic_scan_bgm_play(const char *path, int *out_track);
 /* foo.r01proj -> sibling C/custom_logic.c */
 int r01_custom_logic_path_for_project(const char *proj_path, char *out, size_t out_cap);
 
+/* output_root/C/custom_logic.c (cart lives beside C/ and data/). */
+int r01_custom_logic_path_for_output(const char *output_root, char *out, size_t out_cap);
+
+/* output_root/data/bgm_trackN.bin — track is 1-based. */
+int r01_bgm_track_bin_path(const char *output_root, int track_1based, char *out, size_t out_cap);
+
 #endif

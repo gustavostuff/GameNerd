@@ -107,7 +107,8 @@ void r01s_atmega328p_voice_set(R01sAtmega328p *chip, int ch, uint8_t wave, uint8
 int r01s_apu_voice_wave_y(const R01sApuVoice *v, int x, int width);
 
 /* Silent BGM for WAVE monitor. path may be NULL / missing → builtin demo.
- * Prefer Studio export: output/data/bgm_track1.bin (flattened Track 1). */
+ * Prefer Studio export: output/data/bgm_trackN.bin for the track requested by
+ * custom_logic r01_bgm_play (same rule as emu Host Play). */
 void r01s_atmega328p_viz_start(R01sAtmega328p *chip, uint32_t now_ms, const char *bgm_bin_path);
 void r01s_atmega328p_viz_stop(R01sAtmega328p *chip);
 /* Advance viz timeline from wall clock; runs a burst of synth ticks for scope. */

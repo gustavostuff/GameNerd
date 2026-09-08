@@ -89,3 +89,23 @@ int r01_custom_logic_path_for_project(const char *proj_path, char *out, size_t o
     snprintf(out + dir_len, out_cap - dir_len, "/C/custom_logic.c");
     return 0;
 }
+
+int r01_custom_logic_path_for_output(const char *output_root, char *out, size_t out_cap) {
+    if (!output_root || !out || out_cap < 24) {
+        return -1;
+    }
+    if (snprintf(out, out_cap, "%s/C/custom_logic.c", output_root) >= (int)out_cap) {
+        return -1;
+    }
+    return 0;
+}
+
+int r01_bgm_track_bin_path(const char *output_root, int track_1based, char *out, size_t out_cap) {
+    if (!output_root || !out || out_cap < 32 || track_1based < 1) {
+        return -1;
+    }
+    if (snprintf(out, out_cap, "%s/data/bgm_track%d.bin", output_root, track_1based) >= (int)out_cap) {
+        return -1;
+    }
+    return 0;
+}

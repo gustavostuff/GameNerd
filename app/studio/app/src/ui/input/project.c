@@ -181,27 +181,8 @@ void ui_export(UiState *ui) {
         ui_toast(ui, err, 1);
         return;
     }
-    /* Host BGM sidecar for emu / Studio Play (Track 1). */
-    {
-        char path[R01_PATH_MAX];
-        char cells[R01_BGM_STEPS][R01_BGM_CH][R01_BGM_TOKEN];
-        FILE *f;
-        int steps;
-        steps = ui_bgm_flatten(ui, 0, cells, 0);
-        if (r01_path_resolve(R01_OUTPUT_DIR "/data/bgm_track1.bin", path, sizeof(path)) == 0) {
-            char *slash = strrchr(path, '/');
-            if (slash) {
-                *slash = '\0';
-                mkdir(path, 0755);
-                *slash = '/';
-            }
-            f = fopen(path, "wb");
-            if (f) {
-                fwrite(cells, 1, (size_t)steps * R01_BGM_CH * R01_BGM_TOKEN, f);
-                fclose(f);
-            }
-        }
-    }
+    /* Host BGM sidecars for emu / Studio Play / Sim WAVE (bgm_trackN.bin). */
+    ui_bgm_write_export_bins(ui);
     ui_toast(ui, R01_OUTPUT_DIR "/test.retr01 exported", 0);
 }
 

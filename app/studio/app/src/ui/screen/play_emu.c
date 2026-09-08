@@ -47,40 +47,9 @@ static void play_shutdown_machine(UiPlaySession *pl) {
     play_destroy_textures(pl);
 }
 
-static void ui_write_bgm_track1_bin(const UiState *ui) {
-    char path[R01_PATH_MAX];
-    char cells[R01_BGM_STEPS][R01_BGM_CH][R01_BGM_TOKEN];
-    FILE *f;
-    int steps;
-    if (!ui) {
-        return;
-    }
-    steps = ui_bgm_flatten(ui, 0, cells, 0);
-    if (r01_path_resolve(R01_OUTPUT_DIR "/data/bgm_track1.bin", path, sizeof(path)) != 0) {
-        snprintf(path, sizeof(path), "%s", R01_OUTPUT_DIR "/data/bgm_track1.bin");
-    }
-    {
-        char *slash = strrchr(path, '/');
-        if (slash) {
-            *slash = '\0';
-#if defined(_WIN32)
-            _mkdir(path);
-#else
-            mkdir(path, 0755);
-#endif
-            *slash = '/';
-        }
-    }
-    f = fopen(path, "wb");
-    if (!f) {
-        return;
-    }
-    fwrite(cells, 1, (size_t)steps * R01_BGM_CH * R01_BGM_TOKEN, f);
-    fclose(f);
-}
-
 static void ui_play_start_bgm(UiState *ui) {
     char logic[R01_PATH_MAX];
+    char root[R01_PATH_MAX];
     char bin[R01_PATH_MAX];
     int track = 0;
     (void)ui;
@@ -91,7 +60,10 @@ static void ui_play_start_bgm(UiState *ui) {
     if (r01_custom_logic_scan_bgm_play(logic, &track) != 0) {
         return;
     }
-    if (r01_path_resolve(R01_OUTPUT_DIR "/data/bgm_track1.bin", bin, sizeof(bin)) != 0) {
+    if (r01_path_resolve(R01_OUTPUT_DIR, root, sizeof(root)) != 0) {
+        snprintf(root, sizeof(root), "%s", R01_OUTPUT_DIR);
+    }
+    if (r01_bgm_track_bin_path(root, track, bin, sizeof(bin)) != 0) {
         bin[0] = '\0';
     }
     if (r01_bgm_host_play(track, bin[0] ? bin : NULL) != 0) {
@@ -156,7 +128,7 @@ void ui_play_boot_finish(UiState *ui, SDL_Renderer *ren) {
         ui_play_stop(ui);
         return;
     }
-    ui_write_bgm_track1_bin(ui);
+    ui_bgm_write_export_bins(ui);
     snprintf(cart, sizeof(cart), "%s.retr01", stem);
 
     m = (R01eMachine *)calloc(1, sizeof(R01eMachine));
