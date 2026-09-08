@@ -11,7 +11,7 @@ SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mo
 
 | Uzebox-like board | Retr01 Nano |
 |-------------------|-------------|
-| DIP-40 AVR | **TQFP-44** ATmega1284P |
+| DIP-40 AVR | **DIP-40** ATmega1284P (fully THT mobo) |
 | 8-bit R-2R + NTSC encoder | **1 bpp** FG levels + black backdrop, **RGBS only** |
 | Dual RCA | Vertical **pin header** for RGBS + mono audio (bring-up) |
 | NES plugs | Vertical arcade pin headers (2P) |
@@ -40,7 +40,7 @@ SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mo
 | Board size | **100 × 100 mm** (10 × 10 cm) |
 | Status | **Starting target only** — not locked; Quilter / hand layout may shrink or grow |
 
-Fits TQFP-44, cart edge, barrel, headers, and passives with room to spare for first spin. Prefer keeping connectors on edges; final outline follows placement.
+Fits DIP-40, cart edge, barrel, headers, and passives with room to spare for first spin. Prefer keeping connectors on edges; final outline follows placement.
 
 ## Cute cartridge — **locked: 8 + 8**
 
@@ -97,7 +97,7 @@ Flash `HOLD#` / `WP#` **tied on the cart PCB** (not on the edge). SPI flash prog
 
 **One hardware flasher** = USB MCU (or host + USBasp dock) with **both** a 2×8 cart socket and a 2×3 ISP header. Cart path talks SPI+I2C; ISP path talks AVR. While ISP runs on a live motherboard, keep cart `SPI_SS#` idle (flash deselected) so the shared SPI pins do not fight.
 
-Motherboard **J_ISP** stays for field console updates without removing the TQFP.
+Motherboard **J_ISP** stays for field console updates without removing the DIP.
 
 ## Connectors (motherboard) — locked intent
 
@@ -120,7 +120,7 @@ All bring-up I/O uses **vertical 2.54 mm pin headers** unless noted.
 ```text
 +--------------------------------------------------+
 | [J_BARREL]     [J_ISP 2x3]      [J_PWR 1x4]      |
-|              ATmega1284P TQFP-44                  |
+|              ATmega1284P DIP-40                   |
 |           xtal + decoupling                      |
 |   FG R-pack     PWM R-mix + DC block             |
 | [J_AV 1x8]              [J_CART 2x8 edge]        |
@@ -150,7 +150,7 @@ Outside the ICs. Counts are order-of-magnitude for SKiDL BOM planning.
 | PWM mix resistors + DC block cap | **4–6** | Music + SFX → `AUD` |
 | ISP / header pin shrouds | as needed | Polarized 2×3 preferred |
 
-**ICs (recap):** ATmega1284P TQFP-44; cart SST25VF010A SOIC-8; cart 24C64 SOIC-8. No second MCU on the motherboard.
+**ICs (recap):** ATmega1284P **PDIP-40** (mobo fully THT); cart SST25VF010A SOIC-8; cart 24C64 SOIC-8. No second MCU on the motherboard.
 
 ## Pad bit layout
 

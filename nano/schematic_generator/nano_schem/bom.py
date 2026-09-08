@@ -25,8 +25,8 @@ class BomEntry:
     gnd_pin: Optional[str] = None
 
 
-# Footprints (KiCad stock + Retr01_Lib cart edge)
-_TQFP44 = "Package_QFP:TQFP-44_10x10mm_P0.8mm"
+# Footprints — motherboard is fully THT. Cart silicon is SOIC-8 (cute cart density).
+_DIP40 = "Package_DIP:DIP-40_W15.24mm"
 _SOIC8 = "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
 _EDGE16_MOBO = "Connector_PinSocket_2.54mm:PinSocket_2x08_P2.54mm_Vertical"
 _EDGE16_CART = "Retr01_Lib:Cart_Edge_2x8_P2.54mm"
@@ -53,12 +53,12 @@ BOM: List[BomEntry] = [
     BomEntry(
         "U1284",
         "ATmega1284P",
-        "console MCU TQFP-44",
+        "console MCU PDIP-40 (THT)",
         BoardId.MOBO,
-        44,
-        _TQFP44,
-        vcc_pin="5",
-        gnd_pin="6",
+        40,
+        _DIP40,
+        vcc_pin="10",
+        gnd_pin="11",
     ),
     # --- motherboard connectors ---
     BomEntry(

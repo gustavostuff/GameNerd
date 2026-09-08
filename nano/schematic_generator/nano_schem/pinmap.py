@@ -2,11 +2,11 @@
 Physical pin numbers for Retr01 Nano parts.
 
 Authority for stock parts: KiCad 10 symbols under /usr/share/kicad/symbols/
-(see kicad_pin_extract.json). ATmega1284P-A extends ATmega164A-A (TQFP-44).
-SST25VF010A uses SST25VF080B SOIC-8 pin twin. 24C64 uses 24LC64 / 24LC16.
+(see kicad_pin_extract.json). ATmega1284P-P is PDIP-40 (motherboard is fully THT).
+SST25VF010A uses SST25VF080B SOIC-8 pin twin (cart). 24C64 uses 24LC64 / 24LC16.
 
 Manifest connections address pins by these number strings.
-PORT / net SoT: nano/docs/pinmap.md (wire by PORT, not DIP number).
+PORT / net SoT: nano/docs/pinmap.md (wire by PORT name; DIP numbers match KiCad).
 """
 
 from __future__ import annotations
@@ -14,47 +14,47 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
-# ATmega1284P TQFP-44 (KiCad ATmega1284P-A / ATmega164A-A)
+# ATmega1284P PDIP-40 (KiCad ATmega1284P-P) — motherboard THT
 # ---------------------------------------------------------------------------
 
 # Power / clock / reset
-M1284_RESET = "4"
-M1284_VCC = ("5", "17", "38")
-M1284_GND = ("6", "18", "28", "39")
-M1284_AVCC = "27"
-M1284_AREF = "29"
-M1284_XTAL2, M1284_XTAL1 = "7", "8"
+M1284_RESET = "9"
+M1284_VCC = ("10",)  # single VCC on DIP-40
+M1284_GND = ("11", "31")
+M1284_AVCC = "30"
+M1284_AREF = "32"
+M1284_XTAL2, M1284_XTAL1 = "12", "13"
 
 # PORTB — SPI + FG + cart detect (nano/docs/pinmap.md)
-M1284_PB0, M1284_PB1, M1284_PB2 = "40", "41", "42"  # FG0..FG2
-M1284_PB3 = "43"  # CART_DET#
-M1284_PB4 = "44"  # SPI_SS#
-M1284_PB5, M1284_PB6, M1284_PB7 = "1", "2", "3"  # MOSI, MISO, SCK
+M1284_PB0, M1284_PB1, M1284_PB2 = "1", "2", "3"  # FG0..FG2
+M1284_PB3 = "4"  # CART_DET#
+M1284_PB4 = "5"  # SPI_SS#
+M1284_PB5, M1284_PB6, M1284_PB7 = "6", "7", "8"  # MOSI, MISO, SCK
 
 # PORTC — I2C + P2 low
-M1284_PC0, M1284_PC1 = "19", "20"  # SCL, SDA
-M1284_PC2 = "21"
-M1284_PC3 = "22"
-M1284_PC4 = "23"
-M1284_PC5 = "24"
-M1284_PC6 = "25"
-M1284_PC7 = "26"
+M1284_PC0, M1284_PC1 = "22", "23"  # SCL, SDA
+M1284_PC2 = "24"
+M1284_PC3 = "25"
+M1284_PC4 = "26"
+M1284_PC5 = "27"
+M1284_PC6 = "28"
+M1284_PC7 = "29"
 
 # PORTD — sync, PWM, P2 high
-M1284_PD0, M1284_PD1 = "9", "10"  # HSYNC, VSYNC
-M1284_PD2, M1284_PD3 = "11", "12"  # P2_D6, P2_D7
-M1284_PD4, M1284_PD5 = "13", "14"  # PWM_SFX, PWM_MUSIC
-M1284_PD6, M1284_PD7 = "15", "16"  # unused bring-up (NC nets)
+M1284_PD0, M1284_PD1 = "14", "15"  # HSYNC, VSYNC
+M1284_PD2, M1284_PD3 = "16", "17"  # P2_D6, P2_D7
+M1284_PD4, M1284_PD5 = "18", "19"  # PWM_SFX, PWM_MUSIC
+M1284_PD6, M1284_PD7 = "20", "21"  # unused bring-up (NC nets)
 
 # PORTA — P1
-M1284_PA0 = "37"
-M1284_PA1 = "36"
-M1284_PA2 = "35"
-M1284_PA3 = "34"
-M1284_PA4 = "33"
-M1284_PA5 = "32"
-M1284_PA6 = "31"
-M1284_PA7 = "30"
+M1284_PA0 = "40"
+M1284_PA1 = "39"
+M1284_PA2 = "38"
+M1284_PA3 = "37"
+M1284_PA4 = "36"
+M1284_PA5 = "35"
+M1284_PA6 = "34"
+M1284_PA7 = "33"
 
 M1284_P1 = (
     M1284_PA0,
@@ -79,7 +79,7 @@ M1284_P2 = (
 M1284_FG = (M1284_PB0, M1284_PB1, M1284_PB2)
 
 # ---------------------------------------------------------------------------
-# SST25VF010A / SST25VF080B SOIC-8 twin
+# SST25VF010A / SST25VF080B SOIC-8 twin (cart — same pin numbers as DIP-8)
 # ---------------------------------------------------------------------------
 
 FLASH_CE, FLASH_SO, FLASH_WP, FLASH_VSS = "1", "2", "3", "4"
@@ -128,7 +128,7 @@ def _nums(n: int) -> List[str]:
 
 
 PIN_TEMPLATES: Dict[str, List[str]] = {
-    "ATmega1284P": _nums(44),
+    "ATmega1284P": _nums(40),
     "SST25VF010A": _nums(8),
     "24C64": _nums(8),
     "CART_EDGE_16": _nums(16),
@@ -155,53 +155,49 @@ PIN_TEMPLATES: Dict[str, List[str]] = {
     "R_10K": _nums(2),
 }
 
-# Pad number -> KiCad signal alias (readability in ERC / netlist)
+# Pad number -> KiCad signal alias (ATmega1284P-P)
 KICAD_ALIASES: Dict[str, Dict[str, str]] = {
     "ATmega1284P": {
-        "1": "PB5",
-        "2": "PB6",
-        "3": "PB7",
-        "4": "~{RESET}",
-        "5": "VCC",
-        "6": "GND",
-        "7": "XTAL2",
-        "8": "XTAL1",
-        "9": "PD0",
-        "10": "PD1",
-        "11": "PD2",
-        "12": "PD3",
-        "13": "PD4",
-        "14": "PD5",
-        "15": "PD6",
-        "16": "PD7",
-        "17": "VCC",
-        "18": "GND",
-        "19": "PC0",
-        "20": "PC1",
-        "21": "PC2",
-        "22": "PC3",
-        "23": "PC4",
-        "24": "PC5",
-        "25": "PC6",
-        "26": "PC7",
-        "27": "AVCC",
-        "28": "GND",
-        "29": "AREF",
-        "30": "PA7",
-        "31": "PA6",
-        "32": "PA5",
-        "33": "PA4",
-        "34": "PA3",
-        "35": "PA2",
-        "36": "PA1",
-        "37": "PA0",
-        "38": "VCC",
-        "39": "GND",
-        "40": "PB0",
-        "41": "PB1",
-        "42": "PB2",
-        "43": "PB3",
-        "44": "PB4",
+        "1": "PB0",
+        "2": "PB1",
+        "3": "PB2",
+        "4": "PB3",
+        "5": "PB4",
+        "6": "PB5",
+        "7": "PB6",
+        "8": "PB7",
+        "9": "~{RESET}",
+        "10": "VCC",
+        "11": "GND",
+        "12": "XTAL2",
+        "13": "XTAL1",
+        "14": "PD0",
+        "15": "PD1",
+        "16": "PD2",
+        "17": "PD3",
+        "18": "PD4",
+        "19": "PD5",
+        "20": "PD6",
+        "21": "PD7",
+        "22": "PC0",
+        "23": "PC1",
+        "24": "PC2",
+        "25": "PC3",
+        "26": "PC4",
+        "27": "PC5",
+        "28": "PC6",
+        "29": "PC7",
+        "30": "AVCC",
+        "31": "GND",
+        "32": "AREF",
+        "33": "PA7",
+        "34": "PA6",
+        "35": "PA5",
+        "36": "PA4",
+        "37": "PA3",
+        "38": "PA2",
+        "39": "PA1",
+        "40": "PA0",
     },
     "SST25VF010A": {
         "1": "~{CE}",
@@ -229,7 +225,7 @@ KICAD_ALIASES: Dict[str, Dict[str, str]] = {
 def power_pin_nums(mpn: str) -> Optional[Tuple[str, str]]:
     """Primary VCC/GND pad numbers for Quilter local-bypass helpers."""
     table = {
-        "ATmega1284P": ("5", "6"),
+        "ATmega1284P": ("10", "11"),
         "SST25VF010A": (FLASH_VDD, FLASH_VSS),
         "24C64": (EE_VCC, EE_GND),
     }

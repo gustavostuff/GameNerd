@@ -18,7 +18,7 @@ Same pattern as parent `retr01_schem/pinmap.py` / `kicad_pin_extract.json`:
 
 | Nano MPN | KiCad lib | KiCad symbol | Notes |
 |----------|-----------|--------------|-------|
-| ATmega1284P | MCU_Microchip_ATmega | **ATmega1284P-A** (extends ATmega164A-A) | TQFP-44 |
+| ATmega1284P | MCU_Microchip_ATmega | **ATmega1284P-P** | PDIP-40 (mobo THT) |
 | SST25VF010A | Memory_Flash | **SST25VF080B-50-4x-S2Ax** pin twin | JEDEC SPI SOIC-8 |
 | 24C64 | Memory_EEPROM | **24LC64** (extends 24LC16) | SOIC-8 |
 | Passives | Device | R, C | |
