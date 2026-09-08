@@ -99,8 +99,8 @@ int r01ns_app_run(const char *cart_path) {
     group = r01ns_board_group(&board);
 
     printf("nano_sim: IC board (VIDEO | MCU | CART) — scanline RGBS kernel\n");
-    printf("  cart: %s (%zu bytes in SST25VF010A)\n", path, board.flash.image_len);
-    printf("  parts: ATMEGA1284P + OSC8M + PWR5V + PADS + PWM2CH + SST25 + 24C64 + SCREEN_SINK\n");
+    printf("  cart: %s (%zu bytes in 25LC1024)\n", path, board.flash.image_len);
+    printf("  parts: ATMEGA1284P + OSC8M + PWR5V + PADS + PWM2CH + 25LC1024 + 24C64 + SCREEN_SINK\n");
     printf("  fidelity: 1 board step = 1 RGBS line (or VBlank line); not one emu frame/UI frame\n");
     printf("  SPACE pause. WASD+G pads. Esc quit. RMB pan.\n");
 

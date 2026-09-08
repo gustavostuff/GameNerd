@@ -23,7 +23,7 @@ generate = SchLib(tool=SKIDL).add_parts(*[
             Pin(num='14',name='14',func=pin_types.UNSPEC),
             Pin(num='15',name='15',func=pin_types.UNSPEC),
             Pin(num='16',name='16',func=pin_types.UNSPEC)] }),
-        Part(**{ 'name':'SST25VF010A', 'dest':TEMPLATE, 'tool':SKIDL, 'aliases':Alias({'SST25VF010A'}), 'ref_prefix':'U', 'fplist':None, 'footprint':'Package_SO:SOIC-8_3.9x4.9mm_P1.27mm', 'keywords':None, 'description':'', 'datasheet':None, 'pins':[
+        Part(**{ 'name':'25LC1024', 'dest':TEMPLATE, 'tool':SKIDL, 'aliases':Alias({'25LC1024'}), 'ref_prefix':'U', 'fplist':None, 'footprint':'Package_DIP:DIP-8_W7.62mm', 'keywords':None, 'description':'', 'datasheet':None, 'pins':[
             Pin(num='1',name='1',func=pin_types.UNSPEC),
             Pin(num='2',name='2',func=pin_types.UNSPEC),
             Pin(num='3',name='3',func=pin_types.UNSPEC),
@@ -32,7 +32,7 @@ generate = SchLib(tool=SKIDL).add_parts(*[
             Pin(num='6',name='6',func=pin_types.UNSPEC),
             Pin(num='7',name='7',func=pin_types.UNSPEC),
             Pin(num='8',name='8',func=pin_types.UNSPEC)] }),
-        Part(**{ 'name':'24C64', 'dest':TEMPLATE, 'tool':SKIDL, 'aliases':Alias({'24C64'}), 'ref_prefix':'U', 'fplist':None, 'footprint':'Package_SO:SOIC-8_3.9x4.9mm_P1.27mm', 'keywords':None, 'description':'', 'datasheet':None, 'pins':[
+        Part(**{ 'name':'24C64', 'dest':TEMPLATE, 'tool':SKIDL, 'aliases':Alias({'24C64'}), 'ref_prefix':'U', 'fplist':None, 'footprint':'Package_DIP:DIP-8_W7.62mm', 'keywords':None, 'description':'', 'datasheet':None, 'pins':[
             Pin(num='1',name='1',func=pin_types.UNSPEC),
             Pin(num='2',name='2',func=pin_types.UNSPEC),
             Pin(num='3',name='3',func=pin_types.UNSPEC),

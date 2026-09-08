@@ -1,4 +1,4 @@
-"""Cartridge PCB wiring — SST25VF010A + 24C64 behind the shared 2x8 edge."""
+"""Cartridge PCB wiring — 25LC1024 + 24C64 behind the shared 2x8 edge."""
 
 from __future__ import annotations
 

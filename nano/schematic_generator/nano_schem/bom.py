@@ -25,9 +25,9 @@ class BomEntry:
     gnd_pin: Optional[str] = None
 
 
-# Footprints — motherboard is fully THT. Cart silicon is SOIC-8 (cute cart density).
+# Footprints — motherboard + cart silicon fully THT (25LC1024 + 24C64 DIP-8).
 _DIP40 = "Package_DIP:DIP-40_W15.24mm"
-_SOIC8 = "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+_DIP8 = "Package_DIP:DIP-8_W7.62mm"
 _EDGE16_MOBO = "Connector_PinSocket_2.54mm:PinSocket_2x08_P2.54mm_Vertical"
 _EDGE16_CART = "Retr01_Lib:Cart_Edge_2x8_P2.54mm"
 _BARREL = "Connector_BarrelJack:BarrelJack_CUI_PJ-063AH_Horizontal"
@@ -123,21 +123,21 @@ BOM: List[BomEntry] = [
     ),
     BomEntry(
         "U25",
-        "SST25VF010A",
-        "1 Mbit SPI flash",
+        "25LC1024",
+        "1 Mbit SPI EEPROM PDIP-8 (game image)",
         BoardId.CART,
         8,
-        _SOIC8,
+        _DIP8,
         vcc_pin="8",
         gnd_pin="4",
     ),
     BomEntry(
         "U50",
         "24C64",
-        "64 Kbit I2C EEPROM",
+        "64 Kbit I2C EEPROM PDIP-8",
         BoardId.CART,
         8,
-        _SOIC8,
+        _DIP8,
         vcc_pin="8",
         gnd_pin="4",
     ),

@@ -31,7 +31,7 @@ void r01ns_sst25_init(R01nsSst25 *chip, const char *refdes) {
         return;
     }
     memset(chip, 0, sizeof(*chip));
-    r01s_entity_init(&chip->base, &FLASH_VT, "SST25VF010A", refdes ? refdes : "U20");
+    r01s_entity_init(&chip->base, &FLASH_VT, "25LC1024", refdes ? refdes : "U25");
     chip->base.impl = chip;
     r01s_entity_add_pin(&chip->base, 1, "CE#", R01S_PIN_IN);
     r01s_entity_add_pin(&chip->base, 2, "SO", R01S_PIN_OUT);

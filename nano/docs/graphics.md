@@ -63,7 +63,7 @@ Tile **1** bits are drawn with the attr FG color. Tile **0** bits are backdrop *
 
 - Up to **4** banks per world on the cart
 - 1 bpp patterns (8 bytes per 8x8 tile if packed like a classic planar tile)
-- Bank count and tiles per bank are sized to fit **SST25VF010A** (128 KB) with maps and music. Exact tiles/bank freeze with the cart image format later.
+- Bank count and tiles per bank are sized to fit **25LC1024** (128 KB) with maps and music. Exact tiles/bank freeze with the cart image format later.
 
 Preferred runtime: on world enter, cache **all four** CHR banks in MCU SRAM (see [`cache_architecture.md`](cache_architecture.md)). Screen switches then SPI-load MAP only.
 

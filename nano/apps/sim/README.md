@@ -12,7 +12,7 @@ After fixing multi-field catchup, each UI frame advances **exactly one RGBS fiel
 |-------------------------|---------------------------|
 | Soft compose via emu core (= FW SRAM compose) | Nets in [`nano/docs/pinmap.md`](../../docs/pinmap.md) |
 | No AVR instruction ISA | SPI/I2C/PWM/XTAL/pad/sync on real PORT names |
-| No pixel-timed FG GPIO DAC shift | SST25 + 24C64 cart entities, WP#/HOLD# tied |
+| No pixel-timed FG GPIO DAC shift | 25LC1024 + 24C64 cart entities, WP#/HOLD# tied |
 | I2C protocol stub | 1 step = 1 RGBS line + VBlank SPI byte clocks |
 
 ## Board
@@ -21,7 +21,7 @@ After fixing multi-field catchup, each UI frame advances **exactly one RGBS fiel
 |--------|--------|
 | **VIDEO** | `SCREEN_SINK` 256×192 |
 | **MCU** | `PWR5V`, crystal stand-in (`OSC8M` entity @ 20 MHz timing), `ATMEGA1284P` PDIP-40 signals, `PADS` P1+P2, `PWM2CH` |
-| **CART** | `SST25VF010A` + `24C64` |
+| **CART** | `25LC1024` + `24C64` |
 
 PCB target package for the MCU is **TQFP-44**; sim draws PDIP-40 with the **same PORT names** (wire by net, not DIP number).
 

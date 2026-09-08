@@ -37,7 +37,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 | Audio | **2 PWM channels** | Music pulse + SFX. Resistor mix to one jack ([`sound.md`](sound.md)) |
 | Input | **2 players** | Retr01 `$FE60` / `$FE61` bit spirit |
 | Console Flash | 128 KB on 1284 | Open firmware + kernel only |
-| Cart Flash | SST25VF010A **128 KB** | PRG data, MAP, CHR, music — **8+8** edge ([`hardware.md`](hardware.md)) |
+| Cart game ROM | **25LC1024** **128 KB** (PDIP-8) | PRG data, MAP, CHR, music — **8+8** edge ([`hardware.md`](hardware.md)) |
 | Cart save | **24C64** always | Simpler cart routing than optional populate |
 
 ## Explicitly dropped (vs full Retr01)

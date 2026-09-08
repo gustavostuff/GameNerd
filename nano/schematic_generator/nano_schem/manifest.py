@@ -151,7 +151,7 @@ def manifest_gaps() -> List[str]:
         "FG DAC is bring-up RGB-bit (FG0=R, FG1=G, FG2=B); final 8-color resistor network TBD",
         "CSYNC is resistor mix of HSYNC+VSYNC; prefer FW composite on one pin or XOR glue later",
         "EDAC 395-016 CAD not imported; J_CART uses PinSocket_2x08 stand-in",
-        "SST25VF010A uses KiCad SST25VF080B pin twin (same SOIC-8 SPI map)",
+        "Cart game chip is 25LC1024 SPI EEPROM (write/erase cmds differ from NOR flash)",
         "No TVS / PPTC / cart series R in BRINGUP profile yet",
         "Flasher PCB (cart socket + ISP) not generated yet",
         "Motherboard outline 100x100 mm is provisional (not in netlist)",

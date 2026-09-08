@@ -9,9 +9,9 @@
 #define R01NS_SST25_SIZE (128u * 1024u)
 
 /*
- * SST25VF010A SPI flash (cart image). 8-pin package:
- *   1 CE#  2 SO  3 WP#  4 GND  5 SI  6 SCK  7 HOLD#  8 VCC
- * Behavioral: board wire + SPI READ helper; not bit-bang protocol complete.
+ * Cart SPI game memory (25LC1024 pin twin in sim). JEDEC SPI 8-pin:
+ *   1 CS#  2 SO  3 WP#  4 GND  5 SI  6 SCK  7 HOLD#  8 VCC
+ * Behavioral: board wire + SPI READ helper; not full EEPROM write protocol.
  */
 typedef struct R01nsSst25 {
     R01sEntity base;

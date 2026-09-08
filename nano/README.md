@@ -9,7 +9,7 @@ Retr01 Nano is a **spiritual child** of [Retr01](../README.md): same 128-wide ar
 | | Retr01 (full) | Retr01 Nano |
 |--|---------------|-------------|
 | CPU / host | 6502 + MCUs | Single ATmega1284P @ 20 MHz (preferred) |
-| Storage | Large cart flash + 24C64 | **Cute cart:** SST25VF010A (128 KB) + **24C64** always on cart |
+| Storage | Large cart flash + 24C64 | **Cute cart:** **25LC1024** (128 KB, DIP-8) + **24C64** (DIP-8) |
 | Firmware | Cart PRG + MCU assists | **Fixed open** 1284 firmware (community-flashable) |
 | Video | Multi-layer tile / sprite pipeline | 1 bpp tiles, attr FG color, **no sprites** |
 | Worlds | Up to 8, rich MAP | Up to **8** worlds, **16** screens/world, **16x16** screen grid |

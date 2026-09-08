@@ -53,9 +53,25 @@ Classic **plane gold fingers**, both sides. Same finger recipe as full Retr01 ca
 | Finger pad size | **8 × 1.7 mm** (same as Retr01) |
 | Board thickness | **1.6 mm** |
 | Finger center span | **7 × 2.54 = 17.78 mm** (A1..A8) |
-| Outline | As small as the two SOICs + fingers allow (no minimum size goal beyond that) |
+| Outline | As small as flash + EEPROM + fingers allow (no minimum size goal beyond that) |
 
 **Doable:** yes — same pad width/pitch as the large cart; only the mating length shrinks.
+
+### Cart IC packages (hand-buildability)
+
+**Edge pads ≠ IC pins.** The cart connector is **8+8** for SPI/I2C/power only. Both cart ICs are **PDIP-8** (fully THT).
+
+| Role | Locked MPN | Package | Notes |
+|------|------------|---------|-------|
+| Game image | **25LC1024-I/P** | **PDIP-8** | 1 Mbit SPI EEPROM, **2.5–5.5 V**, JEDEC SPI pinout. SKiDL default. |
+| Save EEPROM | **24C64** family | **PDIP-8** | Same pinout as SOIC. |
+
+Optional SMD twin for game chip: **25LC1024-I/SM** (SOIJ-8, ~208 mil). Legacy **SST25VF010A** (SOIC-8 150 mil, 3.3 V only) is no longer the cart default.
+
+Flasher FW must use **25LC1024** write/erase commands (SPI EEPROM), not raw NOR flash opcodes. Reads for `.r01nano` streaming match JEDEC SPI.
+
+DIP-16 / parallel NOR still do not fit the cute **8+8** edge model (see prior notes).
+
 
 ### Female connector (motherboard + flasher)
 
@@ -68,7 +84,7 @@ Right-angle 2×8 (console shell later) can swap footprint later; **electrical pi
 
 ### Cart edge pinout (play + program)
 
-Signals needed for SST25 + 24C64 are only **eight unique nets**. Both sides carry mirrored power/SPI/I2C for contact reliability; **B8** is detect.
+Signals needed for **25LC1024** + 24C64 are only **eight unique nets**. Both sides carry mirrored power/SPI/I2C for contact reliability; **B8** is detect.
 
 | Pos | Side A | Side B |
 |-----|--------|--------|
@@ -81,11 +97,11 @@ Signals needed for SST25 + 24C64 are only **eight unique nets**. Both sides carr
 | 7 | `I2C_SDA` | `I2C_SDA` |
 | 8 | `I2C_SCL` | `CART_DET#` (cart ties to `GND`; mobo pull-up) |
 
-Flash `HOLD#` / `WP#` **tied on the cart PCB** (not on the edge). SPI flash programming uses the **same SPI pins** (no parallel `WE#`).
+Flash `HOLD#` / `WP#` **tied on the cart PCB** (not on the edge). SPI programming uses the **same SPI pins** (no parallel `WE#`).
 
 ## Programming — USBasp for MCU, then MCU flashes the cart
 
-**Yes:** one **USBasp** on **J_ISP** fully programs the **ATmega1284P** (console firmware + fuses). After that, with the ATmega **running**, that firmware flashes the **plugged-in cart** (SPI master, `PB4` = `SPI_SS#`) with the `.r01nano` game image. Optional 24C64 work goes over I2C from the same FW.
+**Yes:** one **USBasp** on **J_ISP** fully programs the **ATmega1284P** (console firmware + fuses). After that, with the ATmega **running**, that firmware flashes the **plugged-in cart** (SPI master, `PB4` = `SPI_SS#`) with the `.r01nano` game image into the **25LC1024**. Optional 24C64 work goes over I2C from the same FW.
 
 USBasp never talks to the cart chips itself (wrong protocol; `SPI_SS#` / I2C are not on the 6-pin ISP header). The cart write is always **through the running 1284**.
 
@@ -94,12 +110,12 @@ USBasp never talks to the cart chips itself (wrong protocol; `SPI_SS#` / I2C are
                          |
                          | SPI (PB4 SS#) + I2C
                          v
-                    plugged-in cart (SST25 + 24C64)
+                    plugged-in cart (25LC1024 + 24C64)
 ```
 
 ### Preferred field flow
 
-1. **USBasp → J_ISP:** write open console firmware (and fuses) into the 1284. While ISP holds `RESET#`, cart `SPI_SS#` stays idle (high) so the SST25 stays deselected on the shared SPI lines.
+1. **USBasp → J_ISP:** write open console firmware (and fuses) into the 1284. While ISP holds `RESET#`, cart `SPI_SS#` stays idle (high) so the 25LC1024 stays deselected on the shared SPI lines.
 2. **Unplug USBasp (or leave it idle).** Power the board, cart inserted. Console FW runs and **SPI-masters** the cart to program / verify `.r01nano`.
 
 How the host feeds the image *into* that running FW is TBD (UART, USB CDC, Studio tool, etc.). That host link is not ISP / avrdude.
@@ -113,7 +129,7 @@ How the host feeds the image *into* that running FW is TBD (UART, USB CDC, Studi
 
 | Port on **Nano flasher** (bench PCB) | Connector | Programs |
 |--------------------------------------|-----------|----------|
-| Cart slot | Same **2×8** EDAC-class | `.r01nano` into SST25 + optional 24C64 (no console required) |
+| Cart slot | Same **2×8** EDAC-class | `.r01nano` into 25LC1024 + optional 24C64 (no console required) |
 | Console ISP lead | **2×3** ISP cable / header | Same USBasp/Atmel-ICE pinout as J_ISP |
 
 **One hardware flasher** = USB MCU (or host + USBasp dock) with **both** a 2×8 cart socket and a 2×3 ISP header. Use it for blank carts, recovery, or before console FW cart-write exists.
@@ -171,7 +187,7 @@ Outside the ICs. Counts are order-of-magnitude for SKiDL BOM planning.
 | PWM mix resistors + DC block cap | **4–6** | Music + SFX → `AUD` |
 | ISP / header pin shrouds | as needed | Polarized 2×3 preferred |
 
-**ICs (recap):** ATmega1284P **PDIP-40** (mobo fully THT); cart SST25VF010A SOIC-8; cart 24C64 SOIC-8. No second MCU on the motherboard.
+**ICs (recap):** ATmega1284P **PDIP-40**; cart **25LC1024 PDIP-8** + **24C64 PDIP-8** (fully THT). See [cart IC packages](#cart-ic-packages-hand-buildability). No second MCU on the motherboard.
 
 ## Pad bit layout
 
@@ -210,7 +226,7 @@ v1 keep **J_AV** (RGBS + mono on a pin header) and **J_P1 / J_P2** arcade header
 ## Bring-up order
 
 1. Video kernel on a 1284 breakout (no cart yet)
-2. SPI flash on a breakout as a fake cart
+2. SPI memory on a breakout as a fake cart
 3. First cute cart PCB + 2×8 slot
 4. Dual-port flasher (cart socket + ISP)
 5. Refine motherboard outline from the **100 × 100 mm** starting target

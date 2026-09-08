@@ -11,7 +11,7 @@ Extract: `nano/schematic_generator/nano_schem/kicad_pin_extract.json`. Generator
 
 | Net | PORT | DIP-40 | Notes |
 |-----|------|--------|-------|
-| `SPI_SS#` | **PB4** | **5** | Cart flash CE# / edge |
+| `SPI_SS#` | **PB4** | **5** | Cart **25LC1024** CS# / edge |
 | `SPI_MOSI` | **PB5** | **6** | Cart SI; shared with **J_ISP** MOSI |
 | `SPI_MISO` | **PB6** | **7** | Cart SO; shared with **J_ISP** MISO |
 | `SPI_SCK` | **PB7** | **8** | Cart SCK; shared with **J_ISP** SCK |
@@ -103,7 +103,7 @@ Standard AVR ISP: `MOSI`, `MISO`, `SCK`, `RESET#`, `VCC`, `GND` (same assignment
 ## SKiDL / Quilter handoff
 
 1. Generator: [`nano/schematic_generator/`](../schematic_generator/) (`python generate.py`).
-2. Symbols locked via KiCad extract (`ATmega1284P-P` PDIP-40, SST25VF080B twin, `24LC64`).
+2. Symbols: `ATmega1284P-P` PDIP-40; cart **25LC1024** + `24LC64` (both DIP-8).
 3. Cart footprint: `Retr01_Lib:Cart_Edge_2x8_P2.54mm` (same pad recipe as 2x18).
 4. Keep PORT names stable; DIP numbers are filled in the table above.
 5. Import `output/nano_mobo.net` + `output/nano_cart.net` into separate KiCad projects.

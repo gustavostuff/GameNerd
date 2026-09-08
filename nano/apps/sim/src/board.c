@@ -50,7 +50,7 @@ static void wire_clock(R01nsBoard *b) {
 }
 
 static void wire_spi(R01nsBoard *b) {
-    /* PB4/5/6/7 ↔ SST25 CE#/SI/SO/SCK (nano/docs/pinmap.md). */
+    /* PB4/5/6/7 ↔ 25LC1024 CS#/SI/SO/SCK (nano/docs/pinmap.md). */
     r01s_entity_drive(&b->flash.base, "CE#", r01s_entity_sense(&b->mcu.base, "PB4"));
     r01s_entity_drive(&b->flash.base, "SCK", r01s_entity_sense(&b->mcu.base, "PB7"));
     r01s_entity_drive(&b->flash.base, "SI", r01s_entity_sense(&b->mcu.base, "PB5"));
@@ -207,7 +207,7 @@ static void board_fill_health(R01sIslandGroup *group, R01sSystemHealth *out) {
              b->mcu.map_bytes_spi);
     out->system = b->mcu.booted ? R01S_HEALTH_OK : R01S_HEALTH_BOOT;
     snprintf(out->system_label, sizeof(out->system_label), "%s", b->mcu.booted ? "NANO OK" : "BOOT");
-    snprintf(out->system_detail, sizeof(out->system_detail), "1284 behavioral + SST25");
+    snprintf(out->system_detail, sizeof(out->system_detail), "1284 behavioral + 25LC1024");
 }
 
 static const R01sIslandGroupVTable BOARD_GROUP_VT = {

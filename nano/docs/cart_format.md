@@ -2,7 +2,7 @@
 
 **Status: design + Studio export.** Host tools write this image today. Console firmware loaders are still ahead.
 
-Magic file: **`.r01nano`** (packed). Flash image: **`_flash.bin`** padded to **128 KB** (`0xFF`) for SST25VF010A.
+Magic file: **`.r01nano`** (packed). Cart image: **`_flash.bin`** padded to **128 KB** (`0xFF`) for **25LC1024** (1 Mbit SPI EEPROM).
 
 Project authoring file: **`.r01proj`** JSON with `"platform": "nano"` and `"version": 1`.
 

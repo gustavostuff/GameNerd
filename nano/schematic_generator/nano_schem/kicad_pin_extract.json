@@ -46,19 +46,20 @@
       "40": "PA0"
     }
   },
-  "SST25VF080B-50-4x-S2Ax": {
-    "kicad_lib": "Memory_Flash",
-    "kicad_symbol": "SST25VF080B-50-4x-S2Ax",
-    "note": "Pin twin for SST25VF010A (SOIC-8 on cart; DIP-8 pinout identical)",
+  "25LC1024": {
+    "kicad_lib": null,
+    "kicad_symbol": null,
+    "note": "No stock KiCad symbol; JEDEC SPI EEPROM pinout (datasheet). PDIP-8 / SOIJ-8.",
+    "footprint": "Package_DIP:DIP-8_W7.62mm",
     "pins": {
-      "1": "~{CE}",
+      "1": "~{CS}",
       "2": "SO",
       "3": "~{WP}",
       "4": "VSS",
       "5": "SI",
       "6": "SCK",
       "7": "~{HOLD}",
-      "8": "VDD"
+      "8": "VCC"
     }
   },
   "24LC64": {

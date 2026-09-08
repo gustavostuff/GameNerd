@@ -246,7 +246,7 @@ int r01ns_atmega1284p_nano_boot(R01nsAtmega1284pNano *chip) {
         return -1;
     }
     if (chip->flash->image_len < 16) {
-        snprintf(chip->err, sizeof(chip->err), "SST25 empty — load cart first");
+        snprintf(chip->err, sizeof(chip->err), "cart SPI empty — load cart first");
         return -1;
     }
     if (r01ne_machine_boot_mem(&chip->machine, chip->flash->mem, chip->flash->image_len, chip->err,

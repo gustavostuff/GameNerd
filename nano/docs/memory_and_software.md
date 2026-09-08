@@ -9,10 +9,10 @@
 | ATmega1284P Flash (128 KB) | **Fixed open console firmware**: video kernel, cart SPI/I2C drivers, entity/compose helpers, pad/PWM services |
 | ATmega1284P SRAM (16 KB) | See [`cache_architecture.md`](cache_architecture.md): full world CHR cache, current MAP, entities, reserved headroom |
 | ATmega1284P EEPROM (4 KB) | Machine config only (not game saves) |
-| Cart SST25VF010A (128 KB) | Game image: maps, CHR banks, music/tables, soft logic data |
+| Cart 25LC1024 (128 KB) | Game image: maps, CHR banks, music/tables, soft logic data |
 | Cart 24C64 (8 KB) | Per-game saves (always fitted on the cart PCB) |
 
-**Flashing (locked intent):** **USBasp on J_ISP** fully programs the **ATmega1284P** (console firmware + fuses). Then, with that MCU **running**, firmware flashes the **plugged-in cart** over SPI (`PB4` = `SPI_SS#`) with `.r01nano` (and I2C for 24C64 if needed). The USBasp does not program the cart chips. Details: [`hardware.md`](hardware.md#programming--usbasp-for-mcu-then-mcu-flashes-the-cart). Bench 2×8 slot remains a fallback. Community firmware builds are intentional.
+**Flashing (locked intent):** **USBasp on J_ISP** fully programs the **ATmega1284P** (console firmware + fuses). Then, with that MCU **running**, firmware flashes the **plugged-in cart** over SPI (`PB4` = `SPI_SS#`) into the **25LC1024** with `.r01nano` (and I2C for 24C64 if needed). The USBasp does not program the cart chips. Details: [`hardware.md`](hardware.md#programming--usbasp-for-mcu-then-mcu-flashes-the-cart). Bench 2×8 slot remains a fallback. Community firmware builds are intentional.
 
 ## MCU SRAM sketch
 
@@ -31,7 +31,7 @@ High level only. The live map is in [`cache_architecture.md`](cache_architecture
 
 Rule: active scanline code never SPI-reads. Refills happen on world/screen enter (VBlank).
 
-## Cart flash budget (128 KB)
+## Cart SPI memory budget (128 KB)
 
 Rough planning (see [`cart_format.md`](cart_format.md) for the exported layout):
 

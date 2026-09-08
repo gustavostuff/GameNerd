@@ -74,7 +74,7 @@ Exact linker layout can shuffle order. The numbers are the contract: **CHR all f
 ## Cache tiers
 
 ```text
-COLD   Cart SPI only (SST25VF010A)
+COLD   Cart SPI only (25LC1024)
          |
          |  world enter (multi-VBlank OK)
          v

@@ -3,7 +3,7 @@ Physical pin numbers for Retr01 Nano parts.
 
 Authority for stock parts: KiCad 10 symbols under /usr/share/kicad/symbols/
 (see kicad_pin_extract.json). ATmega1284P-P is PDIP-40 (motherboard is fully THT).
-SST25VF010A uses SST25VF080B SOIC-8 pin twin (cart). 24C64 uses 24LC64 / 24LC16.
+Cart game memory is Microchip **25LC1024** PDIP-8 (JEDEC SPI pinout). 24C64 uses 24LC64 / 24LC16.
 
 Manifest connections address pins by these number strings.
 PORT / net SoT: nano/docs/pinmap.md (wire by PORT name; DIP numbers match KiCad).
@@ -79,7 +79,7 @@ M1284_P2 = (
 M1284_FG = (M1284_PB0, M1284_PB1, M1284_PB2)
 
 # ---------------------------------------------------------------------------
-# SST25VF010A / SST25VF080B SOIC-8 twin (cart — same pin numbers as DIP-8)
+# 25LC1024 PDIP-8 (JEDEC SPI — same pad numbers as SST25VF010A SOIC-8)
 # ---------------------------------------------------------------------------
 
 FLASH_CE, FLASH_SO, FLASH_WP, FLASH_VSS = "1", "2", "3", "4"
@@ -129,7 +129,7 @@ def _nums(n: int) -> List[str]:
 
 PIN_TEMPLATES: Dict[str, List[str]] = {
     "ATmega1284P": _nums(40),
-    "SST25VF010A": _nums(8),
+    "25LC1024": _nums(8),
     "24C64": _nums(8),
     "CART_EDGE_16": _nums(16),
     "CART_SOCKET_16": _nums(16),
@@ -199,15 +199,15 @@ KICAD_ALIASES: Dict[str, Dict[str, str]] = {
         "39": "PA1",
         "40": "PA0",
     },
-    "SST25VF010A": {
-        "1": "~{CE}",
+    "25LC1024": {
+        "1": "~{CS}",
         "2": "SO",
         "3": "~{WP}",
         "4": "VSS",
         "5": "SI",
         "6": "SCK",
         "7": "~{HOLD}",
-        "8": "VDD",
+        "8": "VCC",
     },
     "24C64": {
         "1": "A0",
@@ -226,7 +226,7 @@ def power_pin_nums(mpn: str) -> Optional[Tuple[str, str]]:
     """Primary VCC/GND pad numbers for Quilter local-bypass helpers."""
     table = {
         "ATmega1284P": ("10", "11"),
-        "SST25VF010A": (FLASH_VDD, FLASH_VSS),
+        "25LC1024": (FLASH_VDD, FLASH_VSS),
         "24C64": (EE_VCC, EE_GND),
     }
     return table.get(mpn)
