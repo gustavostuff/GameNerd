@@ -24,13 +24,14 @@ Reference class to beat on size: hobby single-AVR consoles with bulky I/O (see [
                  +--------+---------+
                           |
                           v
+                           +-------------+
    Crystal --------------->| ATmega1284P |
    ISP 6-pin ------------->|   TQFP-44   |
-                          |             |
+                           |             |
      P1 arcade GPIO ------>|             |---- PWM ---> audio out (R + AC couple)
      P2 arcade GPIO ------>|             |
-                          |             |---- R/G/B level GPIOs ---> resistor net
-                          |             |---- CSYNC / H+V sync ----+--> RGBS header
+                           |             |---- R/G/B level GPIOs ---> resistor net
+                           |             |---- CSYNC / H+V sync ----+--> RGBS header
                           +-------------+                          |    or mini plug
                                                                    v
                                                               upscaler / CRT
