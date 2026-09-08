@@ -83,19 +83,40 @@ Signals needed for SST25 + 24C64 are only **eight unique nets**. Both sides carr
 
 Flash `HOLD#` / `WP#` **tied on the cart PCB** (not on the edge). SPI flash programming uses the **same SPI pins** (no parallel `WE#`).
 
-## Programming — two ports, one bench tool
+## Programming — USBasp for MCU, then MCU flashes the cart
+
+**Yes:** one **USBasp** on **J_ISP** fully programs the **ATmega1284P** (console firmware + fuses). After that, with the ATmega **running**, that firmware flashes the **plugged-in cart** (SPI master, `PB4` = `SPI_SS#`) with the `.r01nano` game image. Optional 24C64 work goes over I2C from the same FW.
+
+USBasp never talks to the cart chips itself (wrong protocol; `SPI_SS#` / I2C are not on the 6-pin ISP header). The cart write is always **through the running 1284**.
+
+```text
+  USBasp --J_ISP--> ATmega1284P   (console FW, once / when updating)
+                         |
+                         | SPI (PB4 SS#) + I2C
+                         v
+                    plugged-in cart (SST25 + 24C64)
+```
+
+### Preferred field flow
+
+1. **USBasp → J_ISP:** write open console firmware (and fuses) into the 1284. While ISP holds `RESET#`, cart `SPI_SS#` stays idle (high) so the SST25 stays deselected on the shared SPI lines.
+2. **Unplug USBasp (or leave it idle).** Power the board, cart inserted. Console FW runs and **SPI-masters** the cart to program / verify `.r01nano`.
+
+How the host feeds the image *into* that running FW is TBD (UART, USB CDC, Studio tool, etc.). That host link is not ISP / avrdude.
+
+### Bench flasher (still useful)
 
 | Port on **motherboard** | Connector | Programs |
 |-------------------------|-----------|----------|
-| **J_ISP** | **2×3** vertical pin header (AVR ISP) | ATmega1284P console firmware / fuses |
-| **J_CART** | **2×8** card-edge female (above) | Play socket; also the electrical face for in-socket cart flash if the MCU is held in reset / SPI released |
+| **J_ISP** | **2×3** vertical pin header (AVR ISP) | ATmega1284P console firmware / fuses (USBasp) |
+| **J_CART** | **2×8** card-edge female | Play socket; also the face a bench tool uses for direct cart SPI/I2C |
 
 | Port on **Nano flasher** (bench PCB) | Connector | Programs |
 |--------------------------------------|-----------|----------|
-| Cart slot | Same **2×8** EDAC-class | `.r01nano` into SST25 + optional 24C64 blank/verify |
+| Cart slot | Same **2×8** EDAC-class | `.r01nano` into SST25 + optional 24C64 (no console required) |
 | Console ISP lead | **2×3** ISP cable / header | Same USBasp/Atmel-ICE pinout as J_ISP |
 
-**One hardware flasher** = USB MCU (or host + USBasp dock) with **both** a 2×8 cart socket and a 2×3 ISP header. Cart path talks SPI+I2C; ISP path talks AVR. While ISP runs on a live motherboard, keep cart `SPI_SS#` idle (flash deselected) so the shared SPI pins do not fight.
+**One hardware flasher** = USB MCU (or host + USBasp dock) with **both** a 2×8 cart socket and a 2×3 ISP header. Use it for blank carts, recovery, or before console FW cart-write exists.
 
 Motherboard **J_ISP** stays for field console updates without removing the DIP.
 
@@ -173,6 +194,19 @@ Same spirit as full Retr01 `$FE60` / `$FE61` (bit set = pressed):
 - USB-C power-only remains an optional later shell feature; **barrel is the locked v1 inlet**.
 - ISP is the recovery path for console firmware.
 
+## Planned later (not in v1 netlist / PCB)
+
+These are intentional follow-ons. They are **not** in the current SKiDL / bring-up design (vertical headers only).
+
+| Feature | Intent | Parent Retr01 reference |
+|---------|--------|-------------------------|
+| **RCA-like AV** | Mono **audio** RCA + **composite video** RCA (same spirit as full Retr01 RCJ footprints) | [`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md), CUI **RCJ-01x** |
+| **Composite encode** | On-board NTSC/PAL from RGBS + CSYNC (e.g. AD725 class) once RGBS bring-up is solid | Full Retr01 **AD725** path |
+| **TRS gamepads** | High-quality PCB footprints for real aux pads: same **Switchcraft 35RAPC** TRS, **ATtiny85** pad boards, **3-wire** half-duplex UART protocol as Retr01-C | [`docs/controllers.md`](../../docs/controllers.md) |
+| **Light gun** | Same TRS bus / protocol family as pads (CRT accessory roadmap) | [`docs/lightgun.md`](../../docs/lightgun.md) |
+
+v1 keep **J_AV** (RGBS + mono on a pin header) and **J_P1 / J_P2** arcade headers. Pad byte contract stays the same bitfield so TRS pads can drop in later without rewriting game I/O.
+
 ## Bring-up order
 
 1. Video kernel on a 1284 breakout (no cart yet)
@@ -183,8 +217,8 @@ Same spirit as full Retr01 `$FE60` / `$FE61` (bit set = pressed):
 
 ## Non-goals for v1 PCB
 
-- On-board NTSC / PAL encode
+- On-board NTSC / PAL encode (**planned later**, see above)
 - Full Retr01 36-pin cart compatibility
-- Dual NES sockets / TRS aux pads (arcade headers only)
+- TRS aux pads / light gun footprints on this spin (**planned later**, same parent protocol)
 - MIDI
 - Complex PMIC / Li-ion

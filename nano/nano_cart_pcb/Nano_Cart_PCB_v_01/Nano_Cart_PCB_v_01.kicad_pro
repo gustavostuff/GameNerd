@@ -264,7 +264,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "nano_main_pcb_v_01.kicad_pro",
+    "filename": "Nano_Cart_PCB_v_01.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -299,7 +299,7 @@
   "pcbnew": {
     "last_paths": {
       "idf": "",
-      "netlist": "../../schematic_generator/output/nano_mobo.net",
+      "netlist": "../../schematic_generator/output/nano_cart.net",
       "plot": "",
       "specctra_dsn": "",
       "step": "",
@@ -313,8 +313,8 @@
     "legacy_lib_list": [],
     "top_level_sheets": [
       {
-        "filename": "nano_main_pcb_v_01.kicad_sch",
-        "name": "nano_main_pcb_v_01",
+        "filename": "Nano_Cart_PCB_v_01.kicad_sch",
+        "name": "Nano_Cart_PCB_v_01",
         "uuid": "00000000-0000-0000-0000-000000000000"
       }
     ]

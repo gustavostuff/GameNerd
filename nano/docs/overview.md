@@ -76,3 +76,4 @@ PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardwar
 - Cart image file format and community flash tools
 - Game authoring path (hand tools vs a future Studio Nano profile)
 - Final RGBS connector shell
+- Later PCB: RCA mono audio + composite video, Retr01-C TRS gamepad footprints (same protocol), light gun on that bus ([`hardware.md`](hardware.md#planned-later-not-in-v1-netlist--pcb))
