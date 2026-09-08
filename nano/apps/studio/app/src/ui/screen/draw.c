@@ -10,7 +10,7 @@
 #include "retr01_studio/palette.h"
 #include "retr01_studio/project.h"
 #include "retr01_studio/sprites.h"
-#include "retr01_emu/types.h"
+#include "retr01_nano_emu/types.h"
 
 #include <png.h>
 #include <stdio.h>
@@ -412,7 +412,7 @@ static void draw_play_game(UiState *ui, SDL_Renderer *r, int ox, int oy) {
     if (!ui->play.machine || !ui->play.fb_tex) {
         return;
     }
-    SDL_UpdateTexture(ui->play.fb_tex, NULL, ui->play.machine->video.fb, R01E_VISIBLE_W * 3);
+    SDL_UpdateTexture(ui->play.fb_tex, NULL, ui->play.machine->video.fb, R01NE_VISIBLE_W * 3);
     dst.x = ox;
     dst.y = oy;
     dst.w = ui_screen_w(ui);

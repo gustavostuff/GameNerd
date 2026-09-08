@@ -47,19 +47,23 @@ target_compile_definitions(retr01_nano_emu_core PUBLIC "R01NE_DEFAULT_CART=\"${R
 target_compile_options(retr01_nano_emu_core PRIVATE
   "-I${R01_OUTPUT_DIR}/C"
 )
-add_executable(retr01_nano_emu src/main.c)
-target_link_libraries(retr01_nano_emu PRIVATE retr01_nano_emu_core PkgConfig::SDL2)
 
-enable_testing()
+# Standalone app + tests only when this is the top-level project.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  add_executable(retr01_nano_emu src/main.c)
+  target_link_libraries(retr01_nano_emu PRIVATE retr01_nano_emu_core PkgConfig::SDL2)
 
-add_executable(test_nano_cart tests/test_cart.c)
-target_link_libraries(test_nano_cart PRIVATE retr01_nano_emu_core)
-add_test(NAME test_nano_cart COMMAND test_nano_cart ${R01_TEST_CART})
+  enable_testing()
 
-add_executable(test_nano_boot tests/test_boot.c)
-target_link_libraries(test_nano_boot PRIVATE retr01_nano_emu_core)
-add_test(NAME test_nano_boot COMMAND test_nano_boot ${R01_TEST_CART})
+  add_executable(test_nano_cart tests/test_cart.c)
+  target_link_libraries(test_nano_cart PRIVATE retr01_nano_emu_core)
+  add_test(NAME test_nano_cart COMMAND test_nano_cart ${R01_TEST_CART})
 
-add_executable(test_nano_play tests/test_play.c)
-target_link_libraries(test_nano_play PRIVATE retr01_nano_emu_core)
-add_test(NAME test_nano_play COMMAND test_nano_play ${R01_TEST_CART})
+  add_executable(test_nano_boot tests/test_boot.c)
+  target_link_libraries(test_nano_boot PRIVATE retr01_nano_emu_core)
+  add_test(NAME test_nano_boot COMMAND test_nano_boot ${R01_TEST_CART})
+
+  add_executable(test_nano_play tests/test_play.c)
+  target_link_libraries(test_nano_play PRIVATE retr01_nano_emu_core)
+  add_test(NAME test_nano_play COMMAND test_nano_play ${R01_TEST_CART})
+endif()

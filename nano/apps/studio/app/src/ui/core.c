@@ -4,8 +4,8 @@
 
 #include "retr01_studio/project.h"
 
-#include "retr01_emu/machine.h"
-#include "retr01_emu/play.h"
+#include "retr01_nano_emu/machine.h"
+#include "retr01_nano_emu/play.h"
 #include "r01_pad_keys.h"
 
 #include <stdio.h>
@@ -232,9 +232,8 @@ void ui_tick(UiState *ui) {
         ui->play.last_tick = now;
     }
     keys = SDL_GetKeyboardState(NULL);
-    r01e_machine_set_pad(ui->play.machine, 0, r01_pad_bits_p1(keys));
-    r01e_machine_set_pad(ui->play.machine, 1, r01_pad_bits_p2(keys));
-    (void)r01e_machine_frame(ui->play.machine);
+    r01ne_play_set_pad(ui->play.machine, r01_pad_bits_p1(keys));
+    r01ne_machine_frame(ui->play.machine);
 }
 
 void ui_toggle_logic_scale(UiState *ui) {

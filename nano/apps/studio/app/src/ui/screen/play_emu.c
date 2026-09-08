@@ -6,8 +6,8 @@
 #include "retr01_studio/cart.h"
 #include "retr01_studio/paths.h"
 #include "retr01_studio/project.h"
-#include "retr01_emu/machine.h"
-#include "retr01_emu/play.h"
+#include "retr01_nano_emu/machine.h"
+#include "retr01_nano_emu/play.h"
 #include "r01_bgm_host.h"
 #include "r01_custom_logic_scan.h"
 
@@ -16,14 +16,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-static void play_sfx_x(void) {
-    r01_bgm_host_sfx_play(R01_SFX_X);
-}
-
-static void play_sfx_y(void) {
-    r01_bgm_host_sfx_play(R01_SFX_Y);
-}
 
 static void play_destroy_textures(UiPlaySession *pl) {
     if (!pl) {
@@ -40,7 +32,7 @@ static void play_shutdown_machine(UiPlaySession *pl) {
         return;
     }
     if (pl->machine) {
-        r01e_machine_shutdown(pl->machine);
+        r01ne_machine_shutdown(pl->machine);
         free(pl->machine);
         pl->machine = NULL;
     }
@@ -105,12 +97,12 @@ void ui_toggle_play(UiState *ui) {
     ui->play.err[0] = '\0';
 }
 
-/* After first boot frame is presented: export cart + init emu. */
+/* After first boot frame is presented: export cart + init nano emu. */
 void ui_play_boot_finish(UiState *ui, SDL_Renderer *ren) {
     char stem[R01_PATH_MAX];
     char cart[R01_PATH_MAX];
     char err[256];
-    R01eMachine *m;
+    R01neMachine *m;
 
     if (!ui || !ui->play.booting || !ren) {
         return;
@@ -129,27 +121,27 @@ void ui_play_boot_finish(UiState *ui, SDL_Renderer *ren) {
         return;
     }
     ui_bgm_write_export_bins(ui);
-    snprintf(cart, sizeof(cart), "%s.r01nano", stem);
+    snprintf(cart, sizeof(cart), "%s%s", stem, R01_CART_EXT);
 
-    m = (R01eMachine *)calloc(1, sizeof(R01eMachine));
+    m = (R01neMachine *)calloc(1, sizeof(R01neMachine));
     if (!m) {
         ui_toast(ui, "out of memory", 1);
         ui_play_stop(ui);
         return;
     }
-    if (r01e_machine_init(m, cart, err, sizeof(err)) != 0) {
+    if (r01ne_machine_boot(m, cart, err, sizeof(err)) != 0) {
         free(m);
-        snprintf(ui->play.err, sizeof(ui->play.err), "%s", err[0] ? err : "emu init failed");
+        snprintf(ui->play.err, sizeof(ui->play.err), "%s", err[0] ? err : "emu boot failed");
         ui_toast(ui, ui->play.err, 1);
         ui_play_stop(ui);
         return;
     }
 
     ui->play.fb_tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING,
-                                        R01E_VISIBLE_W, R01E_VISIBLE_H);
+                                        R01NE_VISIBLE_W, R01NE_VISIBLE_H);
     if (!ui->play.fb_tex) {
         play_destroy_textures(&ui->play);
-        r01e_machine_shutdown(m);
+        r01ne_machine_shutdown(m);
         free(m);
         ui_toast(ui, "SDL texture failed", 1);
         ui_play_stop(ui);
@@ -163,12 +155,10 @@ void ui_play_boot_finish(UiState *ui, SDL_Renderer *ren) {
     ui->play.booting = 0;
     ui->play.last_tick = SDL_GetTicks();
     ui_play_start_bgm(ui);
-    r01e_play_set_sfx_on_x(play_sfx_x);
-    r01e_play_set_sfx_on_y(play_sfx_y);
 }
 
 int ui_play_screen_mark(const UiState *ui) {
-    const R01eMachine *m;
+    const R01neMachine *m;
     int col, row;
     const R01World *w;
     if (!ui || !ui->play.active || ui->play.booting || !ui->play.machine) {
@@ -182,7 +172,7 @@ int ui_play_screen_mark(const UiState *ui) {
     if (!w) {
         return -1;
     }
-    col = (m->play.player_x + R01E_PLAY_PLAYER_W / 2) / R01E_SCREEN_PX_W;
-    row = (m->play.player_y + R01E_PLAY_PLAYER_H / 2) / R01E_SCREEN_PX_H;
+    col = (m->play.player_tx * 8 + 4) / R01NE_SCREEN_PX_W;
+    row = (m->play.player_ty * 8 + 4) / R01NE_SCREEN_PX_H;
     return r01_world_screen_index(w, col, row);
 }

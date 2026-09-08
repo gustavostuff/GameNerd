@@ -11,8 +11,6 @@
 #include "retr01_studio/metatiles.h"
 #include "retr01_studio/palette.h"
 #include "retr01_studio/project.h"
-#include "retr01_emu/play.h"
-#include "retr01_emu/video.h"
 
 #include <png.h>
 #include <stdio.h>

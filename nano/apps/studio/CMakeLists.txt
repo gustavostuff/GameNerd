@@ -8,16 +8,31 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 # Nano Studio lives under nano/apps/studio. Shared code/assets stay in app/.
 set(R01_REPO_ROOT "${CMAKE_SOURCE_DIR}/../../.." CACHE PATH "Retr01 repo root")
 set(R01_PKG_ROOT "${R01_REPO_ROOT}/app")
-set(R01_OUTPUT_DIR "${R01_REPO_ROOT}/output")
-set(R01_TEST_CART "${R01_OUTPUT_DIR}/test.retr01")
+set(R01_COMMON_DIR "${R01_PKG_ROOT}/common")
+set(R01_OUTPUT_DIR "${R01_REPO_ROOT}/output/nano")
+set(R01_TEST_CART "${R01_OUTPUT_DIR}/test.r01nano")
 set(R01_TEST_PROJECT "${R01_OUTPUT_DIR}/test.r01proj")
 set(R01_ASSETS_DIR "${R01_PKG_ROOT}/assets")
 set(R01_ASSETS_PNG "${R01_ASSETS_DIR}/png")
 set(R01_ASSETS_OTHER "${R01_ASSETS_DIR}/other")
+set(R01_NANO_EMU_DIR "${R01_REPO_ROOT}/nano/apps/emu")
 
-# Shared emu core for Studio Play (standalone ./emu still built from app/emu).
-if(NOT TARGET retr01_emu_core)
-  add_subdirectory(${R01_PKG_ROOT}/emu ${CMAKE_BINARY_DIR}/retr01_emu EXCLUDE_FROM_ALL)
+# Host helpers for Studio core (camera / custom_logic scan / softsynth).
+if(NOT TARGET r01_play_common)
+  add_library(r01_play_common
+    ${R01_COMMON_DIR}/r01_play_anim.c
+    ${R01_COMMON_DIR}/r01_play_anim_cart.c
+    ${R01_COMMON_DIR}/r01_play_camera.c
+    ${R01_COMMON_DIR}/r01_custom_logic_scan.c
+    ${R01_COMMON_DIR}/r01_nes_synth.c
+  )
+  target_include_directories(r01_play_common PUBLIC ${R01_COMMON_DIR})
+  target_link_libraries(r01_play_common PUBLIC m)
+endif()
+
+# Nano emu core for Studio Play (standalone ./nano_emu from nano/apps/emu).
+if(NOT TARGET retr01_nano_emu_core)
+  add_subdirectory(${R01_NANO_EMU_DIR} ${CMAKE_BINARY_DIR}/retr01_nano_emu EXCLUDE_FROM_ALL)
 endif()
 
 add_library(retr01_studio_core
@@ -131,10 +146,10 @@ add_library(retr01_studio_app
 )
 target_include_directories(retr01_studio_app PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/app/src
-  ${R01_PKG_ROOT}/emu/include
+  ${R01_NANO_EMU_DIR}/include
   ${R01_PKG_ROOT}/common
 )
-target_link_libraries(retr01_studio_app PUBLIC retr01_studio_core retr01_emu_core PkgConfig::SDL2 PkgConfig::FREETYPE PkgConfig::LIBPNG)
+target_link_libraries(retr01_studio_app PUBLIC retr01_studio_core retr01_nano_emu_core PkgConfig::SDL2 PkgConfig::FREETYPE PkgConfig::LIBPNG)
 find_package(X11)
 if(X11_FOUND)
   target_compile_definitions(retr01_studio_app PRIVATE R01_HAS_X11=1)

@@ -3,6 +3,7 @@
 #include "retr01_studio/cart.h"
 #include "retr01_studio/json_io.h"
 #include "retr01_studio/project.h"
+#include "retr01_studio/types.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +18,11 @@ int main(int argc, char **argv) {
     FILE *f;
     char magic[6];
     int i;
+    char export_stem[] = "fixture_export";
+    char export_cart[64];
 
-    proj_path = argc > 1 ? argv[1] : R01_OUTPUT_DIR "/test.r01proj";
-    cart_path = argc > 2 ? argv[2] : R01_OUTPUT_DIR "/test.retr01";
+    proj_path = argc > 1 ? argv[1] : R01_DEFAULT_PROJECT;
+    cart_path = argc > 2 ? argv[2] : R01_OUTPUT_DIR "/test" R01_CART_EXT;
 
     EXPECT(p != NULL && loaded != NULL, "alloc project");
     if (!p || !loaded) {
@@ -34,23 +37,30 @@ int main(int argc, char **argv) {
     EXPECT(f != NULL, "open golden cart");
     if (f) {
         EXPECT(fread(magic, 1, 6, f) == 6, "read cart magic");
-        EXPECT(memcmp(magic, "retr01", 6) == 0, "cart magic");
+        EXPECT(memcmp(magic, R01_CART_MAGIC, 6) == 0, "cart magic");
         fclose(f);
     }
 
     r01_project_init(p, "fixture");
-    for (i = 0; i < R01_MAX_PRESENT_SCREENS; i++) {
-        int c = i % R01_GRID_MAX;
-        int r = i / R01_GRID_MAX;
-        EXPECT(r01_world_create_screen(&p->worlds[0], c, r) >= 0, "fixture present screens");
-    }
-    EXPECT(r01_export_bundle(p, "fixture_export", err, sizeof(err)) == 0, "export bundle");
     {
-        FILE *out = fopen("fixture_export.retr01", "rb");
+        int made = 0;
+        for (i = 0; i < R01_GRID_MAX * R01_GRID_MAX && made < R01_MAX_PRESENT_SCREENS; i++) {
+            int c = i % R01_GRID_MAX;
+            int r = i / R01_GRID_MAX;
+            if (r01_world_create_screen(&p->worlds[0], c, r) >= 0) {
+                made++;
+            }
+        }
+        EXPECT(made == R01_MAX_PRESENT_SCREENS, "fixture present screens");
+    }
+    EXPECT(r01_export_bundle(p, export_stem, err, sizeof(err)) == 0, "export bundle");
+    snprintf(export_cart, sizeof(export_cart), "%s%s", export_stem, R01_CART_EXT);
+    {
+        FILE *out = fopen(export_cart, "rb");
         EXPECT(out != NULL, "open exported cart");
         if (out) {
             EXPECT(fread(magic, 1, 6, out) == 6, "read exported magic");
-            EXPECT(memcmp(magic, "retr01", 6) == 0, "exported magic");
+            EXPECT(memcmp(magic, R01_CART_MAGIC, 6) == 0, "exported magic");
             fclose(out);
         }
     }

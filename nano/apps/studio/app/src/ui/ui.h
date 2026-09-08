@@ -3,7 +3,7 @@
 
 #include "retr01_studio/metasprites.h"
 #include "retr01_studio/project.h"
-#include "retr01_emu/machine.h"
+#include "retr01_nano_emu/machine.h"
 #include "r01_bgm_host.h"
 
 #include <SDL.h>
@@ -374,7 +374,7 @@ typedef struct UiPlaySession {
     int booting; /* export + machine init pending after first boot frame */
     int spin;
     Uint32 last_tick;
-    R01eMachine *machine;
+    R01neMachine *machine;
     SDL_Texture *fb_tex;
     char err[256];
 } UiPlaySession;

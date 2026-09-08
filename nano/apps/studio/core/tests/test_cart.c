@@ -52,7 +52,7 @@ TEST_MAIN() {
     }
 
     tile_id = r01_chr_alloc_tile(w, 0);
-    EXPECT(tile_id == 0, "bg tile 0");
+    EXPECT(tile_id == 1, "bg tile 1 (0 reserved blank)");
     memset(tile, 0, sizeof(tile));
     tile[0] = 0xFF;
     tile[8] = 0xFF;
@@ -122,7 +122,8 @@ TEST_MAIN() {
 
                 off_chr = rd_u24(hdr + R01_CART_WHDR_OFF_CHR);
                 EXPECT(off_chr == R01_CART_WORLD_HDR_BYTES, "off_chr");
-                memcpy(chr_tile, img + world_base + off_chr, R01_NANO_TILE_BYTES);
+                /* Tile 0 is reserved blank; painted data is tile 1. */
+                memcpy(chr_tile, img + world_base + off_chr + R01_NANO_TILE_BYTES, R01_NANO_TILE_BYTES);
                 EXPECT(tile_1bpp_nonzero(chr_tile), "chr tile 1bpp nonzero");
                 {
                     uint32_t bank1 = world_base + off_chr + R01_NANO_BANK_CHR_BYTES;
@@ -143,7 +144,7 @@ TEST_MAIN() {
 
                 memcpy(trec, img + world_base + off_types, R01_CART_ENTITY_TYPE_SIZE);
                 EXPECT(trec[0] == 1, "type state_count");
-                EXPECT(trec[2] == 0 && trec[3] == 0, "type bank/tile");
+                EXPECT(trec[2] == 0 && trec[3] == 1, "type bank/tile");
 
                 memcpy(irec, img + world_base + off_insts, R01_CART_INSTANCE_SIZE);
                 EXPECT(irec[0] == 0, "inst type");

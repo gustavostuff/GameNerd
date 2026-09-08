@@ -38,6 +38,7 @@ TEST_MAIN() {
     r01_game_ctx_init(&ctx);
     r01_player_anim_set_idle_state(&ctx, 0);
     r01_player_anim_set_walk_all(&ctx, 1);
+    r01_player_anim_set_release_to_idle(&ctx, 1, 1);
     r01_entity_state_frame_delay_set(&ctx, 1, 2);
 
     r01_player_anim_update(&ctx, -1, 0);

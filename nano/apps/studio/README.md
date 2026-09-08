@@ -13,13 +13,13 @@ Parent Studio docs below are still the copied baseline until Nano Studio diverge
 Visual authoring for Retr01 worlds, screens, and `.retr01` cartridge images. Studio is two tools in one app:
 
 1. **Authoring (UI)**. Edit worlds, tiles, palettes, sprites, entities, and instances.
-2. **Export + Play**. **Ctrl+E** (or **Play**) writes a packed cart and generated game tree under `output/`. **Play** then opens the **emulator render screen** on that cart so Studio preview matches standalone `./emu` pixel-for-pixel.
+2. **Export + Play**. **Ctrl+E** (or **Play**) writes a packed cart and generated game tree under `output/nano/`. **Play** then opens the **nano emu render screen** on that cart so Studio preview matches standalone `./nano_emu` pixel-for-pixel.
 
 Authoring state lives in `output/<stem>.r01proj` (JSON). **`custom_logic.c`** is created on first export and never overwritten. Hardware contract: [`docs/graphics.md`](../../docs/graphics.md).
 
-There is **no** Studio-only host Play path. Preview always goes through export then shared emu core ([`app/emu/`](../emu/README.md)). **Sim is not involved.**
+There is **no** Studio-only host Play path. Preview always goes through export then shared **nano emu** core ([`../emu/`](../emu/README.md)). **Sim is not involved.**
 
-**Stack:** C11 + SDL2 + FreeType (Proggy Tiny), `libretr01_studio_core` + thin shell + shared `retr01_emu` core for Play.
+**Stack:** C11 + SDL2 + FreeType (Proggy Tiny), `libretr01_studio_core` + thin shell + shared `retr01_nano_emu_core` for Play.
 
 ---
 
@@ -69,7 +69,7 @@ PNG drop imports into the **active** world. Cart export packs **world 0** only (
 
 1. Always runs the same **export** path as **Ctrl+E** (pack `.retr01` + regenerate `output/C/`, `output/ASM/`, `output/data/` as needed), even if the project is unsaved.
 2. While export runs, shows a Studio-local **boot wait** UI (spinning `Booting console...` style text, same idea as the sim boot spinner, no sim code link).
-3. Embeds the **emulator** in Studio via shared emu core. **Play** shows the game framebuffer only (debug pane stays in standalone `./emu`).
+3. Embeds the **nano emulator** in Studio via `retr01_nano_emu_core`. **Play** shows the game framebuffer only (matches standalone `./nano_emu`).
 
 Shared emu core with standalone [`emu`](../emu/README.md). Standalone `./emu` remains for triage (may keep its own debug window). Cart export is still **world 0** only. **Sim is out of scope.**
 
@@ -84,7 +84,7 @@ Shared emu core with standalone [`emu`](../emu/README.md). Standalone `./emu` re
 | **Collision** | Current anim-state hitbox vs `R01_ATTR_SOLID` on cart MAP attrs (not PRG collision stub) |
 | **Warps** | **X** -> screen (0,0). **Y** -> screen (1,0). Test hooks only |
 
-Gameplay SoT for Phase 1: emu Host Play (`app/emu/src/play.c` + `app/common/`). Studio does not maintain a parallel `core/src/play.c` preview.
+Gameplay SoT: nano emu Host Play (`nano/apps/emu` + `custom_logic.c`). Studio does not maintain a parallel `core/src/play.c` preview for Play UI.
 
 ### `custom_logic.c` hooks (host export)
 
