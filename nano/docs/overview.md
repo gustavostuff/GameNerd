@@ -17,7 +17,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 
 1. One **ATmega1284P** (20 MHz preferred) as the whole console.
 2. Stable progressive **RGBS** at **60 Hz**.
-3. **Cute dual-sided carts** (SPI game flash + always-present save EEPROM).
+3. **Cute dual-sided carts** (**8+8** gold fingers, same pad pitch/width as full Retr01; see [`hardware.md`](hardware.md)).
 4. Instant screen switches only (no scrolling).
 5. Soft **entities** in RAM (not hardware sprites).
 
@@ -37,7 +37,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 | Audio | **2 PWM channels** | Music pulse + SFX. Resistor mix to one jack ([`sound.md`](sound.md)) |
 | Input | **2 players** | Retr01 `$FE60` / `$FE61` bit spirit |
 | Console Flash | 128 KB on 1284 | Open firmware + kernel only |
-| Cart Flash | SST25VF010A **128 KB** | PRG data, MAP, CHR, music |
+| Cart Flash | SST25VF010A **128 KB** | PRG data, MAP, CHR, music — **8+8** edge ([`hardware.md`](hardware.md)) |
 | Cart save | **24C64** always | Simpler cart routing than optional populate |
 
 ## Explicitly dropped (vs full Retr01)
@@ -68,7 +68,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 6. Tiny sample cart game.
 7. Only then push vertical resolution.
 
-PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardware.md)). Provisional port pin map for Sim/SKiDL: [`pinmap.md`](pinmap.md). SRAM cache policy: [`cache_architecture.md`](cache_architecture.md).
+PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardware.md); motherboard outline starts at **100 × 100 mm**, provisional). Provisional port pin map for Sim/SKiDL: [`pinmap.md`](pinmap.md). SRAM cache policy: [`cache_architecture.md`](cache_architecture.md).
 
 ## Open items
 

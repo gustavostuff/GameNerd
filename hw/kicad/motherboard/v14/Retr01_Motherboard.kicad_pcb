@@ -11251,7 +11251,6 @@
 		)
 	)
 	(footprint "Connector_PinSocket_2.54mm:PinSocket_2x18_P2.54mm_Vertical"
-		(locked yes)
 		(layer "F.Cu")
 		(uuid "3c8d8fb6-b740-4b6c-903b-029d1e4c179c")
 		(at 142 79 -90)
@@ -11341,7 +11340,6 @@
 		)
 		(path "/0fa8d353-456e-5e34-96d4-7bb8ff9b715f")
 		(sheetname "/")
-		(clearance 5)
 		(attr through_hole)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -43187,6 +43185,94 @@
 		(locked yes)
 		(layer "Edge.Cuts")
 		(uuid "e1d94e39-5131-49dd-b085-502980fcab67")
+	)
+	(gr_rect
+		(start 94 71)
+		(end 105 72)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "1a7c6f82-2e0f-4c12-9047-58adcb530b3d")
+	)
+	(gr_rect
+		(start 94 83)
+		(end 105 84)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "5e9e59f1-b364-4b20-a2d1-678adf5ad518")
+	)
+	(gr_rect
+		(start 107 71)
+		(end 118 72)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "e14340a2-b6c2-492b-a7d5-e6b7cd139841")
+	)
+	(gr_rect
+		(start 107 83)
+		(end 118 84)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "b8289fd0-9670-42f5-9939-2444dc51751e")
+	)
+	(gr_rect
+		(start 120 71)
+		(end 131 72)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "d55a4809-904f-4edc-adbb-2f1d115554d2")
+	)
+	(gr_rect
+		(start 120 83)
+		(end 131 84)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "b94fa797-2ab6-45aa-890f-8bc19ab9d646")
+	)
+	(gr_rect
+		(start 133 71)
+		(end 144 72)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "d3a7da3a-929d-4767-aad9-86e67dd567c3")
+	)
+	(gr_rect
+		(start 133 83)
+		(end 144 84)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "01dea124-8575-4cf6-b666-7d6cef6256fc")
 	)
 	(zone
 		(net "GND")

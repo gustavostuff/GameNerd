@@ -12,7 +12,7 @@
 | Cart SST25VF010A (128 KB) | Game image: maps, CHR banks, music/tables, soft logic data |
 | Cart 24C64 (8 KB) | Per-game saves (always fitted on the cart PCB) |
 
-Flashing the **1284** updates the shared console. Flashing the **cart SPI** installs or replaces a game. Community firmware builds are intentional.
+Flashing the **1284** (motherboard **J_ISP**) updates the shared console. Flashing the **cart SPI** (same **8+8** edge, or the bench flasher’s cart slot) installs or replaces a game. One bench tool can carry **both** a 2×8 cart socket and a 2×3 ISP header ([`hardware.md`](hardware.md#programming--two-ports-one-bench-tool)). Community firmware builds are intentional.
 
 ## MCU SRAM sketch
 
