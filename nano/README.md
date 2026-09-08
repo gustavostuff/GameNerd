@@ -26,7 +26,7 @@ For now, **Nano Studio**, **Nano Emu**, and **Nano Sim** are **independent** tre
 
 Later they are intended to **share common code** with the full Studio / Emu / Sim apps (shared libraries or extracted modules) instead of remaining permanent forks. Until that merge, prefer fixing Nano behavior in the Nano tree and keep full apps unchanged unless a change is deliberately shared.
 
-**Apps:** [`apps/studio/`](apps/studio/) is Nano Studio. See [`apps/README.md`](apps/README.md).
+**Apps:** [`apps/studio/`](apps/studio/) is Nano Studio. [`apps/emu/`](apps/emu/) is Nano Emu (picture-only for now). See [`apps/README.md`](apps/README.md).
 
 ## Docs
 
@@ -46,7 +46,7 @@ From the repo root:
 | Command | Role |
 |---------|------|
 | `./nano_studio [project.r01proj]` | Nano Studio (`bin/nano_studio` from `./build-all`) |
-| `./nano_emu` | Placeholder (no-op for now) |
+| `./nano_emu [cart.r01nano]` | Nano Emu picture viewer (`bin/nano_emu`) |
 | `./nano_sim` | Placeholder (no-op for now) |
 
 Source concept notes also live in `temp/Retr01_Nano_Spec.md`. Where this tree disagrees, **these docs win**.

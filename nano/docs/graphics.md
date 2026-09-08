@@ -92,7 +92,9 @@ Each entity (minimum fields):
 | tile | 1 byte | Current **8x8** pattern index (swappable) |
 | color | 1 byte | Low bits = FG color **0-7**. Upper bits reserved for later |
 
-Movement patterns (player walk, enemy paths, tile-per-frame bullets) advance **pixel** coords, then update **tile** coords when crossing tile boundaries.
+Movement patterns (player walk, enemy paths, tile-per-frame bullets) advance **pixel** coords for speed / physics, then update **tile** coords when crossing tile boundaries.
+
+**Draw always uses tile coords** (`tile_x * 8`, `tile_y * 8`). There is no sub-tile visual sliding — the soft tile jumps from cell to cell. Pixel positions exist so movement rate and later platformer-style integration can live underneath that.
 
 ### Draw priority
 

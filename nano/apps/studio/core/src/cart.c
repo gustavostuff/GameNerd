@@ -1,6 +1,7 @@
 #include "retr01_studio/cart.h"
 #include "retr01_studio/chr_pack.h"
 #include "retr01_studio/entities.h"
+#include "retr01_studio/export_codegen.h"
 #include "retr01_studio/project.h"
 
 #include <stdio.h>
@@ -469,6 +470,9 @@ int r01_export_bundle(const R01Project *p, const char *path_stem, char *err_buf,
         return -1;
     }
     if (r01_cart_write_flash(p, path, err_buf, err_cap) != 0) {
+        return -1;
+    }
+    if (r01_export_codegen(p, path_stem, err_buf, err_cap) != 0) {
         return -1;
     }
     return 0;

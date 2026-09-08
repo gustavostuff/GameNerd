@@ -22,6 +22,19 @@ void ui_paint_stamp_set(UiState *ui, uint8_t tile, uint8_t attr) {
     ui->paint_stamp_valid = 1;
 }
 
+void ui_paint_stamp_from_bank(UiState *ui, int bank, int tile_id) {
+    uint8_t attr;
+    if (!ui || bank < 0 || bank >= R01_BG_BANKS || tile_id < 0 || tile_id >= R01_TILES_PER_BANK) {
+        return;
+    }
+    attr = r01_attr_pack(bank, ui->brush.pal & 7, ui->brush.flip_h, ui->brush.flip_v);
+    ui->brush.armed = 1;
+    ui->brush.bank = bank;
+    ui->brush.tile_id = tile_id;
+    ui->brush.pal = ui->brush.pal & 7;
+    ui_paint_stamp_set(ui, (uint8_t)tile_id, attr);
+}
+
 void ui_paint_stamp_from_cell(UiState *ui, int tx, int ty) {
     R01Screen *s;
     int cell;

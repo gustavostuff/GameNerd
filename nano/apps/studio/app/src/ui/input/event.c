@@ -286,6 +286,11 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
             !(ui->entity_edit.open || ui->tile_edit.open)) {
             int fg = (int)(e->key.keysym.sym - SDLK_1);
             ui->brush.pal = fg;
+            if (ui->paint_stamp_valid) {
+                uint8_t a = ui->paint_stamp_attr;
+                ui->paint_stamp_attr =
+                    r01_attr_merge(a, r01_attr_bank(a), fg, r01_attr_flip_h(a), r01_attr_flip_v(a));
+            }
             if (ui->screen_mode == UI_SCREEN_MODE_SEL && screen_sel_valid(ui)) {
                 screen_set_sel_pal(ui, fg);
             }
@@ -607,6 +612,14 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
                 ui->arm_kind = UI_ARM_BANK_TAB;
                 ui->arm_a = wi;
                 return 1;
+            }
+            {
+                int tile_id;
+                if (!ui->play.active && banks_cell_hit(ui, lx, ly, &tile_id)) {
+                    ui_paint_stamp_from_bank(ui, ui->banks_idx, tile_id);
+                    ui_toast(ui, "brush set", 0);
+                    return 1;
+                }
             }
             if (!ui->play.active && world_cell_hit(ui, lx, ly, &col, &row)) {
                 ui->arm_kind = UI_ARM_WORLD_CELL;

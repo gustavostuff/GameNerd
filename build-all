@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build Studio, Emu, Sim, and Nano Studio (Release) into bin/.
-# nano_emu / nano_sim have no binaries yet (root launchers are no-ops).
+# Build Studio, Emu, Sim, Nano Studio, and Nano Emu (Release) into bin/.
+# nano_sim has no binary yet (root launcher is a no-op).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -9,6 +9,7 @@ STUDIO="$ROOT/app/studio"
 EMU="$ROOT/app/emu"
 SIM="$ROOT/app/sim"
 NANO_STUDIO="$ROOT/nano/apps/studio"
+NANO_EMU="$ROOT/nano/apps/emu"
 
 build_one() {
   local proj="$1"
@@ -39,5 +40,8 @@ build_one "$SIM" retr01_sim sim
 echo "== nano_studio =="
 build_one "$NANO_STUDIO" retr01_nano_studio nano_studio
 
+echo "== nano_emu =="
+build_one "$NANO_EMU" retr01_nano_emu nano_emu
+
 echo "binaries:"
-ls -lh "$BIN"/studio "$BIN"/emu "$BIN"/sim "$BIN"/nano_studio
+ls -lh "$BIN"/studio "$BIN"/emu "$BIN"/sim "$BIN"/nano_studio "$BIN"/nano_emu

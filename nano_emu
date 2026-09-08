@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Retr01 Nano emulator launcher (placeholder).
+# Retr01 Nano emulator launcher.
 set -euo pipefail
-
-echo "nano_emu: not implemented yet (no-op)" >&2
-exit 0
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+BIN="$ROOT/bin/nano_emu"
+if [[ ! -x "$BIN" ]]; then
+  echo "nano_emu: missing $BIN — run ./build-all" >&2
+  exit 1
+fi
+exec "$BIN" "$@"

@@ -176,6 +176,13 @@ static void draw_banks_body(UiState *ui, SDL_Renderer *r, const AccordionLayout 
         hy = grid_y + (tid / 16) * 8;
         hover_overlay(r, hx, hy, 8, 8);
     }
+    /* Selected paint brush tile (from Banks pick or tile editor). */
+    if (ui->paint_stamp_valid && r01_attr_bank(ui->paint_stamp_attr) == bank) {
+        int tid = ui->paint_stamp_tile;
+        int hx = UI_WORLDS_X + (tid % 16) * 8;
+        int hy = grid_y + (tid / 16) * 8;
+        draw_rect(r, hx, hy, 8, 8, 255, 255, 255);
+    }
 }
 
 static void draw_sprites_body(UiState *ui, SDL_Renderer *r, const AccordionLayout *lo) {
