@@ -32,7 +32,7 @@ Reference class to beat on size: hobby single-AVR consoles with bulky I/O (see [
      P2 arcade GPIO ------>|             |
                            |             |---- R/G/B level GPIOs ---> resistor net
                            |             |---- CSYNC / H+V sync ----+--> RGBS header
-                          +-------------+                           |    or mini plug
+                           +-------------+                          |    or mini plug
                                                                     v
                                                               upscaler / CRT
 ```
