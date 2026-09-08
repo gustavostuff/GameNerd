@@ -15,17 +15,7 @@ void r01ne_machine_shutdown(R01neMachine *m) {
     m->booted = 0;
 }
 
-int r01ne_machine_boot(R01neMachine *m, const char *cart_path, char *err, size_t err_cap) {
-    if (!m || !cart_path) {
-        if (err && err_cap) {
-            snprintf(err, err_cap, "bad args");
-        }
-        return -1;
-    }
-    r01ne_machine_shutdown(m);
-    if (r01ne_cart_load_path(&m->cart, cart_path, err, err_cap) != 0) {
-        return -1;
-    }
+static int machine_boot_after_cart(R01neMachine *m, char *err, size_t err_cap) {
     m->world_idx = 0;
     if (r01ne_cart_world(&m->cart, 0, &m->world) != 0) {
         r01ne_machine_shutdown(m);
@@ -52,6 +42,34 @@ int r01ne_machine_boot(R01neMachine *m, const char *cart_path, char *err, size_t
     (void)r01ne_play_start(m);
     r01ne_video_render_frame(m);
     return 0;
+}
+
+int r01ne_machine_boot(R01neMachine *m, const char *cart_path, char *err, size_t err_cap) {
+    if (!m || !cart_path) {
+        if (err && err_cap) {
+            snprintf(err, err_cap, "bad args");
+        }
+        return -1;
+    }
+    r01ne_machine_shutdown(m);
+    if (r01ne_cart_load_path(&m->cart, cart_path, err, err_cap) != 0) {
+        return -1;
+    }
+    return machine_boot_after_cart(m, err, err_cap);
+}
+
+int r01ne_machine_boot_mem(R01neMachine *m, const uint8_t *img, size_t len, char *err, size_t err_cap) {
+    if (!m || !img || len < 1) {
+        if (err && err_cap) {
+            snprintf(err, err_cap, "bad args");
+        }
+        return -1;
+    }
+    r01ne_machine_shutdown(m);
+    if (r01ne_cart_load_mem(&m->cart, img, len, err, err_cap) != 0) {
+        return -1;
+    }
+    return machine_boot_after_cart(m, err, err_cap);
 }
 
 int r01ne_machine_reset(R01neMachine *m) {

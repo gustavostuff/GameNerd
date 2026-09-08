@@ -48,7 +48,7 @@ From the repo root:
 |---------|------|
 | `./nano_studio [project.r01proj]` | Nano Studio (`bin/nano_studio` from `./build-all`) |
 | `./nano_emu [cart.r01nano]` | Nano Emu picture viewer (`bin/nano_emu`) |
-| `./nano_sim` | Placeholder (no-op for now) |
+| `./nano_sim [cart.r01nano]` | Nano Sim — IC/netlist board UI (islands + DIPs + SCR); not a fullscreen emu |
 
 Source concept notes also live in `temp/Retr01_Nano_Spec.md`. Where this tree disagrees, **these docs win**.
 
