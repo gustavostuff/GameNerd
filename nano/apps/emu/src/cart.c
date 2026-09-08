@@ -176,6 +176,19 @@ const uint8_t *r01ne_world_ptr(const R01neCart *c, const R01neWorldView *w, uint
     return r01ne_cart_ptr(c, w->base + rel_off, need);
 }
 
+uint8_t *r01ne_world_ptr_mut(R01neCart *c, const R01neWorldView *w, uint32_t rel_off, size_t need) {
+    if (!c || !c->data || !w || !w->present) {
+        return NULL;
+    }
+    if ((size_t)rel_off + need > w->len) {
+        return NULL;
+    }
+    if ((size_t)w->base + (size_t)rel_off + need > c->len) {
+        return NULL;
+    }
+    return c->data + w->base + rel_off;
+}
+
 int r01ne_world_find_screen(const R01neCart *c, const R01neWorldView *w, int col, int row) {
     const uint8_t *dir;
     int i;
@@ -215,6 +228,20 @@ int r01ne_world_load_screen(const R01neCart *c, const R01neWorldView *w, int dir
     }
     memcpy(out, pay, R01NE_SCREEN_PAYLOAD);
     return 0;
+}
+
+uint8_t *r01ne_world_screen_payload_mut(R01neCart *c, const R01neWorldView *w, int dir_idx) {
+    const uint8_t *dir;
+    uint32_t off;
+    if (!c || !w || dir_idx < 0 || dir_idx >= w->screen_count) {
+        return NULL;
+    }
+    dir = r01ne_world_ptr(c, w, w->off_screen_dir, (size_t)w->screen_count * R01NE_SCREEN_DIR_BYTES);
+    if (!dir) {
+        return NULL;
+    }
+    off = get_u24(dir + (size_t)dir_idx * R01NE_SCREEN_DIR_BYTES + 3);
+    return r01ne_world_ptr_mut(c, w, off, R01NE_SCREEN_PAYLOAD);
 }
 
 int r01ne_cart_has_screen(const R01neCart *c, int world_idx, int col, int row) {

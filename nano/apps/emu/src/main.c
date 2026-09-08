@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
            (unsigned)machine.world.screen_count, (unsigned)machine.world.spawn_col,
            (unsigned)machine.world.spawn_row, machine.play.player_type, machine.play.player_tx,
            machine.play.player_ty, machine.play.player_px, machine.play.player_py);
-    printf("Pads: WASD move (P1). Esc quit. R reset. Ctrl+1/2/3 scale.\n");
-    printf("No audio yet. Pose policy: custom_logic (idle / slide_x / slide_up / slide_down).\n");
+    printf("Pads: WASD move, G=fire laser (custom_logic / P1 X). Esc quit. R reset. Ctrl+1/2/3 scale.\n");
+    printf("No audio yet. Game logic: output/nano/C/custom_logic.c (pose + lasers).\n");
 
     SDL_UpdateTexture(tex, NULL, machine.video.fb, R01NE_VISIBLE_W * 3);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);

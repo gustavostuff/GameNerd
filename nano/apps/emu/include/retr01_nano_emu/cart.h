@@ -48,11 +48,17 @@ int r01ne_cart_world(const R01neCart *c, int world_idx, R01neWorldView *out);
 /* Absolute pointer into cart for a world-relative offset. */
 const uint8_t *r01ne_world_ptr(const R01neCart *c, const R01neWorldView *w, uint32_t rel_off, size_t need);
 
+/* Mutable world blob pointer (for live MAP edits). */
+uint8_t *r01ne_world_ptr_mut(R01neCart *c, const R01neWorldView *w, uint32_t rel_off, size_t need);
+
 /* Find present screen dir index for grid cell; -1 if absent. */
 int r01ne_world_find_screen(const R01neCart *c, const R01neWorldView *w, int col, int row);
 
 /* Copy 384-byte screen payload (tiles||attrs). Returns 0 on success. */
 int r01ne_world_load_screen(const R01neCart *c, const R01neWorldView *w, int dir_idx, uint8_t out[R01NE_SCREEN_PAYLOAD]);
+
+/* Writable screen payload pointer, or NULL. */
+uint8_t *r01ne_world_screen_payload_mut(R01neCart *c, const R01neWorldView *w, int dir_idx);
 
 /* MAP attr / solid queries in world pixels (non-entity tiles only). */
 int r01ne_cart_has_screen(const R01neCart *c, int world_idx, int col, int row);

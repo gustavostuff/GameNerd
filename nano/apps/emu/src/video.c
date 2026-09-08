@@ -235,6 +235,48 @@ static void stamp_player(struct R01neMachine *m) {
     draw_tile_px(&m->video, local_x, local_y, bank, tile_id, m->play.player_fg, flip_h, 0);
 }
 
+static void stamp_lasers(struct R01neMachine *m) {
+    const R01neWorldView *w = &m->world;
+    const uint8_t *types;
+    const uint8_t *tr;
+    int origin_x, origin_y;
+    int i;
+    if (!m->play.enabled || m->play.laser_type < 0) {
+        return;
+    }
+    if (!m->video.map_loaded || !m->video.chr_loaded) {
+        return;
+    }
+    if (m->play.laser_type >= w->entity_type_count) {
+        return;
+    }
+    types = r01ne_world_ptr(&m->cart, w, w->off_entity_types,
+                            (size_t)w->entity_type_count * R01NE_ENTITY_TYPE_SIZE);
+    if (!types) {
+        return;
+    }
+    tr = types + (size_t)m->play.laser_type * R01NE_ENTITY_TYPE_SIZE;
+    origin_x = m->video.screen_col * R01NE_SCREEN_PX_W;
+    origin_y = m->video.screen_row * R01NE_SCREEN_PX_H;
+    for (i = 0; i < R01NE_LASERS_MAX; i++) {
+        const R01neLaser *L = &m->play.lasers[i];
+        int bank, tile_id;
+        int local_x, local_y;
+        if (!L->active) {
+            continue;
+        }
+        if (!type_state_tile(tr, L->state, &bank, &tile_id)) {
+            continue;
+        }
+        local_x = L->tx * 8 - origin_x;
+        local_y = L->ty * 8 - origin_y;
+        if (local_x < -7 || local_y < -7 || local_x >= R01NE_SCREEN_PX_W || local_y >= R01NE_SCREEN_PX_H) {
+            continue;
+        }
+        draw_tile_px(&m->video, local_x, local_y, bank, tile_id, L->fg, L->flip_h, 0);
+    }
+}
+
 static void scale_2x(R01neVideo *vid) {
     int y, x;
     for (y = 0; y < R01NE_SCREEN_PX_H; y++) {
@@ -281,5 +323,6 @@ void r01ne_video_render_frame(struct R01neMachine *m) {
     }
     stamp_entities(m);
     stamp_player(m);
+    stamp_lasers(m);
     scale_2x(vid);
 }

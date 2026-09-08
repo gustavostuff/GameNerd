@@ -13,5 +13,6 @@
 #include "r01_player_anim.h"
 #include "r01_bgm.h"
 #include "r01_sfx.h"
+#include "r01_map.h"
 
 #endif

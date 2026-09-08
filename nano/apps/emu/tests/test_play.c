@@ -175,8 +175,94 @@ int main(int argc, char **argv) {
         }
     }
 
-    printf("ok play tile=(%d,%d)->(%d,%d) px=%d->%d blocked=%d\n", tx0, ty0, m.play.player_tx, m.play.player_ty,
-           px0, m.play.player_px, blocked);
+    /* Lasers: spawn ahead of facing; destroy SOLID → bank0/tile0/attr0; despawn. */
+    {
+        int di, lx, ly, cell, wx, wy;
+        uint8_t *pay;
+        int ntx, nty;
+        if (m.play.laser_type < 0) {
+            fprintf(stderr, "expected laser entity type\n");
+            return 1;
+        }
+        /* Face right, plant a solid one tile ahead, fire. */
+        m.play.player_px = m.play.player_tx * 8;
+        m.play.player_py = m.play.player_ty * 8;
+        m.play.anim.player_anim_dir = R01_PLAYER_DIR_RIGHT;
+        m.play.anim.player_anim_flip_h = 0;
+        ntx = m.play.player_tx + 1;
+        nty = m.play.player_ty;
+        wx = ntx * 8 + 4;
+        wy = nty * 8 + 4;
+        di = r01ne_world_find_screen(&m.cart, &m.world, wx / R01NE_SCREEN_PX_W, wy / R01NE_SCREEN_PX_H);
+        if (di < 0) {
+            fprintf(stderr, "no screen for laser target\n");
+            return 1;
+        }
+        pay = r01ne_world_screen_payload_mut(&m.cart, &m.world, di);
+        if (!pay) {
+            fprintf(stderr, "payload mut failed\n");
+            return 1;
+        }
+        lx = (wx % R01NE_SCREEN_PX_W) / 8;
+        ly = (wy % R01NE_SCREEN_PX_H) / 8;
+        cell = ly * R01NE_SCREEN_TILES_X + lx;
+        pay[cell] = 1;
+        pay[R01NE_TILES_PER_SCREEN + cell] = (uint8_t)(R01NE_ATTR_SOLID | (2u << R01NE_ATTR_FG_SHIFT));
+        if (m.video.map_loaded && m.video.screen_col == wx / R01NE_SCREEN_PX_W &&
+            m.video.screen_row == wy / R01NE_SCREEN_PX_H) {
+            m.video.map[cell] = pay[cell];
+            m.video.map[R01NE_TILES_PER_SCREEN + cell] = pay[R01NE_TILES_PER_SCREEN + cell];
+        }
+        if (!r01ne_cart_solid_at(&m.cart, 0, wx, wy)) {
+            fprintf(stderr, "planted solid not detected\n");
+            return 1;
+        }
+        r01ne_play_set_pad(&m, R01NE_PAD_X);
+        r01ne_machine_frame(&m);
+        if (m.play.lasers[0].active) {
+            fprintf(stderr, "laser should despawn after destroying solid on spawn cell\n");
+            return 1;
+        }
+        if (pay[cell] != 0 || pay[R01NE_TILES_PER_SCREEN + cell] != 0) {
+            fprintf(stderr, "expected empty tile after laser hit, tile=%u attr=%u\n", pay[cell],
+                    pay[R01NE_TILES_PER_SCREEN + cell]);
+            return 1;
+        }
+        if (r01ne_cart_solid_at(&m.cart, 0, wx, wy)) {
+            fprintf(stderr, "solid should clear after laser destroy\n");
+            return 1;
+        }
+        /* Fire into empty space: laser lives one frame then advances / stays until edge. */
+        r01ne_play_set_pad(&m, 0);
+        r01ne_machine_frame(&m);
+        r01ne_play_set_pad(&m, R01NE_PAD_X);
+        r01ne_machine_frame(&m);
+        if (!m.play.lasers[0].active || m.play.lasers[0].tx != ntx || m.play.lasers[0].ty != nty ||
+            m.play.lasers[0].state != R01NE_LASER_STATE_H) {
+            fprintf(stderr, "expected active horizontal laser at (%d,%d) state=%d active=%d\n", ntx, nty,
+                    m.play.lasers[0].state, m.play.lasers[0].active);
+            return 1;
+        }
+        /* Vertical facing — reset clears custom_logic laser pool. */
+        if (r01ne_machine_reset(&m) != 0) {
+            fprintf(stderr, "reset failed\n");
+            return 1;
+        }
+        m.play.anim.player_anim_dir = R01_PLAYER_DIR_UP;
+        m.play.anim.player_anim_flip_h = 0;
+        r01ne_play_set_pad(&m, R01NE_PAD_X);
+        r01ne_machine_frame(&m);
+        if (!m.play.lasers[0].active || m.play.lasers[0].state != R01NE_LASER_STATE_V ||
+            m.play.lasers[0].ty != m.play.player_ty - 1) {
+            fprintf(stderr, "expected vertical laser up, active=%d state=%d ty=%d (player_ty=%d)\n",
+                    m.play.lasers[0].active, m.play.lasers[0].state, m.play.lasers[0].ty,
+                    m.play.player_ty);
+            return 1;
+        }
+    }
+
+    printf("ok play tile=(%d,%d)->(%d,%d) px=%d->%d blocked=%d laser_type=%d\n", tx0, ty0, m.play.player_tx,
+           m.play.player_ty, px0, m.play.player_px, blocked, m.play.laser_type);
     r01ne_machine_shutdown(&m);
     return 0;
 }

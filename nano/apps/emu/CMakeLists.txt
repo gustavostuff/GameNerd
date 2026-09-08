@@ -20,6 +20,8 @@ set(R01NE_CORE_SRCS
   src/video.c
   src/play.c
   src/machine.c
+  src/custom_host.c
+  ${R01_OUTPUT_DIR}/C/custom_logic.c
 )
 
 if(NOT TARGET r01_nano_emu_common)
@@ -36,10 +38,15 @@ endif()
 add_library(retr01_nano_emu_core ${R01NE_CORE_SRCS})
 target_include_directories(retr01_nano_emu_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${R01_OUTPUT_DIR}/C/include
+  ${R01_OUTPUT_DIR}/C
 )
 target_link_libraries(retr01_nano_emu_core PUBLIC r01_nano_emu_common)
 target_compile_definitions(retr01_nano_emu_core PUBLIC "R01NE_DEFAULT_CART=\"${R01_TEST_CART}\"")
-
+# custom_logic includes "include/r01_engine.h" relative to C/
+target_compile_options(retr01_nano_emu_core PRIVATE
+  "-I${R01_OUTPUT_DIR}/C"
+)
 add_executable(retr01_nano_emu src/main.c)
 target_link_libraries(retr01_nano_emu PRIVATE retr01_nano_emu_core PkgConfig::SDL2)
 

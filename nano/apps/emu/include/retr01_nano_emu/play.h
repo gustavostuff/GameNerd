@@ -11,6 +11,10 @@ struct R01neMachine;
 #define R01NE_PLAY_PLAYER_W 8
 #define R01NE_PLAY_PLAYER_H 8
 
+#define R01NE_LASERS_MAX 8
+#define R01NE_LASER_STATE_H 0
+#define R01NE_LASER_STATE_V 1
+
 /*
  * Movement strategies — see nano/docs/movement.md.
  * Default: tile-enter on press from rest, then 1 px/frame while held.
@@ -19,6 +23,17 @@ typedef enum R01neMoveStrategy {
     R01NE_MOVE_TILE_ENTER_PIXEL = 0
     /* Future: continuous pixel, grid-locked per frame, etc. */
 } R01neMoveStrategy;
+
+typedef struct R01neLaser {
+    int active;
+    int tx; /* world tile */
+    int ty;
+    int dtx; /* -1/0/1 per frame */
+    int dty;
+    int state; /* laser entity state: H or V */
+    int flip_h;
+    int fg;
+} R01neLaser;
 
 /*
  * Nano motion: pixel_x/y integrate speed; tile_x/y track the occupied cell for
@@ -33,6 +48,8 @@ typedef struct R01nePlay {
     int player_ty;
     int player_type; /* entity type index drawn as player; -1 = none */
     int player_fg;
+    int laser_type; /* entity type for lasers; -1 = none */
+    R01neLaser lasers[R01NE_LASERS_MAX];
     R01neMoveStrategy move_strategy;
     uint8_t pad0;
     uint8_t pad_prev;

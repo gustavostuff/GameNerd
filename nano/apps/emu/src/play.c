@@ -1,5 +1,6 @@
 #include "retr01_nano_emu/play.h"
 #include "retr01_nano_emu/machine.h"
+#include "retr01_nano_emu/custom_host.h"
 
 #include <string.h>
 
@@ -10,6 +11,7 @@ void r01ne_play_reset(R01nePlay *pl) {
     memset(pl, 0, sizeof(*pl));
     pl->player_type = -1;
     pl->player_fg = 0;
+    pl->laser_type = -1;
     pl->move_strategy = R01NE_MOVE_TILE_ENTER_PIXEL;
     r01_play_anim_init(&pl->anim);
 }
@@ -70,6 +72,22 @@ static int player_instance_spawn(R01neMachine *m, int *out_type, int *out_fg, in
         return 1;
     }
     return 0;
+}
+
+static int find_laser_type(const R01neMachine *m) {
+    int i;
+    if (!m) {
+        return -1;
+    }
+    if (m->play.player_type < 0) {
+        return (m->world.entity_type_count > 1) ? 1 : -1;
+    }
+    for (i = 0; i < m->world.entity_type_count; i++) {
+        if (i != m->play.player_type) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 /* Destination tile must sit on a present screen and not be MAP SOLID. */
@@ -197,17 +215,7 @@ int r01ne_play_start(R01neMachine *m) {
         return 0;
     }
     r01ne_play_reset(&m->play);
-    /* Host Play mirrors custom_logic pose policy (see output/nano/C/custom_logic.c). */
-    r01_play_anim_set_idle_state(&m->play.anim, 0);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_RIGHT, 1);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_LEFT, 1);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_DOWN_RIGHT, 1);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_DOWN_LEFT, 1);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP_RIGHT, 1);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP_LEFT, 1);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_UP, 2);
-    r01_play_anim_set_walk_state(&m->play.anim, R01_PLAYER_DIR_DOWN, 3);
-    r01_play_anim_set_release_to_idle(&m->play.anim, 1, 1); /* slide_x → idle */
+    /* Pose policy + lasers: output/nano/C/custom_logic.c via Host bridge. */
     if (player_instance_spawn(m, &type, &fg, &sx, &sy)) {
         m->play.player_type = type;
         m->play.player_fg = fg;
@@ -222,7 +230,9 @@ int r01ne_play_start(R01neMachine *m) {
         m->play.player_py = (m->play.player_py / 8) * 8;
     }
     sync_tiles_from_pixels(&m->play);
+    m->play.laser_type = find_laser_type(m);
     m->play.enabled = 1;
+    r01ne_custom_start(m);
     r01ne_play_sync_screen(m);
     return 1;
 }
@@ -308,6 +318,9 @@ void r01ne_play_tick(R01neMachine *m) {
             pl->player_py = pl->player_ty * 8;
         }
     }
+
+    /* Game logic (lasers, etc.) — output/nano/C/custom_logic.c */
+    r01ne_custom_frame(m);
 
     pl->pad_prev = pad;
     r01ne_play_sync_screen(m);
