@@ -37,8 +37,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+
+    /* Hidden until the first composed frame is presented (avoids open flicker). */
     win = SDL_CreateWindow("Retr01 Nano Emu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                           R01NE_VISIBLE_W * scale, R01NE_VISIBLE_H * scale, 0);
+                           R01NE_VISIBLE_W * scale, R01NE_VISIBLE_H * scale, SDL_WINDOW_HIDDEN);
     if (!win) {
         fprintf(stderr, "SDL_CreateWindow: %s\n", SDL_GetError());
         r01ne_machine_shutdown(&machine);
@@ -56,7 +59,6 @@ int main(int argc, char **argv) {
         SDL_Quit();
         return 1;
     }
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
     SDL_RenderSetLogicalSize(ren, R01NE_VISIBLE_W, R01NE_VISIBLE_H);
     tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, R01NE_VISIBLE_W,
                             R01NE_VISIBLE_H);
@@ -75,18 +77,20 @@ int main(int argc, char **argv) {
            (unsigned)machine.world.spawn_row, machine.play.player_type, machine.play.player_tx,
            machine.play.player_ty, machine.play.player_px, machine.play.player_py);
     printf("Pads: WASD move (P1). Esc quit. R reset. Ctrl+1/2/3 scale.\n");
-    printf("No audio yet. custom_logic: Idle=0 Walk=1 (see output/nano/C/).\n");
+    printf("No audio yet. Pose policy: custom_logic (idle / slide_x / slide_up / slide_down).\n");
 
     SDL_UpdateTexture(tex, NULL, machine.video.fb, R01NE_VISIBLE_W * 3);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
     SDL_RenderClear(ren);
     SDL_RenderCopy(ren, tex, NULL, NULL);
     SDL_RenderPresent(ren);
+    SDL_ShowWindow(win);
 
     last_ticks = SDL_GetTicks();
     while (running) {
         SDL_Event ev;
         const Uint8 *keys;
+        int framed = 0;
         while (SDL_PollEvent(&ev)) {
             if (ev.type == SDL_QUIT) {
                 running = 0;
@@ -104,6 +108,7 @@ int main(int argc, char **argv) {
                     SDL_SetWindowSize(win, R01NE_VISIBLE_W * scale, R01NE_VISIBLE_H * scale);
                 } else if (ev.key.keysym.sym == SDLK_r) {
                     (void)r01ne_machine_reset(&machine);
+                    framed = 1;
                 }
             }
         }
@@ -116,14 +121,19 @@ int main(int argc, char **argv) {
             if ((int)(now - last_ticks) >= 16) {
                 r01ne_machine_frame(&machine);
                 last_ticks = now;
+                framed = 1;
             }
         }
 
-        SDL_UpdateTexture(tex, NULL, machine.video.fb, R01NE_VISIBLE_W * 3);
-        SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-        SDL_RenderClear(ren);
-        SDL_RenderCopy(ren, tex, NULL, NULL);
-        SDL_RenderPresent(ren);
+        if (framed) {
+            SDL_UpdateTexture(tex, NULL, machine.video.fb, R01NE_VISIBLE_W * 3);
+            SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+            SDL_RenderClear(ren);
+            SDL_RenderCopy(ren, tex, NULL, NULL);
+            SDL_RenderPresent(ren);
+        } else {
+            SDL_Delay(1);
+        }
     }
 
     SDL_DestroyTexture(tex);
