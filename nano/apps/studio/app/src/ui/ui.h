@@ -471,16 +471,15 @@ static inline int ui_ctrl_x(const UiState *ui) {
 
 /*
  * Integer pixel scale for the 128×96 compose buffer in the main pane.
- * At least 2× (RGBS size); grows to the largest fit between the sidebars
- * so the preview doesn't float in a large empty void.
+ * Largest fit between the sidebars, minus one (breathing room).
  */
 static inline int ui_screen_scale(const UiState *ui) {
-    int ls = ui_logic_scale(ui);
     int avail_w = ui_main_w(ui);
     int avail_h = ui_logic_h(ui) - UI_APP_CHROME_H - 2 * UI_UNIT;
     int max_sx;
     int max_sy;
     int s;
+    (void)ui;
     if (avail_w < 1) {
         avail_w = 1;
     }
@@ -490,8 +489,8 @@ static inline int ui_screen_scale(const UiState *ui) {
     max_sx = avail_w / R01_SCREEN_PX_W;
     max_sy = avail_h / R01_SCREEN_PX_H;
     s = max_sx < max_sy ? max_sx : max_sy;
-    if (s < 2 * ls) {
-        s = 2 * ls;
+    if (s > 1) {
+        s -= 1;
     }
     if (s < 1) {
         s = 1;

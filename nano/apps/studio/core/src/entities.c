@@ -478,7 +478,7 @@ void r01_entity_nano_normalize(R01EntityType *e) {
         if (fr->part_count == 1) {
             fr->parts[0].dx = 0;
             fr->parts[0].dy = 0;
-            fr->parts[0].pal = 0;
+            fr->parts[0].pal &= 7; /* keep modal FG color 0..7 */
             fr->parts[0].flip_h = 0;
             fr->parts[0].flip_v = 0;
         }
@@ -513,7 +513,7 @@ int r01_entity_nano_set_state_tile(R01EntityType *e, int state_idx, int bank, in
     pt = &fr->parts[0];
     pt->bank = bank;
     pt->tile_id = tile_id;
-    pt->pal = 0;
+    pt->pal &= 7;
     pt->flip_h = 0;
     pt->flip_v = 0;
     pt->dx = 0;

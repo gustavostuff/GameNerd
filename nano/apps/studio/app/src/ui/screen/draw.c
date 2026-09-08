@@ -17,8 +17,52 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void draw_nano_entity_tile_px(UiState *ui, SDL_Renderer *r, const R01World *w, const R01EntityPart *pt,
+                                     int log_x, int log_y, int ox, int oy, int scale, int clip_viewport) {
+    const uint8_t *raw;
+    uint8_t oriented[R01_TILE_BYTES];
+    uint8_t fr, fg, fb;
+    int sy, sx;
+    int bank;
+    int tid;
+    if (!ui || !r || !w || !pt) {
+        return;
+    }
+    bank = pt->bank;
+    tid = pt->tile_id;
+    if (bank < 0 || bank >= R01_BG_BANKS || tid < 0 || tid >= w->bg_banks[bank].tile_count) {
+        return;
+    }
+    raw = w->bg_banks[bank].chr + (size_t)tid * R01_TILE_BYTES;
+    r01_tile_orient(raw, pt->flip_h, pt->flip_v, oriented);
+    r01_nano_fg_rgb(pt->pal & 7, &fr, &fg, &fb);
+    for (sy = 0; sy < 8; sy++) {
+        for (sx = 0; sx < 8; sx++) {
+            uint8_t col = r01_tile_pixel_color(oriented, sx, sy);
+            int vx = log_x + sx;
+            int vy = log_y + sy;
+            SDL_Rect px;
+            if (clip_viewport && (vx < 0 || vy < 0 || vx >= R01_SCREEN_PX_W || vy >= R01_SCREEN_PX_H)) {
+                continue;
+            }
+            /* Soft tile: 0 bits are opaque black (cover MAP), 1 bits use entity FG. */
+            if (col == 0) {
+                SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+            } else {
+                SDL_SetRenderDrawColor(r, fr, fg, fb, 255);
+            }
+            px.x = ox + vx * scale;
+            px.y = oy + vy * scale;
+            px.w = scale;
+            px.h = scale;
+            SDL_RenderFillRect(r, &px);
+        }
+    }
+}
+
 static void draw_spr_tile_px(UiState *ui, SDL_Renderer *r, const R01World *w, const R01EntityPart *pt, int log_x,
                              int log_y, int ox, int oy, int scale, int clip_viewport) {
+    /* Legacy SPR-bank path kept for unused sprite/metasprite UI stubs. */
     const uint8_t *raw;
     uint8_t oriented[R01_TILE_BYTES];
     int row = w->default_pal_row;
@@ -126,7 +170,7 @@ static void draw_entity_at_screen(UiState *ui, SDL_Renderer *r, const R01World *
         draw_pt = *pt;
         draw_pt.flip_h = fh;
         draw_pt.flip_v = fv;
-        draw_spr_tile_px(ui, r, w, &draw_pt, px, py, ox, oy, ui_screen_scale(ui), 1);
+        draw_nano_entity_tile_px(ui, r, w, &draw_pt, px, py, ox, oy, ui_screen_scale(ui), 1);
         if (px < min_x) {
             min_x = px;
         }
@@ -332,13 +376,13 @@ void draw_screen_editor(UiState *ui, SDL_Renderer *r, const R01Screen *s) {
             SDL_RenderFillRect(r, &px);
         }
     }
-    /* Instance / warp overlays only on BG1 authoring plane. */
+    /* Soft entities overlay MAP (MAP cell still exists; not drawn where entity sits). */
+    set_viewport_clip(r, ui, ox, oy);
+    draw_instances_on_screen(ui, r, w, s, ox, oy);
     if (!plane_bg0) {
-        set_viewport_clip(r, ui, ox, oy);
-        draw_instances_on_screen(ui, r, w, s, ox, oy);
         draw_warp_markers(ui, r, w, s, ox, oy);
-        SDL_RenderSetClipRect(r, &pane_clip);
     }
+    SDL_RenderSetClipRect(r, &pane_clip);
     if (screen_sel_valid(ui) && ui->screen_mode == UI_SCREEN_MODE_SEL && ui->sel_instance < 0) {
         int min_x, min_y, max_x, max_y;
         int sx, sy, ssw, ssh;
@@ -431,6 +475,7 @@ void draw_catalog_drag_ghost(UiState *ui, SDL_Renderer *r) {
         }
     } else if (ui->catalog_drag.active == UI_CATALOG_DRAG_ENTITY) {
         const R01EntityType *ent;
+        int px, py;
         if (ui->catalog_drag.index < 0 || ui->catalog_drag.index >= w->entity_count) {
             return;
         }
@@ -440,8 +485,17 @@ void draw_catalog_drag_ghost(UiState *ui, SDL_Renderer *r) {
             return;
         }
         pt = ent->states[0].frames[0].parts[0];
-        draw_spr_tile_px(ui, r, w, &pt, ui->mouse_x - ui->catalog_drag.off_x, ui->mouse_y - ui->catalog_drag.off_y,
-                         0, 0, 1, 0);
+        /* Over the screen: match drop snap (logical tile + screen origin/scale).
+         * Elsewhere: follow the cursor in UI pixels (scale 1), like sprite ghosts. */
+        if (!ui->play.active && screen_pixel_hit(ui, ui->mouse_x, ui->mouse_y, &px, &py)) {
+            int ox, oy;
+            screen_origin(ui, &ox, &oy);
+            draw_nano_entity_tile_px(ui, r, w, &pt, (px / 8) * 8, (py / 8) * 8, ox, oy, ui_screen_scale(ui),
+                                     1);
+        } else {
+            draw_nano_entity_tile_px(ui, r, w, &pt, 0, 0, ui->mouse_x - ui->catalog_drag.off_x,
+                                     ui->mouse_y - ui->catalog_drag.off_y, 1, 0);
+        }
     } else {
         return;
     }

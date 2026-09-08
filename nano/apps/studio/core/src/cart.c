@@ -262,7 +262,17 @@ static int build_world_blob(Buf *blob, const R01World *w) {
             const R01EntityInstance *inst = &w->instances[ii];
             memset(rec, 0, sizeof(rec));
             rec[0] = (uint8_t)inst->type_id;
-            rec[1] = 0;
+            {
+                int fg = 0;
+                if (inst->type_id >= 0 && inst->type_id < type_n) {
+                    const R01EntityType *ent = &w->entities[inst->type_id];
+                    if (ent->state_count > 0 && ent->states[0].frame_count > 0 &&
+                        ent->states[0].frames[0].part_count > 0) {
+                        fg = ent->states[0].frames[0].parts[0].pal & 7;
+                    }
+                }
+                rec[1] = (uint8_t)fg;
+            }
             rec[2] = (uint8_t)((inst->flip_h ? 1u : 0u) | (inst->flip_v ? 2u : 0u));
             wr_u16(rec + 4, (uint16_t)inst->world_x);
             wr_u16(rec + 6, (uint16_t)inst->world_y);

@@ -621,20 +621,19 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
             }
             if (!ui->play.active && screen_hit(ui, lx, ly, &tx, &ty)) {
                 int inst;
-                if (ui->screen_mode != UI_SCREEN_MODE_PAINT) {
-                    int px, py;
-                    if (instance_hit_on_screen(ui, lx, ly, &inst) && screen_pixel_hit(ui, lx, ly, &px, &py)) {
-                        R01World *w = r01_project_active_world(ui->project);
-                        R01Screen *s = r01_project_active_screen(ui->project);
-                        ui->sel_instance = inst;
-                        screen_sel_clear(ui);
-                        if (w && s && inst >= 0 && inst < w->instance_count) {
-                            ui->inst_drag = 1;
-                            ui->inst_drag_off_x = w->instances[inst].world_x - (s->col * R01_SCREEN_PX_W + px);
-                            ui->inst_drag_off_y = w->instances[inst].world_y - (s->row * R01_SCREEN_PX_H + py);
-                        }
-                        return 1;
+                int px, py;
+                /* Entity soft tiles win over MAP cell interaction. */
+                if (instance_hit_on_screen(ui, lx, ly, &inst) && screen_pixel_hit(ui, lx, ly, &px, &py)) {
+                    R01World *w = r01_project_active_world(ui->project);
+                    R01Screen *s = r01_project_active_screen(ui->project);
+                    ui->sel_instance = inst;
+                    screen_sel_clear(ui);
+                    if (w && s && inst >= 0 && inst < w->instance_count) {
+                        ui->inst_drag = 1;
+                        ui->inst_drag_off_x = w->instances[inst].world_x - (s->col * R01_SCREEN_PX_W + px);
+                        ui->inst_drag_off_y = w->instances[inst].world_y - (s->row * R01_SCREEN_PX_H + py);
                     }
+                    return 1;
                 }
                 ui->sel_instance = -1;
                 ui->inst_drag = 0;
@@ -851,8 +850,9 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
             R01World *w = r01_project_active_world(ui->project);
             R01Screen *s = r01_project_active_screen(ui->project);
             if (w && s && !ui->play.active && screen_pixel_hit(ui, lx, ly, &px, &py)) {
-                int wx = s->col * R01_SCREEN_PX_W + px;
-                int wy = s->row * R01_SCREEN_PX_H + py;
+                /* Nano soft tiles: snap instance to the map cell under the cursor. */
+                int wx = s->col * R01_SCREEN_PX_W + (px / 8) * 8;
+                int wy = s->row * R01_SCREEN_PX_H + (py / 8) * 8;
                 int idx = -1;
                 if (ui->catalog_drag.active == UI_CATALOG_DRAG_ENTITY) {
                     idx = r01_world_place_entity(w, ui->catalog_drag.index, wx, wy);
@@ -1001,14 +1001,21 @@ int ui_handle_event(UiState *ui, const SDL_Event *e, int lx, int ly) {
         !ui->metasprite_edit.open && !ui->entity_edit.open && !ui->menu.open && !ui->catalog_drag.active) {
         int shift = (SDL_GetModState() & KMOD_SHIFT) != 0;
         int tx, ty;
-        if (ui->screen_mode != UI_SCREEN_MODE_PAINT && ui->inst_drag && ui->sel_instance >= 0 &&
-            (e->motion.state & SDL_BUTTON_LMASK)) {
+        if (ui->inst_drag && ui->sel_instance >= 0 && (e->motion.state & SDL_BUTTON_LMASK)) {
             int px, py;
             R01World *w = r01_project_active_world(ui->project);
             R01Screen *s = r01_project_active_screen(ui->project);
             if (w && s && ui->sel_instance < w->instance_count && screen_pixel_hit(ui, lx, ly, &px, &py)) {
-                w->instances[ui->sel_instance].world_x = s->col * R01_SCREEN_PX_W + px + ui->inst_drag_off_x;
-                w->instances[ui->sel_instance].world_y = s->row * R01_SCREEN_PX_H + py + ui->inst_drag_off_y;
+                int nx = s->col * R01_SCREEN_PX_W + px + ui->inst_drag_off_x;
+                int ny = s->row * R01_SCREEN_PX_H + py + ui->inst_drag_off_y;
+                if (nx < 0) {
+                    nx -= 7;
+                }
+                if (ny < 0) {
+                    ny -= 7;
+                }
+                w->instances[ui->sel_instance].world_x = (nx / 8) * 8;
+                w->instances[ui->sel_instance].world_y = (ny / 8) * 8;
             }
             return 1;
         }

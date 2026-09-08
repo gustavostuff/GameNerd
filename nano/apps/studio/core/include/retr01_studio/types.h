@@ -171,7 +171,7 @@ typedef struct R01SpriteDef {
 typedef struct R01EntityPart {
     int bank;
     int tile_id;
-    int pal;
+    int pal; /* Nano: FG color 0..7 (entity color attr) */
     int flip_h;
     int flip_v;
     int dx;

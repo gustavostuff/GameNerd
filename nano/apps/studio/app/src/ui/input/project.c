@@ -154,20 +154,27 @@ void ui_reset_after_project_load(UiState *ui) {
 
 void ui_save(UiState *ui) {
     char err[128];
-    if (!ui->project_path[0]) {
-        ui_toast(ui, "drop a .r01proj to save", 1);
+    char path[R01_PATH_MAX];
+    const char *dest;
+    if (!ui || !ui->project) {
         return;
     }
+    if (ui->project_path[0]) {
+        dest = ui->project_path;
+    } else {
+        if (r01_path_resolve(R01_DEFAULT_PROJECT, path, sizeof(path)) != 0) {
+            ui_toast(ui, "save path failed", 1);
+            return;
+        }
+        snprintf(ui->project_path, sizeof(ui->project_path), "%s", path);
+        dest = ui->project_path;
+    }
     ui_bgm_sync_to_project(ui);
-    if (r01_project_save_json(ui->project, ui->project_path, err, sizeof(err)) != 0) {
+    if (r01_project_save_json(ui->project, dest, err, sizeof(err)) != 0) {
         ui_toast(ui, err, 1);
         return;
     }
-    {
-        char msg[128];
-        snprintf(msg, sizeof(msg), "%s saved", ui->project_path);
-        ui_toast(ui, msg, 0);
-    }
+    ui_toast(ui, "project saved", 0);
 }
 
 void ui_export(UiState *ui) {

@@ -49,11 +49,13 @@ TEST_MAIN() {
         EXPECT(ent.states[0].frames[0].part_count == 2, "two parts before normalize");
         ent.states[0].origin_x = 4;
         ent.states[0].origin_y = 4;
+        ent.states[0].frames[0].parts[0].pal = 5;
         r01_entity_nano_normalize(&ent);
         EXPECT(ent.states[0].frame_count == 1, "one frame after normalize");
         EXPECT(ent.states[0].frames[0].part_count == 1, "one part after normalize");
         EXPECT(ent.states[0].frames[0].parts[0].dx == 0, "dx cleared");
         EXPECT(ent.states[0].frames[0].parts[0].dy == 0, "dy cleared");
+        EXPECT(ent.states[0].frames[0].parts[0].pal == 5, "fg color preserved");
         EXPECT(ent.states[0].origin_x == 0 && ent.states[0].origin_y == 0, "origin cleared");
         EXPECT(ent.states[0].hitbox_w == 8 && ent.states[0].hitbox_h == 8, "hitbox full tile");
     }
