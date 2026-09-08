@@ -54,11 +54,14 @@ TEST_MAIN() {
     EXPECT(r01_tile_pixel_color(tile, 3, 4) == 2, "flip_v is self-inverse");
 
     id = r01_chr_alloc_tile(w, 0);
-    EXPECT(id >= 0, "alloc tile");
+    EXPECT(id >= 1, "alloc skips reserved blank tile 0");
+    EXPECT(w->bg_banks[0].tile_count >= 2, "bank has blank0 + new tile");
     EXPECT(r01_chr_write_tile(w, 0, id, tile) == 0, "write tile");
 
     r01_screen_paint_tile(w, s, 1, 1, (uint8_t)id, r01_attr_pack(0, 1, 1, 0));
     EXPECT(s->tiles[1 * R01_SCREEN_TILES_X + 1] == (uint8_t)id, "paint sets tile id");
+    EXPECT(s->tiles[0] == 0, "other cells stay on blank tile 0");
+    EXPECT(r01_tile_pixel_color(w->bg_banks[0].chr, 3, 4) == 0, "blank tile0 unchanged");
     EXPECT(r01_attr_bank(s->attrs[1 * R01_SCREEN_TILES_X + 1]) == 0, "paint sets attr bank");
     EXPECT(r01_attr_pal(s->attrs[1 * R01_SCREEN_TILES_X + 1]) == 1, "paint sets attr pal");
     EXPECT(r01_attr_flip_h(s->attrs[1 * R01_SCREEN_TILES_X + 1]), "paint sets flip_h");

@@ -146,7 +146,19 @@ static void tile_edit_save(UiState *ui) {
         return;
     }
     edit_all = ui->tile_edit.edit_all;
+    /*
+     * Empty map cells all reference tile 0 (blank). Never overwrite a shared
+     * pattern in place unless edit_all — allocate a new tile (COW) instead.
+     */
     if (ui->tile_edit.is_new || ui->tile_edit.tile_id < 0) {
+        id = r01_chr_alloc_tile(w, ui->tile_edit.bank);
+        if (id < 0) {
+            ui_toast(ui, "CHR bank full", 1);
+            return;
+        }
+        ui->tile_edit.tile_id = id;
+        ui->tile_edit.is_new = 0;
+    } else if (!edit_all && r01_chr_tile_refcount(w, ui->tile_edit.bank, ui->tile_edit.tile_id) > 1) {
         id = r01_chr_alloc_tile(w, ui->tile_edit.bank);
         if (id < 0) {
             ui_toast(ui, "CHR bank full", 1);

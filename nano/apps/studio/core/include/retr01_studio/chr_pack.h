@@ -29,10 +29,14 @@ void r01_tile_set_pixel(uint8_t tile[R01_TILE_BYTES], int sx, int sy, uint8_t co
 void r01_tile_from_rgba_brightness(uint8_t out16[R01_TILE_BYTES], const uint8_t *rgba, int img_w, int img_h,
                                    int src_x, int src_y, const uint8_t (*target_rgb)[3]);
 
-/* Ensure BG bank 0 has at least one blank tile; returns tile index or -1. */
+/* Ensure bank has blank reserved tile 0 (safe default for empty map cells). */
+int r01_chr_ensure_blank0(R01World *w, int bank);
+/* Allocate a blank tile in bg_banks[bank]. Returns tile_id or -1. */
 int r01_chr_alloc_tile(R01World *w, int bank);
 /* Write 16-byte pattern into bank[tile_id] (grows tile_count if needed). */
 int r01_chr_write_tile(R01World *w, int bank, int tile_id, const uint8_t tile[R01_TILE_BYTES]);
+/* Count nametable cells (BG1 + BG0) that reference bank+tile_id. */
+int r01_chr_tile_refcount(const R01World *w, int bank, int tile_id);
 /* Stamp tile+attr into screen map and refresh that cell's pixels. */
 void r01_screen_paint_tile(R01World *w, R01Screen *s, int tile_x, int tile_y, uint8_t tile_id, uint8_t attr);
 

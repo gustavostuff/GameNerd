@@ -275,6 +275,7 @@ void r01_project_init_other_screens(R01Project *p) {
 
 void r01_world_init_phase1(R01World *w) {
     int col, row, idx;
+    int bi;
     if (!w) {
         return;
     }
@@ -297,9 +298,14 @@ void r01_world_init_phase1(R01World *w) {
     }
     r01_world_sync_default_screen(w);
     r01_world_bg0_clear(w);
+    /* Empty map cells reference tile 0 — keep it permanently blank. */
+    for (bi = 0; bi < R01_BG_BANKS; bi++) {
+        r01_chr_ensure_blank0(w, bi);
+    }
 }
 
 void r01_world_init_empty(R01World *w) {
+    int bi;
     if (!w) {
         return;
     }
@@ -313,6 +319,9 @@ void r01_world_init_empty(R01World *w) {
     r01_world_set_grid(w, R01_GRID_MAX, R01_GRID_MAX);
     r01_world_sync_default_screen(w);
     r01_world_bg0_clear(w);
+    for (bi = 0; bi < R01_BG_BANKS; bi++) {
+        r01_chr_ensure_blank0(w, bi);
+    }
 }
 
 void r01_project_init(R01Project *p, const char *name) {

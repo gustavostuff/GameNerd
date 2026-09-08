@@ -283,12 +283,31 @@ void r01_tile_from_rgba_brightness(uint8_t out16[R01_TILE_BYTES], const uint8_t 
     }
 }
 
+int r01_chr_ensure_blank0(R01World *w, int bank) {
+    R01ChrBank *b;
+    if (!w || bank < 0 || bank >= R01_BG_BANKS) {
+        return -1;
+    }
+    b = &w->bg_banks[bank];
+    if (b->tile_count < 1) {
+        memset(b->chr, 0, R01_TILE_BYTES);
+        b->tile_count = 1;
+    }
+    return 0;
+}
+
 int r01_chr_alloc_tile(R01World *w, int bank) {
     R01ChrBank *b;
     if (!w || bank < 0 || bank >= R01_BG_BANKS) {
         return -1;
     }
     b = &w->bg_banks[bank];
+    /* Keep tile 0 as the shared blank that empty map cells reference. */
+    if (b->tile_count < 1) {
+        if (r01_chr_ensure_blank0(w, bank) != 0) {
+            return -1;
+        }
+    }
     if (b->tile_count >= R01_TILES_PER_BANK) {
         return -1;
     }
@@ -308,6 +327,37 @@ int r01_chr_write_tile(R01World *w, int bank, int tile_id, const uint8_t tile[R0
     }
     memcpy(b->chr + (size_t)tile_id * R01_TILE_BYTES, tile, R01_TILE_BYTES);
     return 0;
+}
+
+int r01_chr_tile_refcount(const R01World *w, int bank, int tile_id) {
+    int n = 0;
+    int si, cell;
+    if (!w || bank < 0 || bank >= R01_BG_BANKS || tile_id < 0) {
+        return 0;
+    }
+    for (si = 0; si < w->screen_count; si++) {
+        const R01Screen *s = &w->screens[si];
+        if (!s->present) {
+            continue;
+        }
+        for (cell = 0; cell < R01_TILES_PER_SCREEN; cell++) {
+            if ((int)s->tiles[cell] == tile_id && r01_attr_bank(s->attrs[cell]) == bank) {
+                n++;
+            }
+        }
+    }
+    for (si = 0; si < w->bg0_screen_count && si < R01_BG0_SCREENS_MAX; si++) {
+        const R01Screen *s = &w->bg0_screens[si];
+        if (!s->present) {
+            continue;
+        }
+        for (cell = 0; cell < R01_TILES_PER_SCREEN; cell++) {
+            if ((int)s->tiles[cell] == tile_id && r01_attr_bank(s->attrs[cell]) == bank) {
+                n++;
+            }
+        }
+    }
+    return n;
 }
 
 void r01_screen_paint_tile(R01World *w, R01Screen *s, int tile_x, int tile_y, uint8_t tile_id, uint8_t attr) {
