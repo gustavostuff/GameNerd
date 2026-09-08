@@ -7,70 +7,72 @@
 Retr01 Nano keeps the *feel* of Retr01:
 
 - 128-wide playfield
-- Arcade cabinet language (digital pads, simple HUD-friendly graphics)
+- Arcade cabinet language
+- Worlds and screens on a small cart
 - One clear machine you can reason about end to end
 
-It drops almost everything that makes the full motherboard large: cart slot, 6502, PLD tile engine, OAM, multi-layer BG, rich APU, dual MCU domains.
-
-The trade is intentional. Nano optimizes for **stable 60 Hz**, **low part count**, and a **PCB smaller than typical single-chip hobby consoles** such as early Uzebox prototypes (DIP MCU, RCA pair, NES plugs, NTSC encoder).
+It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no rich APU. The console MCU runs **fixed open firmware**. Each game is a **tiny cartridge**.
 
 ## Design goals
 
-1. Run entirely on **one ATmega1284P** (20 MHz preferred).
-2. Deliver **stable progressive RGBS** at **60 Hz**.
-3. Keep 128-wide tiles and an arcade control map familiar to Retr01.
-4. Accept hard feature cuts for reliability and size.
+1. One **ATmega1284P** (20 MHz preferred) as the whole console.
+2. Stable progressive **RGBS** at **60 Hz**.
+3. **Cute dual-sided carts** (SPI game flash + always-present save EEPROM).
+4. Instant screen switches only (no scrolling).
+5. Soft **entities** in RAM (not hardware sprites).
 
 ## Locked feature sketch
 
 | Feature | Value | Notes |
 |---------|-------|-------|
-| Resolution | **128x96** primary | 128x100 possible later with tighter code |
+| Resolution | **128x96** | Letterboxing / empty bands OK for some layouts |
 | Frame rate | **60 Hz** stable | Progressive RGBS only (v1) |
-| Color | **1 bpp** (2 colors) | Levels chosen in software via resistor DAC |
-| Tiles | **8x8** only | |
-| Sprites | **None** | |
-| Background | Single nametable | |
-| Scroll | Tile-level **or** instant screen swap | No fine pixel scroll |
-| Audio | 1 PWM channel | Square / simple tones in VBlank |
-| Input | **2 players** | One byte each, Retr01 `$FE60` / `$FE61` bit spirit |
-| Game storage | On-chip Flash | EEPROM for saves / config |
-| Line buffer | Double buffer in SRAM | 16 + 16 bytes |
+| Pixels | **1 bpp** | FG color from per-tile attr (8 colors). Backdrop always **black** |
+| Tiles | **8x8** | |
+| Screen | **16x12** tiles | Matches 128x96 |
+| World grid | **16x16** screens | Max **8** worlds, **16** present screens/world |
+| BG banks | **4** per world | Selected by attr bank bits |
+| Sprites | **None** | Up to **64** RAM entities instead |
+| Scroll | **None** | Instant screen switch in VBlank |
+| Audio | 1 PWM channel | VBlank updates |
+| Input | **2 players** | Retr01 `$FE60` / `$FE61` bit spirit |
+| Console Flash | 128 KB on 1284 | Open firmware + kernel only |
+| Cart Flash | SST25VF010A **128 KB** | PRG data, MAP, CHR, music |
+| Cart save | **24C64** always | Simpler cart routing than optional populate |
 
 ## Explicitly dropped (vs full Retr01)
 
-- 6502 CPU and PRG cart protocol
-- External cartridge connector
+- 6502 CPU and `$FExx` bus as a product requirement
+- Large 36-pin cart edge / SST39SF040 class flash
 - Hardware tile engine / OAM / sprites
-- Multi-color palettes and Color PROM
-- Second background (BG0)
-- Fine pixel scrolling
+- Color PROM and multi-layer BG0
+- Fine pixel or tile scrolling
 - Complex multi-channel APU
-- Composite / NTSC encode path (RGBS analog out only for now)
+- Composite / NTSC encode path
 
 ## Relationship to full Retr01
 
-**Spiritual child**, not a compatible subset.
+**Spiritual child**, not a binary-compatible subset.
 
-- Same design language and pad-byte spirit
-- Not the same cart format
-- Not the same `$FExx` silicon map as a product requirement
-- Studio / Emu / Sim for full Retr01 stay separate. Nano may grow its own C SDK later (TBD)
+- Same pad-byte spirit and 128-wide arcade language
+- Different cart electricals and image format
+- Studio / Emu / Sim for full Retr01 stay separate
 
 ## Build roadmap (firmware first)
 
 1. Rock-solid **128x96** 1 bpp RGBS kernel with double line buffer.
-2. Nametable renderer (8x8 tiles).
-3. Tile-level scroll and instant screen switch.
-4. One-channel PWM audio in VBlank.
-5. Two-player GPIO read into pad bytes.
-6. Tiny sample game on the loop.
-7. Only then push vertical resolution (128x100, maybe 128x120 with heavy asm).
+2. In-RAM nametable renderer (tile + attr, black backdrop).
+3. SPI cart read + **instant screen load** in VBlank.
+4. Entity stamp pass (priority over MAP).
+5. PWM audio + 2P GPIO.
+6. Tiny sample cart game.
+7. Only then push vertical resolution.
 
-PCB layout can proceed in parallel as a **size-first** sketch (see [`hardware.md`](hardware.md)), but the video kernel is the risk item.
+PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardware.md)). SRAM cache policy: [`cache_architecture.md`](cache_architecture.md).
 
 ## Open items
 
-- Exact C SDK / host OS tooling (avr-gcc Make, etc.)
-- Game authoring path (hand C vs a future Studio Nano profile)
-- Final connector choice for RGBS + audio (headers vs mini jack)
+- Exact C SDK / host OS tooling
+- Cart image file format and community flash tools
+- Game authoring path (hand tools vs a future Studio Nano profile)
+- Final RGBS connector shell
