@@ -17,13 +17,14 @@ Extract: `nano/schematic_generator/nano_schem/kicad_pin_extract.json`. Generator
 | `SPI_SCK` | **PB7** | **8** | Cart SCK. Shared with **J_ISP** SCK |
 | `I2C_SCL` | **PC0** | **22** | Cart 24C64 (+ pull-up) |
 | `I2C_SDA` | **PC1** | **23** | Cart 24C64 (+ pull-up) |
-| `PWM_MUSIC` | **PD5** (OC1A) | **19** | Mix to `AUD` |
-| `PWM_SFX` | **PD4** (OC1B) | **18** | Mix to `AUD` |
-| `HSYNC` / `VSYNC` | **PD0** / **PD1** | **14** / **15** | Resistor-mix to `CSYNC` on **J_AV** (FW XOR later) |
-| `P1_D0..D7` | **PA0..PA7** | **40..33** | **J_P1** |
-| `P2_D0..D5` | **PC2..PC7** | **24..29** | **J_P2** |
-| `P2_D6..D7` | **PD2**, **PD3** | **16**, **17** | **J_P2** |
-| `FG0..FG2` | **PB0..PB2** | **1..3** | Bring-up RGB enables |
+| `PWM_MUSIC` | **PD5** (OC1A) | **19** | Mix to `AUD` → **J_AV** + **J8** |
+| `PWM_SFX` | **PD4** (OC1B) | **18** | Mix to `AUD` → **J_AV** + **J8** |
+| `HSYNC` / `VSYNC` | **PD0** / **PD1** | **14** / **15** | Resistor-mix to `CSYNC` on **J_AV** (+ AD725 HSYNC) |
+| `PAD_DATA` | **PD2** (RXD1) | **16** | Open-drain UART to **J3/J4** Ring (Retr01-C protocol) |
+| `P1_D0..D7` | **PA0..PA7** | **40..33** | **J_PAD** (left column) |
+| `P2_D0..D5` | **PC2..PC7** | **24..29** | **J_PAD** (right column) |
+| `P2_D6..D7` | **PD6**, **PD7** | **20**, **21** | **J_PAD** (right column; moved off PD2/PD3 for UART) |
+| `FG0..FG2` | **PB0..PB2** | **1..3** | Bring-up RGB enables → guns → AD725 |
 | `CART_DET#` | **PB3** | **4** | Mobo pull-up. Cart B8 -> GND |
 | `XTAL1` / `XTAL2` | XTAL1 / XTAL2 | **13** / **12** | **20 MHz** + load caps |
 | `RESET#` | RESET | **9** | **J_ISP** + **J_PWR** |
@@ -55,35 +56,79 @@ Mechanics and female part: [`hardware.md`](hardware.md#cute-cartridge-locked-8-8
 
 ## Header pinouts (vertical)
 
-### J_AV (1x8)
+Double-row headers use KiCad **PinHeader_2xN** numbering (column pairs):
 
-| Pin | Net |
-|-----|-----|
-| 1 | `R` |
-| 2 | `G` |
-| 3 | `B` |
-| 4 | `CSYNC` |
-| 5 | `AUD` |
-| 6 | `AGND` |
-| 7 | `VGND` |
-| 8 | key / NC |
+```text
+1  2
+3  4
+...
+```
 
-### J_P1 / J_P2 (1x10 each)
+### J_AV (2x4)
 
-| Pin | Net |
-|-----|-----|
-| 1-8 | `Px_D0` ... `Px_D7` |
-| 9 | `GND` |
-| 10 | key / NC |
+| Pin | Net | Pin | Net |
+|-----|-----|-----|-----|
+| 1 | `R` | 2 | `G` |
+| 3 | `B` | 4 | `CSYNC` |
+| 5 | `AUD` | 6 | `AGND` |
+| 7 | `VGND` | 8 | key / NC |
 
-### J_PWR (1x4)
+Same `R`/`G`/`B`/`CSYNC` nets AC-couple into **U725** (AD725). `AUD` also drives **J8**.
 
-| Pin | Net |
-|-----|-----|
-| 1 | `+5V` |
-| 2 | `GND` |
-| 3 | `RESET#` |
-| 4 | NC |
+### J8 / J9 (CUI RCJ-01x RCA)
+
+| Jack | Tip (pad 1) | Shell (pad 2) |
+|------|-------------|----------------|
+| **J8** RCJ-012 (black) | `AUD` | `GND` |
+| **J9** RCJ-014 (yellow) | `COMPOSITE_OUT` | `GND` |
+
+### J3 / J4 (Switchcraft 35RAPC2BVN4)
+
+Same pad map as full Retr01: Tip=**4**, Ring=**2**, Sleeve=**1**; pads **3** and **5** NC (mechanical).
+
+| Jack | Tip | Ring | Sleeve |
+|------|-----|------|--------|
+| **J3** P1 | `PAD_VCC_P1` (via PPTC F2) | `PAD_DATA_P1` (47R → `PAD_DATA`) | `GND` |
+| **J4** P2 | `PAD_VCC_P2` (via PPTC F3) | `PAD_DATA_P2` (47R → `PAD_DATA`) | `GND` |
+
+`PAD_DATA` → **PD2** with **4.7k** pull-up. Protocol: [`docs/controllers.md`](../../docs/controllers.md).
+
+### AD725 (U725) — assembly notes
+
+| Item | Value |
+|------|--------|
+| Chip | **AD725ARZ** wide SOIC-16 |
+| Board footprint | **DIP-16** + **Proto Advantage PA0006** |
+| Clock | **Y3** ACH-14.31818 MHz → `4FSC` |
+| RGB in | AC-coupled from `R`/`G`/`B` (100 nF) |
+| Sync | `CSYNC` → HSYNC; VSYNC/STND/CE tied **+5V** (NTSC, CSYNC-only) |
+| Power | APOS/DPOS on `+5V_ANALOG` (ferrite FB2 + 10 µF); local 100 nF |
+| YTRAP | ~68 µH + 100 nF |
+| Out | COMP → 75 Ω → **J9** tip. CRMA/LUMA unused |
+
+### J_PAD (2x10) — arcade 2P
+
+P1 on the odd (left) column, P2 on the even (right) column; bit *n* is paired.
+
+| Pin | Net | Pin | Net |
+|-----|-----|-----|-----|
+| 1 | `P1_D0` | 2 | `P2_D0` |
+| 3 | `P1_D1` | 4 | `P2_D1` |
+| 5 | `P1_D2` | 6 | `P2_D2` |
+| 7 | `P1_D3` | 8 | `P2_D3` |
+| 9 | `P1_D4` | 10 | `P2_D4` |
+| 11 | `P1_D5` | 12 | `P2_D5` |
+| 13 | `P1_D6` | 14 | `P2_D6` |
+| 15 | `P1_D7` | 16 | `P2_D7` |
+| 17 | `GND` | 18 | `GND` |
+| 19 | key / NC | 20 | NC |
+
+### J_PWR (2x2)
+
+| Pin | Net | Pin | Net |
+|-----|-----|-----|-----|
+| 1 | `+5V` | 2 | `GND` |
+| 3 | `RESET#` | 4 | NC |
 
 ### J_ISP (2x3)
 

@@ -76,4 +76,4 @@ PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardwar
 - Community flash tools for cart images (Studio already exports `.r01nano`)
 - Game authoring polish beyond Nano Studio
 - Final RGBS connector shell
-- Later PCB: RCA mono audio + composite video, Retr01-C TRS gamepad footprints (same protocol), light gun on that bus ([`hardware.md`](hardware.md#planned-later-not-in-v1-netlist--pcb))
+- Later: TRS light gun on the pad bus ([`hardware.md`](hardware.md#planned-later-not-in-v1-netlist--pcb)); RCA/AD725/TRS are already in the mobo netlist

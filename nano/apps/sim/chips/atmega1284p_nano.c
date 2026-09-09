@@ -14,9 +14,9 @@
 #include <stdio.h>
 #include <string.h>
 
-/* P1 = PA0..PA7. P2 = PC2..PC7, PD2, PD3 (nano/docs/pinmap.md). */
+/* P1 = PA0..PA7. P2 = PC2..PC7, PD6, PD7 (nano/docs/pinmap.md). */
 static const char *const P1_PINS[8] = {"PA0", "PA1", "PA2", "PA3", "PA4", "PA5", "PA6", "PA7"};
-static const char *const P2_PINS[8] = {"PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PD2", "PD3"};
+static const char *const P2_PINS[8] = {"PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PD6", "PD7"};
 
 static uint32_t screen_payload_abs(const R01neMachine *m, int col, int row) {
     int di;
@@ -194,7 +194,7 @@ void r01ns_atmega1284p_nano_init(R01nsAtmega1284pNano *chip, const char *refdes)
         {7, "PB6", R01S_PIN_IN},   {8, "PB7", R01S_PIN_OUT},  {9, "RESET#", R01S_PIN_IN},
         {10, "VCC", R01S_PIN_PWR}, {11, "GND", R01S_PIN_PWR}, {12, "XTAL2", R01S_PIN_OUT},
         {13, "XTAL1", R01S_PIN_IN},{14, "PD0", R01S_PIN_OUT}, {15, "PD1", R01S_PIN_OUT},
-        {16, "PD2", R01S_PIN_IN},  {17, "PD3", R01S_PIN_IN},  {18, "PD4", R01S_PIN_OUT},
+        {16, "PD2", R01S_PIN_IO},  {17, "PD3", R01S_PIN_IO},  {18, "PD4", R01S_PIN_OUT},
         {19, "PD5", R01S_PIN_OUT}, {20, "PD6", R01S_PIN_IO},  {21, "PD7", R01S_PIN_IO},
         {22, "PC0", R01S_PIN_OUT}, {23, "PC1", R01S_PIN_IO},  {24, "PC2", R01S_PIN_IN},
         {25, "PC3", R01S_PIN_IN},  {26, "PC4", R01S_PIN_IN},  {27, "PC5", R01S_PIN_IN},

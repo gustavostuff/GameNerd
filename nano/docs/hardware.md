@@ -12,9 +12,9 @@ SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mo
 | Uzebox-like board | Retr01 Nano |
 |-------------------|-------------|
 | DIP-40 AVR | **DIP-40** ATmega1284P (fully THT mobo) |
-| 8-bit R-2R + NTSC encoder | **1 bpp** FG levels + black backdrop, **RGBS only** |
-| Dual RCA | Vertical **pin header** for RGBS + mono audio (bring-up) |
-| NES plugs | Vertical arcade pin headers (2P) |
+| 8-bit R-2R + NTSC encoder | **1 bpp** FG + **AD725** NTSC (PA0006) + RGBS header |
+| Dual RCA | **CUI RCJ-012/014** mono audio + composite (same as full Retr01) |
+| NES plugs | **2x10** arcade + **2x Switchcraft 35RAPC** TRS (Retr01-C pads) |
 | No / large cart | **Tiny dual-sided gold-finger cart**, **8 pads/side** |
 | MIDI | None |
 
@@ -26,11 +26,20 @@ SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mo
                          +----------+-------------+
    Crystal 20 MHz ------>|      ATmega1284P       |<-- J_ISP (2x3 AVR)
                          |      (open FW)         |
-   J_P1 / J_P2 arcade -->|                        |---- FG + sync ---> J_AV (RGBS+AUD)
-                         |                        |---- PWM mix ------/
-                         |                        |
+   J_PAD arcade 2P ------>|                        |---- FG + CSYNC ---> J_AV (RGBS+AUD)
+   J3/J4 TRS (UART) ----->|  PD2 PAD_DATA          |---- PWM mix ------+--> J8 audio RCA
+                         |                        |                   |
                          |                        |---- SPI/I2C ------> J_CART (2x8 edge)
-                         +------------------------+
+                         +----------+-------------+
+                                    |
+                              R/G/B + CSYNC (AC couple)
+                                    |
+                              +-----+------+
+                              |   AD725    |<-- Y3 14.31818 MHz
+                              | (PA0006)   |
+                              +-----+------+
+                                    |
+                                 J9 composite RCA
 ```
 
 ## Motherboard outline (provisional)
@@ -143,25 +152,34 @@ All bring-up I/O uses **vertical 2.54 mm pin headers** unless noted.
 | Ref | Connector | Pins | Nets |
 |-----|-----------|------|------|
 | **J_BARREL** | **CUI PJ-063AH** (2.1 mm ID), same as full Retr01 | n/a | Tip = +5 V in, sleeve = GND ([`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md)) |
-| **J_P1** | **1x10** vertical pin header | 10 | `P1_D0..D7`, `GND`, key/NC (microswitches to GND) |
-| **J_P2** | **1x10** vertical pin header | 10 | `P2_D0..D7`, `GND`, key/NC |
-| **J_PWR** | **1x4** vertical pin header | 4 | `+5V`, `GND`, `RESET#`, `NC` (bench power/reset access) |
-| **J_AV** | **1x8** vertical pin header | 8 | `R`, `G`, `B`, `CSYNC`, `AUD`, `AGND`, `VGND`, key/NC |
+| **J_PAD** | **2x10** vertical pin header | 20 | P1 left col + P2 right col (`Px_D0..D7`), dual `GND`, key/NC (microswitches to GND) |
+| **J3 / J4** | **Switchcraft 35RAPC2BVN4** vertical TRS | 5 each | Tip=`+5V` (PPTC), Ring=`PAD_DATA`, Sleeve=`GND` ([`controllers.md`](../../docs/controllers.md)) |
+| **J_PWR** | **2x2** vertical pin header | 4 | `+5V`, `GND`, `RESET#`, `NC` (bench power/reset access) |
+| **J_AV** | **2x4** vertical pin header | 8 | `R`, `G`, `B`, `CSYNC`, `AUD`, `AGND`, `VGND`, key/NC (bench RGBS) |
+| **J8** | **CUI RCJ-012** black RCA | 2 | Mono `AUD` tip / shell GND |
+| **J9** | **CUI RCJ-014** yellow RCA | 2 | NTSC `COMPOSITE_OUT` tip / shell GND |
 | **J_ISP** | **2x3** vertical pin header | 6 | Standard AVR ISP: `MOSI`, `MISO`, `SCK`, `RESET#`, `VCC`, `GND` |
 | **J_CART** | EDAC-class **2x8** vertical card edge | 16 | See cart table |
 
-**J_AV notes:** `CSYNC` is composite sync for RGBS (H+V combined in FW or a tiny glue RC). `AGND` / `VGND` are separate returns at the header. Star to plane near the connector. Mono audio = resistor mix of the two PWM channels + DC block.
+**J_AV notes:** Bring-up / scope RGBS + AUD. Same `R`/`G`/`B`/`CSYNC` guns feed the AD725. `CSYNC` is H+V resistor-mix (FW XOR later). `AGND` / `VGND` star to plane near the connector.
+
+**AV encode:** **U725** = **AD725ARZ** on **Proto Advantage PA0006** (SOIC-16 → DIP-16 holes). **Y3** = Abracon **ACH-14.31818MHZ-EK**. COMP → 75 Ω → **J9**. Same recipe as full Retr01 ([`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md)).
+
+**J_PAD notes:** One ribbon-friendly **2x10**. Bit *n* is paired across columns. Full pin table: [`pinmap.md`](pinmap.md).
+
+**TRS notes:** Same jack + 3-wire protocol as Retr01-C. Arcade **J_PAD** and TRS **J3/J4** coexist; shell/BOM chooses which path you use. Software pad bytes stay the same bitfield.
 
 ## Motherboard floorplan sketch
 
 ```text
 +--------------------------------------------------+
-| [J_BARREL]     [J_ISP 2x3]      [J_PWR 1x4]      |
+| [J_BARREL]  [J_ISP 2x3]  [J_PWR 2x2]  [J3] [J4]  |
 |              ATmega1284P DIP-40                  |
 |           xtal + decoupling                      |
 |   FG R-pack     PWM R-mix + DC block             |
-| [J_AV 1x8]              [J_CART 2x8 edge]        |
-| [J_P1 1x10]                      [J_P2 1x10]     |
+| [J_AV 2x4]  [J8 aud] [J9 comp]  [J_CART 2x8]     |
+|         [U725+PA0006] [Y3 14.3]                  |
+|              [J_PAD 2x10 arcade]                 |
 +--------------------------------------------------+
 ```
 
@@ -184,10 +202,12 @@ Outside the ICs. Counts are order-of-magnitude for SKiDL BOM planning.
 | Series R on SPI/I2C to cart edge (optional ESD) | **4-8** | Soften edges / TVS companion |
 | TVS at barrel / cart / headers (bring-up: light) | **2-6** | Touchable nets |
 | FG resistor network (3-bit -> RGB + sync) | **1 network or ~10 discretes** | 8 FG colors + black |
-| PWM mix resistors + DC block cap | **4-6** | Music + SFX -> `AUD` |
+| PWM mix resistors + DC block cap | **4-6** | Music + SFX -> `AUD` → J_AV + J8 |
+| AD725 AC couple / YTRAP / 75R / analog ferrite | **~10** | Same class as full Retr01 |
+| TRS PPTC + series R + pull-up + local C | **~7** | J3/J4 path |
 | ISP / header pin shrouds | as needed | Polarized 2x3 preferred |
 
-**ICs (recap):** ATmega1284P **PDIP-40**. Cart **25LC1024 PDIP-8** + **24C64 PDIP-8** (fully THT). See [cart IC packages](#cart-ic-packages-hand-buildability). No second MCU on the motherboard.
+**ICs (recap):** ATmega1284P **PDIP-40**. Cart **25LC1024 PDIP-8** + **24C64 PDIP-8**. AV: **AD725ARZ** on **PA0006** DIP-16 adapter + **ACH-14.31818** can. See [cart IC packages](#cart-ic-packages-hand-buildability).
 
 ## Pad bit layout
 
@@ -212,29 +232,29 @@ Same spirit as full Retr01 `$FE60` / `$FE61` (bit set = pressed):
 
 ## Planned later (not in v1 netlist / PCB)
 
-These are intentional follow-ons. They are **not** in the current SKiDL / bring-up design (vertical headers only).
+These are intentional follow-ons beyond the current SKiDL bring-up.
 
 | Feature | Intent | Parent Retr01 reference |
 |---------|--------|-------------------------|
-| **RCA-like AV** | Mono **audio** RCA + **composite video** RCA (same spirit as full Retr01 RCJ footprints) | [`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md), CUI **RCJ-01x** |
-| **Composite encode** | On-board NTSC/PAL from RGBS + CSYNC (e.g. AD725 class) once RGBS bring-up is solid | Full Retr01 **AD725** path |
-| **TRS gamepads** | High-quality PCB footprints for real aux pads: same **Switchcraft 35RAPC** TRS, **ATtiny85** pad boards, **3-wire** half-duplex UART protocol as Retr01-C | [`docs/controllers.md`](../../docs/controllers.md) |
+| **TRS TVS / full ESD** | Populate TVS packs on Tip/DATA like parent `--full-esd` | [`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md) |
 | **Light gun** | Same TRS bus / protocol family as pads (CRT accessory roadmap) | [`docs/lightgun.md`](../../docs/lightgun.md) |
+| **RCA shell polish** | Final connector placement / silkscreen for console shell | — |
 
-v1 keep **J_AV** (RGBS + mono on a pin header) and **J_P1 / J_P2** arcade headers. Pad byte contract stays the same bitfield so TRS pads can drop in later without rewriting game I/O.
+v1 already includes **J_AV**, **J8/J9** RCA, **AD725**, **J_PAD**, and **J3/J4** TRS. Pad byte contract matches full Retr01 so TRS pads and arcade headers share game I/O meaning.
 
 ## Bring-up order
 
-1. Video kernel on a 1284 breakout (no cart yet)
+1. Video kernel on a 1284 breakout (RGBS on **J_AV**; no cart yet)
 2. SPI memory on a breakout as a fake cart
 3. First cute cart PCB + 2x8 slot
 4. Dual-port flasher (cart socket + ISP)
-5. Refine motherboard outline from the **100 x 100 mm** starting target
+5. Populate **U725/Y3** and verify **J9** composite; verify **J8** mono
+6. TRS pad boards on **J3/J4** (console FW UART poll)
+7. Refine motherboard outline from the **100 x 100 mm** starting target
 
 ## Non-goals for v1 PCB
 
-- On-board NTSC / PAL encode (**planned later**, see above)
 - Full Retr01 36-pin cart compatibility
-- TRS aux pads / light gun footprints on this spin (**planned later**, same parent protocol)
 - MIDI
 - Complex PMIC / Li-ion
+- Light-gun accessory (roadmap only)

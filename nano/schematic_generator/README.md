@@ -19,11 +19,13 @@ Same pattern as parent `retr01_schem/pinmap.py` / `kicad_pin_extract.json`:
 | Nano MPN | KiCad lib | KiCad symbol | Notes |
 |----------|-----------|--------------|-------|
 | ATmega1284P | MCU_Microchip_ATmega | **ATmega1284P-P** | PDIP-40 (mobo THT) |
+| AD725 | (inline) | AD725ARZ on PA0006 | Mobo: DIP-16 holes |
 | 25LC1024 | (inline / datasheet) | JEDEC SPI EEPROM | **PDIP-8** cart game image |
 | 24C64 | Memory_EEPROM | **24LC64** (extends 24LC16) | **PDIP-8** |
 | Passives | Device | R, C | |
 | Barrel | Connector | Barrel_Jack_MountingPin | Footprint CUI PJ-063AH |
-| Headers | Connector_Generic | Conn_01xN / Conn_02x03 | |
+| Headers | Connector_Generic | Conn_02xN | 2x2 PWR, 2x3 ISP, 2x4 AV, 2x10 arcade |
+| TRS / RCA | Retr01_Lib | 35RAPC2BVN4 / RCJ-01x | Same footprints as full Retr01 |
 
 SKiDL still builds `Part(tool=SKIDL)` with **physical pad numbers**. Official KiCad
 signal names are aliases (`PB5`, `~{CE}`, ...).

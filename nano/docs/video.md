@@ -4,14 +4,16 @@
 
 ## Output
 
-- Progressive **RGBS** analog only (v1)
-- No AD725-style RGB-to-NTSC chip
-- Aimed at 15 kHz CRTs and upscalers that accept RGBS
+- Progressive **RGBS** on **J_AV** (bring-up / RGB monitors / upscalers)
+- **NTSC composite** on **J9** via **AD725** (same path as full Retr01)
+- Mono PWM audio on **J_AV** and **J8** RCA
 
 Pixels are **1 bpp**. Hardware presents:
 
 - Backdrop: always **black**
 - Foreground: one of **8** fixed board colors (resistor DAC / GPIO levels), chosen per tile or entity via attributes
+
+RGB guns + CSYNC feed both the header and the AD725 AC-coupled inputs.
 
 ## Resolution and rate
 

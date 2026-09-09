@@ -11,7 +11,16 @@ try:
 except ImportError:  # pragma: no cover
     Net = None  # type: ignore
 
-PSEUDO_REFDES: Set[str] = {"GND", "+5V", "VCC", "VIN_RAW", "VIN_PROT", "AGND", "VGND"}
+PSEUDO_REFDES: Set[str] = {
+    "GND",
+    "+5V",
+    "VCC",
+    "VIN_RAW",
+    "VIN_PROT",
+    "AGND",
+    "VGND",
+    "+5V_ANALOG",
+}
 
 
 def _pin(part, name: str):

@@ -149,7 +149,7 @@ def connect_unused_pins_to_nc() -> None:
 def _force_rail_net_names() -> None:
     from .connect import rail_net
 
-    for name in ("GND", "+5V"):
+    for name in ("GND", "+5V", "+5V_ANALOG"):
         try:
             n = rail_net(name)
             n.name = name

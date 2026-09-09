@@ -50,7 +50,7 @@ R01nsBoard *r01ns_board_from_group(R01sIslandGroup *group);
 int r01ns_board_load_cart(R01nsBoard *board, const char *path, char *err, size_t err_cap);
 int r01ns_board_boot(R01nsBoard *board);
 
-/* Host arcade pad bytes into PADS (P1 on PA*, P2 on PC2-7 / PD2-3). */
+/* Host arcade pad bytes into PADS (P1 on PA*, P2 on PC2-7 / PD6-7). */
 void r01ns_board_set_pads(R01nsBoard *board, uint8_t p1, uint8_t p2);
 
 #endif
