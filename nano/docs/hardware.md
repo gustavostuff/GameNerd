@@ -23,14 +23,14 @@ SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mo
 ```text
   Barrel 5V (PJ-063AH) ---> protection / bulk ---> 5V plane
                                     |
-                         +----------+-------------+
-   Crystal 20 MHz ------>|      ATmega1284P       |<-- J_ISP (2x3 AVR)
-                         |      (open FW)         |
-   J_PAD arcade 2P ------>|                        |---- FG + CSYNC ---> J_AV (RGBS+AUD)
-   J3/J4 TRS (UART) ----->|  PD2 PAD_DATA          |---- PWM mix ------+--> J8 audio RCA
-                         |                        |                   |
-                         |                        |---- SPI/I2C ------> J_CART (2x8 edge)
-                         +----------+-------------+
+                          +----------+-------------+
+   Crystal 20 MHz ------> |      ATmega1284P       |<-- J_ISP (2x3 AVR)
+                          |      (open FW)         |
+  J_PAD arcade 2P ------> |                        |---- FG + CSYNC -------> J_AV (RGBS+AUD)
+  J3/J4 TRS (UART) -----> |  PD2 PAD_DATA          |---- PWM mix ------+---> J8 audio RCA
+                          |                        |                   |
+                          |                        |---- SPI/I2C ----------> J_CART (2x8 edge)
+                          +----------+-------------+
                                     |
                               R/G/B + CSYNC (AC couple)
                                     |
