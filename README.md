@@ -1,5 +1,7 @@
 <img src="app/assets/png/logo_v2.png" alt="Logo V2" />
 
+> **Status:** Active work has shifted to **[Retr01 Nano](nano/README.md)** — a smaller, simpler sibling meant to ship first. The full Retr01 design below is paused for now; it remains the long-term target once Nano is solid.
+
 Retr01 is an MCU-assisted 8-bit system, complemented by a software toolchain. The software consists of 3 different (WIP) packages:
 
 - **Retr01 Studio**: the game editor. Draw maps, tiles, and sprites, then hit **Play** to try your game (uses the emulator render code).
