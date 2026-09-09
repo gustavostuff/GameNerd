@@ -93,6 +93,7 @@ int r01ns_app_run(const char *cart_path) {
         SDL_Quit();
         return 1;
     }
+    SDL_SetTextureScaleMode(target, SDL_ScaleModeNearest);
 
     r01ns_ui_init(&ui, &board);
     r01ns_ui_mount_builder(&ui);

@@ -9321,38 +9321,5 @@
 		(layer "Edge.Cuts")
 		(uuid "d8a0448a-fcc8-4901-bf9a-a8b75106d0fd")
 	)
-	(gr_rect
-		(start 42.5 65)
-		(end 51.5 66)
-		(stroke
-			(width 0.05)
-			(type default)
-		)
-		(fill no)
-		(layer "Edge.Cuts")
-		(uuid "7dad01cb-b6c0-4fb5-a7cb-a62210484ef1")
-	)
-	(gr_rect
-		(start 54.5 65)
-		(end 63.5 66)
-		(stroke
-			(width 0.05)
-			(type default)
-		)
-		(fill no)
-		(layer "Edge.Cuts")
-		(uuid "473be324-0fa3-4d35-a313-c94aa81d230f")
-	)
-	(gr_rect
-		(start 66 65)
-		(end 75 66)
-		(stroke
-			(width 0.05)
-			(type default)
-		)
-		(fill no)
-		(layer "Edge.Cuts")
-		(uuid "fc70f87d-4339-46bf-82da-582d355c657b")
-	)
 	(embedded_fonts no)
 )

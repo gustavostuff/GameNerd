@@ -367,7 +367,33 @@ static void draw_display(SDL_Renderer *r, R01nsUi *ui, R01sEntity *e, int select
     int x = board_sx(ui, e->board_x);
     int y = board_sy(ui, e->board_y);
     const uint8_t *rgb = r01ns_video_sink_rgb(sink);
-    SDL_Rect dst = {x, y, e->body_w, e->body_h};
+    int box_w = e->body_w > 0 ? e->body_w : R01NS_VIDEO_W / 2;
+    int box_h = e->body_h > 0 ? e->body_h : R01NS_VIDEO_H / 2;
+    int scale;
+    int dw;
+    int dh;
+    SDL_Rect dst;
+
+    /* Integer fit of 256x192 into the glyph box (1:1 or exact 2:1 downscale, etc.). */
+    scale = box_w / R01NS_VIDEO_W;
+    if (box_h / R01NS_VIDEO_H < scale) {
+        scale = box_h / R01NS_VIDEO_H;
+    }
+    if (scale >= 1) {
+        dw = R01NS_VIDEO_W * scale;
+        dh = R01NS_VIDEO_H * scale;
+    } else if (R01NS_VIDEO_W % box_w == 0 && R01NS_VIDEO_H % box_h == 0 &&
+               (R01NS_VIDEO_W / box_w) == (R01NS_VIDEO_H / box_h)) {
+        dw = box_w;
+        dh = box_h;
+    } else {
+        dw = R01NS_VIDEO_W / 2;
+        dh = R01NS_VIDEO_H / 2;
+    }
+    dst.x = x + (box_w - dw) / 2;
+    dst.y = y + (box_h - dh) / 2;
+    dst.w = dw;
+    dst.h = dh;
 
     if (!ui->lcd_tex) {
         ui->lcd_tex = SDL_CreateTexture(r, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING,
@@ -380,9 +406,9 @@ static void draw_display(SDL_Renderer *r, R01nsUi *ui, R01sEntity *e, int select
         SDL_UpdateTexture(ui->lcd_tex, NULL, rgb, R01NS_VIDEO_W * 3);
         SDL_RenderCopy(r, ui->lcd_tex, NULL, &dst);
     } else {
-        fill_rect(r, x, y, e->body_w, e->body_h, 10, 10, 12);
+        fill_rect(r, x, y, box_w, box_h, 10, 10, 12);
     }
-    draw_rect(r, x, y, e->body_w, e->body_h, selected ? 255 : 80, selected ? 220 : 90, selected ? 80 : 100);
+    draw_rect(r, x, y, box_w, box_h, selected ? 255 : 80, selected ? 220 : 90, selected ? 80 : 100);
     draw_text(r, x + 2, y + 2, "SCR1", 200, 210, 220);
 }
 

@@ -36,8 +36,11 @@ void r01ns_video_sink_init(R01nsVideoSink *chip, const char *refdes) {
     r01s_entity_add_pin(&chip->base, 2, "HSYNC", R01S_PIN_IN);
     r01s_entity_add_pin(&chip->base, 3, "VSYNC", R01S_PIN_IN);
     r01s_entity_add_pin(&chip->base, 4, "VCC", R01S_PIN_PWR);
-    /* Board glyph ≈ half field so islands fit the 640x360 canvas. */
+    /* Board glyph = half RGBS field (128x96). Do not use snap5_up — that becomes
+     * 130x100 and nearest-scales the 256x192 texture with uneven pixel sizes. */
     r01s_entity_set_glyph(&chip->base, R01S_ENTITY_VIS_DISPLAY, R01NS_VIDEO_W / 2, R01NS_VIDEO_H / 2);
+    chip->base.body_w = R01NS_VIDEO_W / 2;
+    chip->base.body_h = R01NS_VIDEO_H / 2;
     r01s_entity_reset(&chip->base);
 }
 
