@@ -11,8 +11,8 @@ SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mo
 
 | Uzebox-like board | Retr01 Nano |
 |-------------------|-------------|
-| DIP-40 AVR | **DIP-40** ATmega1284P (fully THT mobo) |
-| 8-bit R-2R + NTSC encoder | **1 bpp** FG + **AD725** NTSC (PA0006) + RGBS header |
+| DIP-40 AVR | **DIP-40** ATmega1284P (THT). Only SMD IC is **AD725ARZ** |
+| 8-bit R-2R + NTSC encoder | **1 bpp** FG + **AD725ARZ** SOIC-16 + RGBS header |
 | Dual RCA | **CUI RCJ-012/014** mono audio + composite (same as full Retr01) |
 | NES plugs | **2x10** arcade + **2x Switchcraft 35RAPC** TRS (Retr01-C pads) |
 | No / large cart | **Tiny dual-sided gold-finger cart**, **8 pads/side** |
@@ -35,8 +35,8 @@ SKiDL netlists: [`nano/schematic_generator/`](../schematic_generator/) (`nano_mo
                               R/G/B + CSYNC (AC couple)
                                     |
                               +-----+------+
-                              |   AD725    |<-- Y3 14.31818 MHz
-                              | (PA0006)   |
+                              | AD725ARZ   |<-- Y3 14.31818 MHz
+                              | (SOIC-16)  |
                               +-----+------+
                                     |
                                  J9 composite RCA
@@ -163,11 +163,11 @@ All bring-up I/O uses **vertical 2.54 mm pin headers** unless noted.
 
 **J_AV notes:** Bring-up / scope RGBS + AUD. Same `R`/`G`/`B`/`CSYNC` guns feed the AD725. `CSYNC` is H+V resistor-mix (FW XOR later). `AGND` / `VGND` star to plane near the connector.
 
-**AV encode:** **U725** = **AD725ARZ** on **Proto Advantage PA0006** (SOIC-16 → DIP-16 holes). **Y3** = Abracon **ACH-14.31818MHZ-EK**. COMP → 75 Ω → **J9**. Same recipe as full Retr01 ([`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md)).
+**AV encode:** **U725** = **AD725ARZ** soldered direct (wide SOIC-16, only SMD IC). **Y3** = Abracon **ACH-14.31818MHZ-EK**. COMP -> 75 ohm -> **J9**. Same electrical recipe as full Retr01 ([`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md)).
 
 **J_PAD notes:** One ribbon-friendly **2x10**. Bit *n* is paired across columns. Full pin table: [`pinmap.md`](pinmap.md).
 
-**TRS notes:** Same jack + 3-wire protocol as Retr01-C. Arcade **J_PAD** and TRS **J3/J4** coexist; shell/BOM chooses which path you use. Software pad bytes stay the same bitfield.
+**TRS notes:** Same jack + 3-wire protocol as Retr01-C (**35RAPC2BVN4** on VN4 CD holes only, not arbitrary 3.5 mm geometries). Full footprint / pad map: [`docs/passive_rf_etc.md` VN4 TRS](../../docs/passive_rf_etc.md#vn4-trs-footprint-authoritative). Arcade **J_PAD** and TRS **J3/J4** coexist. Shell/BOM chooses which path you use. Software pad bytes stay the same bitfield.
 
 ## Motherboard floorplan sketch
 
@@ -178,7 +178,7 @@ All bring-up I/O uses **vertical 2.54 mm pin headers** unless noted.
 |           xtal + decoupling                      |
 |   FG R-pack     PWM R-mix + DC block             |
 | [J_AV 2x4]  [J8 aud] [J9 comp]  [J_CART 2x8]     |
-|         [U725+PA0006] [Y3 14.3]                  |
+|         [U725 SOIC] [Y3 14.3]                    |
 |              [J_PAD 2x10 arcade]                 |
 +--------------------------------------------------+
 ```
@@ -202,12 +202,12 @@ Outside the ICs. Counts are order-of-magnitude for SKiDL BOM planning.
 | Series R on SPI/I2C to cart edge (optional ESD) | **4-8** | Soften edges / TVS companion |
 | TVS at barrel / cart / headers (bring-up: light) | **2-6** | Touchable nets |
 | FG resistor network (3-bit -> RGB + sync) | **1 network or ~10 discretes** | 8 FG colors + black |
-| PWM mix resistors + DC block cap | **4-6** | Music + SFX -> `AUD` → J_AV + J8 |
+| PWM mix resistors + DC block cap | **4-6** | Music + SFX -> `AUD` -> J_AV + J8 |
 | AD725 AC couple / YTRAP / 75R / analog ferrite | **~10** | Same class as full Retr01 |
 | TRS PPTC + series R + pull-up + local C | **~7** | J3/J4 path |
 | ISP / header pin shrouds | as needed | Polarized 2x3 preferred |
 
-**ICs (recap):** ATmega1284P **PDIP-40**. Cart **25LC1024 PDIP-8** + **24C64 PDIP-8**. AV: **AD725ARZ** on **PA0006** DIP-16 adapter + **ACH-14.31818** can. See [cart IC packages](#cart-ic-packages-hand-buildability).
+**ICs (recap):** ATmega1284P **PDIP-40**. Cart **25LC1024 PDIP-8** + **24C64 PDIP-8**. AV: **AD725ARZ** wide SOIC-16 (direct) + **ACH-14.31818** can. See [cart IC packages](#cart-ic-packages-hand-buildability).
 
 ## Pad bit layout
 
@@ -238,17 +238,17 @@ These are intentional follow-ons beyond the current SKiDL bring-up.
 |---------|--------|-------------------------|
 | **TRS TVS / full ESD** | Populate TVS packs on Tip/DATA like parent `--full-esd` | [`docs/passive_rf_etc.md`](../../docs/passive_rf_etc.md) |
 | **Light gun** | Same TRS bus / protocol family as pads (CRT accessory roadmap) | [`docs/lightgun.md`](../../docs/lightgun.md) |
-| **RCA shell polish** | Final connector placement / silkscreen for console shell | — |
+| **RCA shell polish** | Final connector placement / silkscreen for console shell | - |
 
 v1 already includes **J_AV**, **J8/J9** RCA, **AD725**, **J_PAD**, and **J3/J4** TRS. Pad byte contract matches full Retr01 so TRS pads and arcade headers share game I/O meaning.
 
 ## Bring-up order
 
-1. Video kernel on a 1284 breakout (RGBS on **J_AV**; no cart yet)
+1. Video kernel on a 1284 breakout (RGBS on **J_AV**, no cart yet)
 2. SPI memory on a breakout as a fake cart
 3. First cute cart PCB + 2x8 slot
 4. Dual-port flasher (cart socket + ISP)
-5. Populate **U725/Y3** and verify **J9** composite; verify **J8** mono
+5. Populate **U725/Y3** and verify **J9** composite, then **J8** mono
 6. TRS pad boards on **J3/J4** (console FW UART poll)
 7. Refine motherboard outline from the **100 x 100 mm** starting target
 

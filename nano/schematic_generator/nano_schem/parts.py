@@ -1,4 +1,4 @@
-"""SKiDL Part factories — physical pin numbers from KiCad extract (pinmap.py)."""
+"""SKiDL Part factories - physical pin numbers from KiCad extract (pinmap.py)."""
 
 from __future__ import annotations
 

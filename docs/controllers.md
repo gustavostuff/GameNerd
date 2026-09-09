@@ -114,7 +114,7 @@ Console builds populate **2x Switchcraft 35RAPC2BVN4** TRS jacks (P1, P2, vertic
 
 Pads **3** and **5** are plated for mechanical hold on the VN4 footprint. They are **NC** on **35RAPC2BVN4** (no internal switches). Exact tip/ring assignment is fixed at schematic time. Protection (PPTC on VCC, TVS, series R on DATA): [`passive_rf_etc.md`](passive_rf_etc.md).
 
-**Footprint intent:** holes follow Switchcraft **VN4 CD** (5x dia 2.00 mm). That pattern fits **2BVN4** (locked) and mechanically **3BVN4** / **4BVN4** from the same drawing. It is **not** a generic dual footprint for unrelated 3.5 mm jacks with different pin geometry. See [`passive_rf_etc.md`](passive_rf_etc.md#locked-connectors-buy-list).
+**Footprint intent:** **one** Switchcraft **VN4 CD** hole pattern only (5× Ø **2.00 mm** round PTH — datasheet “slots” are terminal tabs, not PCB holes). Fits **2BVN4** (locked) and mechanically **3BVN4** / **4BVN4**. Pads **3** and **4** must stay copper-separate (no peanut short). **Not** a generic dual footprint for inline-3 or unrelated 2+1 jacks. Full detail: [`passive_rf_etc.md` § VN4 TRS footprint](passive_rf_etc.md#vn4-trs-footprint-authoritative).
 
 ### Electrical: open-drain UART bus
 

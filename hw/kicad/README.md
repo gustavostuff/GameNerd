@@ -10,7 +10,7 @@ Single home for PCB / project files and the custom footprint library.
 |------|------|
 | **[`motherboard/`](motherboard/)** | **Live** motherboard project. Open `Retr01_Motherboard.kicad_pro` |
 | **[`cartridge/`](cartridge/)** | **Live** cartridge project. Open `Retr01_Cartridge.kicad_pro` |
-| **[`Retr01_Lib.pretty/`](Retr01_Lib.pretty/)** | Custom footprints (TRS, RCA, cart gold fingers). Both projects point here via `fp-lib-table` |
+| **[`Retr01_Lib.pretty/`](Retr01_Lib.pretty/)** | Custom footprints (TRS, RCA, cart gold fingers). Full Retr01 + **Nano** KiCad projects point here via `fp-lib-table` |
 | **[`archive/`](archive/)** | Old boards and Quilter downloads (not the working copy) |
 
 ```text

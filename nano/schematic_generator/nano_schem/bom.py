@@ -25,9 +25,9 @@ class BomEntry:
     gnd_pin: Optional[str] = None
 
 
-# Footprints — motherboard + cart silicon fully THT except AD725 (SOIC on PA0006 DIP adapter).
+# Footprints - motherboard + cart silicon THT. AD725ARZ is the only SMD IC (wide SOIC-16).
 _DIP40 = "Package_DIP:DIP-40_W15.24mm"
-_DIP16 = "Package_DIP:DIP-16_W7.62mm"
+_SOIC16W = "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm"
 _DIP8 = "Package_DIP:DIP-8_W7.62mm"
 _EDGE16_MOBO = "Connector_PinSocket_2.54mm:PinSocket_2x08_P2.54mm_Vertical"
 _EDGE16_CART = "Retr01_Lib:Cart_Edge_2x8_P2.54mm"
@@ -65,14 +65,14 @@ BOM: List[BomEntry] = [
         vcc_pin="10",
         gnd_pin="11",
     ),
-    # AD725ARZ is wide SOIC-16; mobo places DIP-16 for Proto Advantage PA0006
+    # AD725ARZ = Analog Devices RW-16 wide SOIC (only SMD IC on Nano mobo)
     BomEntry(
         "U725",
         "AD725",
-        "AD725ARZ RGB->NTSC on DIP-16 via Proto Advantage PA0006",
+        "AD725ARZ RGB->NTSC wide SOIC-16 (direct SMD)",
         BoardId.MOBO,
         16,
-        _DIP16,
+        _SOIC16W,
         in_ic_count=False,
     ),
     BomEntry(

@@ -39,7 +39,7 @@ Studio Play uses the same Emu core as standalone `./emu`.
 | Cart storage | SST39SF040 + 24C64 | 512 KB flash on cart + I2C save EEPROM ([`cart.md`](cart.md)) |
 | Video glue | 5x ATF22V10, 6x HC157, 3x HC245 | Decode, beam, interleave, registered scroll/raster, bus isolation |
 | Color out | AT27C256R OTP | 64-entry R3G3B2 PROM -> binary-weighted DAC -> RGBS (75 ohm to GND) |
-| Composite (support) | AD725 + 14.31818 MHz can | RGB->NTSC into J9. Outside the 23-IC logic count. Chip is wide SOIC-16. **Mobo: DIP-16 + Proto Advantage PA0006** ([`passive_rf_etc.md`](passive_rf_etc.md)) |
+| Composite (support) | AD725 + 14.31818 MHz can | RGB->NTSC into J9. Outside the 23-IC logic count. Chip is wide SOIC-16. Full Retr01: DIP-16 + Proto Advantage PA0006. Nano: direct SOIC-16W ([`passive_rf_etc.md`](passive_rf_etc.md)) |
 
 **Count:** **23** (21 mobo + 2 cart). Escape **+1 PLD** if compositor or scroll/raster fit overflows. **74HC14** (reset/clock) and **AD725** (composite) are outside the 23.
 
@@ -197,7 +197,7 @@ Ports and passives: [`passive_rf_etc.md`](passive_rf_etc.md).
 | Topic | Resolution |
 |-------|------------|
 | Color PROM speed | **AT27C256R** 45 ns OTP ([`hw/md/AT27C256R.md`](../hw/md/AT27C256R.md)). Unused address pins tied **GND**. Binary-weighted outputs through **75 ohm** to ground -> **~0.7 Vpp** RGBS. |
-| Composite | **AD725** NTSC from RGBS + CSYNC ([`passive_rf_etc.md`](passive_rf_etc.md)). **AV outs: RGBS + composite.** Mobo footprint is **DIP-16** (Proto Advantage **PA0006** SOIC-to-DIP). |
+| Composite | **AD725** NTSC from RGBS + CSYNC ([`passive_rf_etc.md`](passive_rf_etc.md)). **AV outs: RGBS + composite.** Full Retr01: DIP-16 + PA0006. Nano: direct SOIC-16W. |
 | `$FExx` | Scroll/raster in PLDs. Soft ports on 1284 ([`graphics.md`](graphics.md#fexx-ownership)). |
 | Cart I2C save API | `$FE22`-`$FE24` via 1284 master ([`memory.md`](memory.md#cart-save-eeprom-24c64-on-cartridge)). |
 | Machine EEPROM API | `$FE70`-`$FE72` + `RDY` stall ([`memory.md`](memory.md#atmega1284p-internal-eeprom-4-kb)). |

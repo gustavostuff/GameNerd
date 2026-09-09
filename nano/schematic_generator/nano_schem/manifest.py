@@ -135,7 +135,7 @@ def build_manifest() -> List[Connection]:
         ]
     m.append(Connection("VGND", "J_AV", P.AV_VGND, "GND", "GND", src))
 
-    # --- PWM audio mix → J_AV + J8 mono RCA ---
+    # --- PWM audio mix -> J_AV + J8 mono RCA ---
     m += [
         Connection("PWM_SFX", "U1284", P.M1284_PD4, "Rmix_s", "1", src),
         Connection("PWM_MUSIC", "U1284", P.M1284_PD5, "Rmix_m", "1", src),

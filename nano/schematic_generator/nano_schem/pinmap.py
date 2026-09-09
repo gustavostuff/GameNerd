@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
-# ATmega1284P PDIP-40 (KiCad ATmega1284P-P) — motherboard THT
+# ATmega1284P PDIP-40 (KiCad ATmega1284P-P) - motherboard THT
 # ---------------------------------------------------------------------------
 
 # Power / clock / reset
@@ -25,13 +25,13 @@ M1284_AVCC = "30"
 M1284_AREF = "32"
 M1284_XTAL2, M1284_XTAL1 = "12", "13"
 
-# PORTB — SPI + FG + cart detect (nano/docs/pinmap.md)
+# PORTB - SPI + FG + cart detect (nano/docs/pinmap.md)
 M1284_PB0, M1284_PB1, M1284_PB2 = "1", "2", "3"  # FG0..FG2
 M1284_PB3 = "4"  # CART_DET#
 M1284_PB4 = "5"  # SPI_SS#
 M1284_PB5, M1284_PB6, M1284_PB7 = "6", "7", "8"  # MOSI, MISO, SCK
 
-# PORTC — I2C + P2 low
+# PORTC - I2C + P2 low
 M1284_PC0, M1284_PC1 = "22", "23"  # SCL, SDA
 M1284_PC2 = "24"
 M1284_PC3 = "25"
@@ -40,14 +40,14 @@ M1284_PC5 = "27"
 M1284_PC6 = "28"
 M1284_PC7 = "29"
 
-# PORTD — sync, PWM, pad UART, P2 high
+# PORTD - sync, PWM, pad UART, P2 high
 M1284_PD0, M1284_PD1 = "14", "15"  # HSYNC, VSYNC
-M1284_PD2 = "16"  # PAD_DATA (RXD1 / open-drain UART — same as full Retr01)
+M1284_PD2 = "16"  # PAD_DATA (RXD1 / open-drain UART - same as full Retr01)
 M1284_PD3 = "17"  # unused bring-up (NC / future)
 M1284_PD4, M1284_PD5 = "18", "19"  # PWM_SFX, PWM_MUSIC
 M1284_PD6, M1284_PD7 = "20", "21"  # P2_D6, P2_D7 (moved off PD2/PD3 for TRS UART)
 
-# PORTA — P1
+# PORTA - P1
 M1284_PA0 = "40"
 M1284_PA1 = "39"
 M1284_PA2 = "38"
@@ -81,7 +81,7 @@ M1284_FG = (M1284_PB0, M1284_PB1, M1284_PB2)
 M1284_PAD_DATA = M1284_PD2  # Tip/Ring bus on J3/J4
 
 # ---------------------------------------------------------------------------
-# 25LC1024 PDIP-8 (JEDEC SPI — same pad numbers as SST25VF010A SOIC-8)
+# 25LC1024 PDIP-8 (JEDEC SPI - same pad numbers as SST25VF010A SOIC-8)
 # ---------------------------------------------------------------------------
 
 FLASH_CE, FLASH_SO, FLASH_WP, FLASH_VSS = "1", "2", "3", "4"
@@ -117,13 +117,13 @@ RCA_TIP, RCA_SHELL = "1", "2"
 # Abracon ACH half-size DIP-8 can (KiCad Oscillator_DIP-8 pads 1/4/5/8)
 OSC_OE, OSC_GND, OSC_OUT, OSC_VDD = "1", "4", "5", "8"
 
-# AD725 RGB->NTSC (wide SOIC-16 on DIP-16 via Proto Advantage PA0006)
+# AD725 RGB->NTSC (AD725ARZ wide SOIC-16, soldered direct - no PA0006)
 AD725_STND, AD725_AGND, AD725_4FSC, AD725_APOS = "1", "2", "3", "4"
 AD725_CE, AD725_RIN, AD725_GIN, AD725_BIN = "5", "6", "7", "8"
 AD725_CRMA, AD725_COMP, AD725_LUMA, AD725_YTRAP = "9", "10", "11", "12"
 AD725_DGND, AD725_DPOS, AD725_VSYNC, AD725_HSYNC = "13", "14", "15", "16"
 
-# Cart edge 16 — A1..A8 = 1..8, B1..B8 = 9..16
+# Cart edge 16 - A1..A8 = 1..8, B1..B8 = 9..16
 def cart_a(n: int) -> str:
     return str(n)
 
@@ -151,7 +151,7 @@ ISP_RST, ISP_GND = "5", "6"
 PWR_5V, PWR_GND = "1", "2"
 PWR_RST, PWR_NC = "3", "4"
 
-# J_AV 2x4 — RGBS + AUD bring-up header (also feeds AD725 / RCA)
+# J_AV 2x4 - RGBS + AUD bring-up header (also feeds AD725 / RCA)
 # 1 R     | 2 G
 # 3 B     | 4 CSYNC
 # 5 AUD   | 6 AGND
@@ -161,7 +161,7 @@ AV_B, AV_CSYNC = "3", "4"
 AV_AUD, AV_AGND = "5", "6"
 AV_VGND, AV_NC = "7", "8"
 
-# J_PAD 2x10 — P1 left column, P2 right column (bit-paired)
+# J_PAD 2x10 - P1 left column, P2 right column (bit-paired)
 #  1 P1_D0 |  2 P2_D0
 #  ...
 # 15 P1_D7 | 16 P2_D7

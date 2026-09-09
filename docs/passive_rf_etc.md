@@ -69,7 +69,10 @@ External 5 V is trusted for regulation, not for abuse or cable noise. Treat the 
 
 Never snake return current through video or pad-port copper. Stitch GND vias at every connector shell and under each DIP.
 
-**Package policy (arcade / console):** all mobo passives are **THT** (axial R, disc ceramic C, radial electrolytic where noted, axial TVS/inductor). The only SMD silicon is **AD725ARZ** on **Proto Advantage PA0006** (DIP-16 holes on the PCB). Retr01-H may revisit SMD later.
+**Package policy:** mobo passives are **THT** (axial R, disc ceramic C, radial electrolytic where noted, axial TVS/inductor). The only intentional SMD silicon is **AD725ARZ** (wide SOIC-16).
+- **Full Retr01** mobo: DIP-16 holes + **Proto Advantage PA0006** (SOIC-to-DIP). First spin stays hand-solderable THT via that adapter.
+- **Nano** mobo: solder **AD725ARZ** direct (`Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm`). Only SMD IC on that board.
+Retr01-H may revisit more SMD later.
 
 **KiCad footprints** (from `bom.py`): standing axials for density. R `Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical`, ESD TVS stand-in `Diode_THT:D_DO-35_SOD27_P2.54mm_Vertical_CathodeUp`, reverse Schottky `Diode_THT:D_DO-41_SOD81_P2.54mm_Vertical_CathodeUp`, YTRAP L `Inductor_THT:L_Axial_L11.0mm_D4.5mm_P5.08mm_Vertical_Fastron_MECC`. PPTC / ferrite beads reuse the resistor axial hole pattern until a THT MPN is locked.
 
@@ -82,7 +85,7 @@ Never snake return current through video or pad-port copper. Stitch GND vias at 
 | **74HC*** | `DIP-*_W7.62mm`. Correct |
 | **Y1-Y3** ACH half-size | `Oscillator_DIP-8`. Correct |
 | **Y4/Y5** ABLS7M | `Crystal_HC49-U_Vertical`. Correct |
-| **U725** AD725 | DIP-16 for **PA0006** adapter. Intentional |
+| **U725** AD725 | Full Retr01: DIP-16 + **PA0006**. Nano: direct SOIC-16W. See locked connectors |
 | **R / disc C / YTRAP L** | Vertical THT class footprints. OK for 1/4 W / disc / MECC-class |
 | **Cbulk / Cva** | `CP_Radial_D8.0mm_P3.50mm`. Fine for many 10 uF. Confirm **220 uF** can body when locking MPN (some need D10 / P5.00) |
 | **D1** Schottky | **DO-41** (not DO-35). 1N581x rectifier class |
@@ -131,7 +134,7 @@ Expected keep set: **23** rows (21x `CD*` + 2x `Cd725*`). Do not chase high conf
 
 Project: [`hw/kicad/cartridge/`](../hw/kicad/cartridge/). Same stub pattern as the mobo (`RD*` 0 ohm into `+5V_U*`), fewer parts.
 
-**Stackup (4-layer, matches motherboard):** **F.Cu** signal · **In1.Cu** GND · **In2.Cu** GND · **B.Cu** signal. Board thickness **1.6 mm** (edge-connector mating). Inner planes are solid `GND` pours over the full board. Outers carry signals + full-board `+5V` pours (clearance around non-power finger pads). Pick Quilter’s **4-layer** profile; map inners as ground.
+**Stackup (4-layer, matches motherboard):** **F.Cu** signal - **In1.Cu** GND - **In2.Cu** GND - **B.Cu** signal. Board thickness **1.6 mm** (edge-connector mating). Inner planes are solid `GND` pours over the full board. Outers carry signals + full-board `+5V` pours (clearance around non-power finger pads). Pick Quilter's **4-layer** profile. Map inners as ground.
 
 **Power nets:**
 
@@ -178,15 +181,43 @@ Board clocks matter for layout cleanliness. They are not automatically a show-st
 |-----|------------|-----------------|
 | **J1** | **CUI PJ-063AH** (2.1 mm ID barrel) | Stock KiCad `BarrelJack_CUI_PJ-063AH_Horizontal` (1=tip, 2=sleeve, MP->GND) |
 | **J2** | 1x5 pin header 2.54 mm | Stock `PinHeader_1x05_P2.54mm_Vertical` - RGBS harness |
-| **J3/J4** | **Switchcraft 35RAPC2BVN4** (vertical) | `Retr01_Lib:Jack_3.5mm_Switchcraft_35RAPC2BVN4_Vertical`. Switchcraft **VN4 CD** recommended layout: **5 PTH dia 2.00 mm**. Tip=**4**, Ring=**2**, Sleeve=**1**. Pads **3** and **5** are plated for mechanical hold and stay **NC** on **2BVN4** (no switch contacts). Same hole pattern also accepts **35RAPC3BVN4** / **4BVN4** mechanically (those SKUs use pads 3/5 for switches. We do not wire them). This is **not** a dual footprint for arbitrary "all pins in-line" vs "2+1 offset" third-party jacks. Locked to the VN4 family drawing only. |
+| **J3/J4** | **Switchcraft 35RAPC2BVN4** (vertical) | `Retr01_Lib:Jack_3.5mm_Switchcraft_35RAPC2BVN4_Vertical`. See [VN4 TRS footprint (authoritative)](#vn4-trs-footprint-authoritative) below. |
 | **J5/J6** | 1x10 pin header 2.54 mm | Stock vertical |
 | **J7** | 1x4 pin header 2.54 mm | Stock vertical |
 | **J8** | **CUI RCJ-012** (black RCA, audio) | Symbol: stock **`Conn_Coaxial`**. Footprint: `Retr01_Lib:CUI_RCJ-01x_Vertical` (pad **1**=tip, **2**=shellx2) |
 | **J9** | **CUI RCJ-014** (yellow RCA, composite) | Same symbol + footprint as J8 |
 | **J36** | **EDAC 395-036-520-201** (straight / vertical 2x18) | Stock stand-in `PinSocket_2x18_P2.54mm_Vertical` until EDAC CAD. Retr01-C console later: **395-036-559-212** right-angle + Horizontal stand-in (separate board, not dual-footprint) |
-| **U725** | **AD725ARZ** | Chip is **wide-body SOIC-16** (7.50 mm / 300 mil, no DIP SKU from ADI). **Only intentional SMD IC on the mobo.** **Mobo footprint: DIP-16** (`Package_DIP:DIP-16_W7.62mm`). Adapter: **Proto Advantage PA0006** (SOIC-16 300 mil to DIP-16), [store link](http://www.proto-advantage.com/store/product_info.php?products_id=2200006). First-spin board stays fully THT via that adapter. |
+| **U725** | **AD725ARZ** | Chip is **wide-body SOIC-16** (7.50 mm / 300 mil, no DIP SKU from ADI). Only intentional SMD IC. **Full Retr01:** DIP-16 (`Package_DIP:DIP-16_W7.62mm`) + **Proto Advantage PA0006** ([store](http://www.proto-advantage.com/store/product_info.php?products_id=2200006)). **Nano:** direct `Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm` (SKiDL SoT in `nano/schematic_generator`). |
 
 **You build yourself:** Optionally refine J36 from EDAC drawing. TRS + RCJ footprints are in [`hw/kicad/Retr01_Lib.pretty`](../hw/kicad/Retr01_Lib.pretty). PCB projects: [`hw/kicad/README.md`](../hw/kicad/README.md).
+
+### VN4 TRS footprint (authoritative)
+
+**One geometry only.** Motherboard **J3/J4** (and pad-board mates) use Switchcraft **VN4 CD** holes for the **35RAPC*BVN4** family. This is **not** a dual footprint that also accepts arbitrary "3 pins in a line" or unrelated "2+1 offset" jacks.
+
+| Item | Locked value |
+|------|----------------|
+| Footprint | `Retr01_Lib:Jack_3.5mm_Switchcraft_35RAPC2BVN4_Vertical` |
+| Buy / populate (locked) | **35RAPC2BVN4** (vertical, non-threaded) |
+| Also fits holes mechanically | **35RAPC3BVN4**, **35RAPC4BVN4** (same VN4 CD drawing, switch contacts on pads 3/5, we leave those **NC**) |
+| PCB holes | 5x oval pill slots, drill 0.90 x 2.00 mm (Y-long axis). Datasheet recommends dia 2.00 mm round. Flat tabs (~0.30 mm) fit the pill with less wasted copper. Hole centers unchanged (VN4 CD). |
+| Datasheet "slot" drawings | Those rectangles are the **flat terminal tabs** (~0.30 mm thick), **not** our PCB slot outline |
+| Pad copper | **1.40 x 2.30 mm** oval, narrow in **X** so pads **3** and **4** (~1.9 mm hole spacing) stay **electrically separate** (VCC must not short to NC/shunt) |
+| Hole pattern | Zigzag: pads **1 / 3 / 5** on one row, pads **2 / 4** on the other row, **2.00 mm** row stagger. X from pad **1**: **0 / 3.65 / 7.35 / 9.25 / 13.00** mm |
+
+**Net map (schematic / SKiDL):**
+
+| Pad | Contact | Our net (2BVN4) |
+|-----|---------|-----------------|
+| **1** | Sleeve | `GND` |
+| **2** | Ring | `PAD_DATA` |
+| **3** | (no pin on 2BVN4; shunt on 4BVN4) | **NC** (plated for mechanical hold) |
+| **4** | Tip | `PAD_VCC` (+5 V via PPTC) |
+| **5** | (no pin on 2BVN4; tip/shunt on other SKUs) | **NC** |
+
+**Not supported on this footprint:** CUI SJ1-class inline legs, PJ-random clones, or any 3.5 mm jack whose legs do not match VN4 CD. If the legs do not drop into those five holes without bending, it is the wrong part.
+
+Datasheet (Mouser PDF): [35RAPC VN4 CD](https://www.mouser.com/datasheet/2/144/35rapc_vn4_cd-1311116.pdf).
 
 ---
 
@@ -198,7 +229,7 @@ Board clocks matter for layout cleanliness. They are not automatically a show-st
 | Video bit resistors (LSB->MSB) | Red/Green: **4.00 / 2.00 / 1.00 kohm**. Blue: **2.00 / 1.00 kohm** |
 | **75.0 ohm** to **GND** on each R/G/B | Termination -> **~0.7 Vpp** into 75 ohm video plant |
 | Optional ferrite beads on RGBS | Cable RF. Place at connector |
-| Composite encoder | **AD725ARZ**: RGB AC-coupled in, **CSYNC** on HSYNC, **NTSC**, **14.31818 MHz** 4FSC. COMP -> 75 ohm -> J9. Outside 23-IC count. **AV outs: RGBS + composite** (AD725 pins 9/11 unused). Chip is wide SOIC-16. **Board: DIP-16 + Proto Advantage PA0006** (see **U725**) |
+| Composite encoder | **AD725ARZ**: RGB AC-coupled in, **CSYNC** on HSYNC, **NTSC**, **14.31818 MHz** 4FSC. COMP -> 75 ohm -> J9. Outside 23-IC count. **AV outs: RGBS + composite** (AD725 pins 9/11 unused). Chip is wide SOIC-16. Footprint: Full Retr01 DIP-16+PA0006, Nano direct SOIC-16W (see **U725**) |
 | Bench video levels (locked targets) | Guns **~0.7 Vpp** into 75 ohm. AD725 RGB inputs **0-714 mV** AC-coupled (datasheet black ~0.8 V DC after clamp). No BOM change until first-spin scope |
 | APU **R-2R** from 328P `AUD0`-`AUD7` | Classic ladder **R = 10.0 kohm**, **2R = 20.0 kohm** (1%), then AC-couple to line out ([`sound.md`](sound.md)) |
 | APU build-out | **1.0 kohm** series + **10 uF** AC-coupling toward jack |
@@ -247,7 +278,7 @@ Design goal: **female jack on the motherboard** (2x) and on each optional pad bo
 
 | Item | Spec / role |
 |------|-------------|
-| Jack | **Switchcraft 35RAPC** series, **TRS (stereo)**. Mobo SKU lock: **35RAPC2BVN4** (vertical, non-threaded). Same family on pad PCBs |
+| Jack | **Switchcraft 35RAPC** series, **TRS (stereo)**. Mobo SKU lock: **35RAPC2BVN4** (vertical, non-threaded). Same family on pad PCBs. Footprint rules: [VN4 TRS footprint](#vn4-trs-footprint-authoritative) |
 | Conductors | **Tip / Ring / Sleeve** = **VCC / DATA / GND** (exact T/R assignment locked at schematic. Sleeve = GND + shell) |
 | Port count | **2** (P1, P2) footprints on the motherboard |
 | Pad MCU | **ATtiny85** on the controller board ([`controllers.md`](controllers.md)). 1284 still presents `$FE60` / `$FE61` |

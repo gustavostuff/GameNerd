@@ -9,8 +9,27 @@ symbols, inline SKiDL parts, separate mobo / cart netlists.
 1. Docs SoT: `nano/docs/pinmap.md`, `nano/docs/hardware.md`
 2. `python generate.py --check`
 3. `python generate.py` -> `output/nano_mobo.net` + `output/nano_cart.net`
-4. Import each netlist into its KiCad project. Outline starts at 100x100 mm (provisional).
+4. Import each netlist into its KiCad project (see [Netlist import](#netlist-import) below). Outline starts at 100x100 mm (provisional).
 5. Route (Quilter optional). Bypass uses per-IC local `+5V_<refdes>` + 0R bridges.
+
+## Netlist import
+
+Nano and full Retr01 share **one** footprint library: [`hw/kicad/Retr01_Lib.pretty`](../../hw/kicad/Retr01_Lib.pretty). The netlist only carries a **name** (e.g. `Retr01_Lib:Jack_3.5mm_Switchcraft_35RAPC2BVN4_Vertical`); KiCad loads the actual `.kicad_mod` from the project **`fp-lib-table`**.
+
+Each Nano KiCad project includes `fp-lib-table` pointing at that folder. After editing a footprint in `Retr01_Lib.pretty`, re-import or **Update Footprints from Library** so pcbnew picks up the change (placed footprints are copies until refreshed).
+
+**Mobo** (`nano/nano_main_pcb/nano_main_pcb_v_01/`):
+
+1. Open `nano_main_pcb_v_01.kicad_pro`.
+2. Confirm **Preferences -> Manage Footprint Libraries** shows **Retr01_Lib** (no broken path).
+3. **File -> Import -> Netlist** -> `nano/schematic_generator/output/nano_mobo.net`.
+4. Enable **Exchange footprint** (or delete old J3/J4/J8/J9 before re-import if footprints were stale).
+5. Place / route. Custom parts from netlist: **J3/J4** TRS, **J8/J9** RCA, **J_CART** uses stock PinSocket 2x8 (not Retr01_Lib).
+
+**Cart** (`nano/nano_cart_pcb/Nano_Cart_PCB_v_01/`):
+
+1. Same `fp-lib-table` -> **Retr01_Lib**.
+2. Import `output/nano_cart.net`. **J16** -> `Retr01_Lib:Cart_Edge_2x8_P2.54mm`.
 
 ## KiCad symbol mapping
 
@@ -19,7 +38,7 @@ Same pattern as parent `retr01_schem/pinmap.py` / `kicad_pin_extract.json`:
 | Nano MPN | KiCad lib | KiCad symbol | Notes |
 |----------|-----------|--------------|-------|
 | ATmega1284P | MCU_Microchip_ATmega | **ATmega1284P-P** | PDIP-40 (mobo THT) |
-| AD725 | (inline) | AD725ARZ on PA0006 | Mobo: DIP-16 holes |
+| AD725 | (inline) | AD725ARZ wide SOIC-16 | `Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm` |
 | 25LC1024 | (inline / datasheet) | JEDEC SPI EEPROM | **PDIP-8** cart game image |
 | 24C64 | Memory_EEPROM | **24LC64** (extends 24LC16) | **PDIP-8** |
 | Passives | Device | R, C | |
