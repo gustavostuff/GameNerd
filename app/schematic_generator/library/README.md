@@ -26,7 +26,7 @@ SKiDL still instantiates inline `Part(tool=SKIDL)` parts, but every pin **name a
 |------|-----|
 | W65C02S | Not in stock CPU lib (symbol) |
 | ATF22V10 | No 22V10 stock symbol |
-| Switchcraft **35RAPC2BVN4** | Custom TRS footprint - **done** ([`hw/kicad/Retr01_Lib.pretty`](../../../hw/kicad/Retr01_Lib.pretty), Tip=4 / Ring=2 / Sleeve=1). **VN4 CD only** — see [`docs/passive_rf_etc.md`](../../../docs/passive_rf_etc.md#vn4-trs-footprint-authoritative) |
+| Switchcraft **35RAPC2BVN4** | Custom TRS footprint - **done** ([`hw/kicad/Retr01_Lib.pretty`](../../../hw/kicad/Retr01_Lib.pretty), Tip=4 / Ring=2 / Sleeve=1). **VN4 CD only** - see [`docs/passive_rf_etc.md`](../../../docs/passive_rf_etc.md#vn4-trs-footprint-authoritative) |
 | CUI **RCJ-01x** | Custom RCA footprint - **done** (`CUI_RCJ-01x_Vertical`. RCJ-012/014 share holes) |
 | EDAC **395-036-520-201** (vertical) | Mobo: PinSocket stand-in until manufacturer CAD. Cart gold fingers: **`Cart_Edge_2x18_P2.54mm`** (done). Console later: **395-036-559-212** right-angle |
 

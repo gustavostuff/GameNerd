@@ -28,7 +28,7 @@ def _pin(part, name: str):
 def _get_or_create_net(nets: Dict[str, object], name: str):
     """Reuse one SKiDL Net per logical name (circuit-wide).
 
-    Plain ``Net("GND")`` creates GND, GND1, GND2… across island passes, which
+    Plain ``Net("GND")`` creates GND, GND1, GND2... across island passes, which
     fragments the rail and leaves KiCad with no net literally named GND.
     """
     net = nets.get(name)

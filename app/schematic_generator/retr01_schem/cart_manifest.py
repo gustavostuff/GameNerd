@@ -1,4 +1,4 @@
-"""Cartridge PCB wiring — SST39SF040 + 24C64 behind the shared J36 edge pinout."""
+"""Cartridge PCB wiring - SST39SF040 + 24C64 behind the shared J36 edge pinout."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from .manifest import Connection
 
 
 def build_cart_manifest() -> List[Connection]:
-    """Cart-side connections: J36 fingers ↔ flash / EEPROM (docs/cart.md)."""
+    """Cart-side connections: J36 fingers <-> flash / EEPROM (docs/cart.md)."""
     m: List[Connection] = []
     src = "docs/cart.md cart PCB"
 
@@ -49,7 +49,7 @@ def build_cart_manifest() -> List[Connection]:
 
 
 def j36_pin_to_net(connections: List[Connection]) -> Dict[str, str]:
-    """Map J36 pin number → net name (one net per edge contact)."""
+    """Map J36 pin number -> net name (one net per edge contact)."""
     out: Dict[str, str] = {}
     for c in connections:
         for ref, pin in ((c.a_refdes, c.a_pin), (c.b_refdes, c.b_pin)):

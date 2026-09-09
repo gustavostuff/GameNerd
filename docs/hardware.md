@@ -204,7 +204,7 @@ Ports and passives: [`passive_rf_etc.md`](passive_rf_etc.md).
 | Aux pad protocol | Retr01-C 3-wire UART ([`controllers.md`](controllers.md)). |
 | Cart edge + flasher | 36-pin pinout + USB-C flasher ([`cart.md`](cart.md)). |
 | Chip programming | AVR ISP, ATF JEDEC, Color PROM OTP, cart flash ([`programming.md`](programming.md)). |
-| VBlank sprite budget | 1284 @ 20 MHz: ~25k cycles in VBlank. Full **128**-entry field with Y-buckets ~12–16k cycles ([`graphics.md`](graphics.md#sprites)). |
+| VBlank sprite budget | 1284 @ 20 MHz: ~25k cycles in VBlank. Full **128**-entry field with Y-buckets ~12-16k cycles ([`graphics.md`](graphics.md#sprites)). |
 
 | Topic | Still open |
 |-------|------------|

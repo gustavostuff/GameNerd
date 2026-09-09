@@ -1,4 +1,4 @@
-"""Cart socket island — 36-pin edge (docs/cart.md) + HC245 U20C."""
+"""Cart socket island - 36-pin edge (docs/cart.md) + HC245 U20C."""
 
 from retr01_schem.bom import IslandId
 from retr01_schem.islands._base import island_connections, island_entries, wire_island

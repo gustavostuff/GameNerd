@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Tuple
 # ---------------------------------------------------------------------------
 
 
-# 74LS157 / SN74HC157 — S=select, I0*=A, I1*=B, Z*=Y, E=enable(~G)
+# 74LS157 / SN74HC157 - S=select, I0*=A, I1*=B, Z*=Y, E=enable(~G)
 HC157_S = "1"
 HC157_I0 = ("2", "5", "11", "14")  # a,b,c,d  (= A inputs)
 HC157_I1 = ("3", "6", "10", "13")  # a,b,c,d  (= B inputs)
@@ -27,7 +27,7 @@ HC157_GND = "8"
 HC157_E = "15"  # active-low enable (G#)
 HC157_VCC = "16"
 
-# 74HC245 — A->B=DIR, CE=~OE; B0 is pin 18
+# 74HC245 - A->B=DIR, CE=~OE; B0 is pin 18
 HC245_DIR = "1"
 HC245_A = ("2", "3", "4", "5", "6", "7", "8", "9")  # A0..A7
 HC245_GND = "10"
@@ -35,7 +35,7 @@ HC245_B = ("18", "17", "16", "15", "14", "13", "12", "11")  # B0..B7
 HC245_OE = "19"  # KiCad "CE"
 HC245_VCC = "20"
 
-# 74HC14 — KiCad names are pin numbers for inverters
+# 74HC14 - KiCad names are pin numbers for inverters
 HC14_1A, HC14_1Y = "1", "2"
 HC14_2A, HC14_2Y = "3", "4"
 HC14_3A, HC14_3Y = "5", "6"
@@ -46,7 +46,7 @@ HC14_6Y, HC14_6A = "12", "13"
 HC14_VCC = "14"
 
 # ---------------------------------------------------------------------------
-# Memory — KM62256CLP (AS6C62256 JEDEC twin), 27C256, SST39SF040, 24LC64
+# Memory - KM62256CLP (AS6C62256 JEDEC twin), 27C256, SST39SF040, 24LC64
 # ---------------------------------------------------------------------------
 
 # KM62256CLP / AS6C62256 DIP-28
@@ -136,7 +136,7 @@ EE_WP = "7"
 EE_VCC = "8"
 
 # ---------------------------------------------------------------------------
-# W65C02S DIP-40 (hw/md/W65C02S.md) — no KiCad stock symbol
+# W65C02S DIP-40 (hw/md/W65C02S.md) - no KiCad stock symbol
 # ---------------------------------------------------------------------------
 
 CPU_VPB, CPU_RDY, CPU_PHI1O, CPU_IRQB = "1", "2", "3", "4"
@@ -149,7 +149,7 @@ CPU_RWB, CPU_NC, CPU_BE, CPU_PHI2 = "34", "35", "36", "37"
 CPU_SOB, CPU_PHI2O, CPU_RESB = "38", "39", "40"
 
 # ---------------------------------------------------------------------------
-# ATF22V10 DIP-24 (hw/md) — Retr01 function → physical pin (JEDEC later)
+# ATF22V10 DIP-24 (hw/md) - Retr01 function -> physical pin (JEDEC later)
 # ---------------------------------------------------------------------------
 
 PLD_CLK, PLD_GND, PLD_VCC = "1", "12", "24"
@@ -239,10 +239,10 @@ AD725_DGND, AD725_DPOS, AD725_VSYNC, AD725_HSYNC = "13", "14", "15", "16"
 R1, R2 = "1", "2"
 C1, C2 = "1", "2"
 
-# OSC cans — Abracon ACH half-size DIP-8 (KiCad Oscillator_DIP-8 pads 1/4/5/8)
+# OSC cans - Abracon ACH half-size DIP-8 (KiCad Oscillator_DIP-8 pads 1/4/5/8)
 OSC_OE, OSC_GND, OSC_OUT, OSC_VDD = "1", "4", "5", "8"
 
-# Cart edge 36 — A1..A18 = 1..18, B1..B18 = 19..36
+# Cart edge 36 - A1..A18 = 1..18, B1..B18 = 19..36
 def cart_a(n: int) -> str:
     return str(n)  # A1=1 .. A18=18
 

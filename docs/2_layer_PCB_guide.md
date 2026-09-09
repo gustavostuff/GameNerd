@@ -63,7 +63,7 @@ Ratsnest is only a reminder of connectivity. Copper traces (and pours) are what 
 Tips:
 
 - Stay on **one layer** until you need to cross something.
-- Prefer short, direct runs. Avoid sharp acute angles if you can (45° bends are fine).
+- Prefer short, direct runs. Avoid sharp acute angles if you can (45 deg bends are fine).
 - For THT DIPs, leave room for the iron. Do not pack traces under where you need access if you hand-solder.
 
 ### Changing layer mid-route (via)

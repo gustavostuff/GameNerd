@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "CUI/Same Sky RCJ-01x right-angle RCA (RCJ-012 black / RCJ-014 yellow share holes). Pad1=center Tip, Pad2=shell (×2). PCB: Ø2.6 @ tip+(0,0), shell+(5,±5). https://www.sameskydevices.com/product/resource/rcj-01.pdf")
+	(descr "CUI/Same Sky RCJ-01x right-angle RCA (RCJ-012 black / RCJ-014 yellow share holes). Pad1=center Tip, Pad2=shell (x2). PCB: dia 2.6 @ tip+(0,0), shell+(5,+/-5). https://www.sameskydevices.com/product/resource/rcj-01.pdf")
 	(tags "RCA phono jack RCJ-01 CUI SameSky audio video")
 	(property "Reference" "REF**"
 		(at 2.5 -8.5 0)

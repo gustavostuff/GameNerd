@@ -1,5 +1,5 @@
 """
-Declarative wiring manifest — pin keys are physical DIP numbers (pinmap.py).
+Declarative wiring manifest - pin keys are physical DIP numbers (pinmap.py).
 
 KiCad stock pinouts: /usr/share/kicad/symbols (see kicad_pin_extract.json).
 """
@@ -139,7 +139,7 @@ def _manifest_core() -> List[Connection]:
     ]
 
     for i in range(8):
-        # Cart data: MCU 245 -- 33Ω -- edge (+ TVS when FULL profile)
+        # Cart data: MCU 245 -- 33ohm -- edge (+ TVS when FULL profile)
         m.append(Connection(f"CART_D{i}_MCU", "U20C", P.HC245_B[i], f"Rcd{i}", "1", "docs/cart.md ESD"))
         m.append(Connection(f"CART_D{i}", f"Rcd{i}", "2", "J36", P.cart_b(i + 4), "docs/cart.md ESD"))
         if include_esd_tvs():
@@ -174,7 +174,7 @@ def _manifest_core() -> List[Connection]:
 
 
 def _manifest_cart_edge() -> List[Connection]:
-    """Motherboard side of the 36-pin edge — stops at J36 (no U40/U50)."""
+    """Motherboard side of the 36-pin edge - stops at J36 (no U40/U50)."""
     m: List[Connection] = []
     src = "docs/cart.md 36-pin"
     for pin in (P.cart_a(1), P.cart_a(18), P.cart_b(1)):
@@ -246,9 +246,9 @@ def _manifest_power_io() -> List[Connection]:
         Connection("+5V", "FB2", "1", "+5V", "+5V", src),
         Connection("GND", "Cva", "2", "GND", "GND", src),
     ]
-    # Color PROM → binary-weighted guns. Packing (rr<<5)|(gg<<2)|bb (studio palette.c).
-    # RR/RG: LSB=4k, mid=2k, MSB=1k. RB: LSB=2k, MSB=1k. Then 75Ω to GND → J2.
-    for i, bit in enumerate((5, 6, 7)):  # red D5..D7 LSB→MSB
+    # Color PROM -> binary-weighted guns. Packing (rr<<5)|(gg<<2)|bb (studio palette.c).
+    # RR/RG: LSB=4k, mid=2k, MSB=1k. RB: LSB=2k, MSB=1k. Then 75ohm to GND -> J2.
+    for i, bit in enumerate((5, 6, 7)):  # red D5..D7 LSB->MSB
         m.append(Connection(f"PROM_D{bit}", "U24", P.PROM_D[bit], f"RR{i}", "1", "docs video DAC"))
         m.append(Connection("VIDEO_R", f"RR{i}", "2", "J2", "1", "docs video DAC"))
     for i, bit in enumerate((2, 3, 4)):  # green D2..D4
@@ -358,7 +358,7 @@ def _manifest_power_io() -> List[Connection]:
         Connection("SCALE_1X", "SW1", "1", "UPLDV", P.UPLDV_SCALE, "SCALE"),
         Connection("+5V", "SW1", "2", "+5V", "+5V", "SCALE"),
     ]
-    # APU classic R-2R: AUD[i]--2R--node; LSB node--2R--GND; nodes linked by R; MSB→build-out.
+    # APU classic R-2R: AUD[i]--2R--node; LSB node--2R--GND; nodes linked by R; MSB->build-out.
     for i in range(8):
         m.append(Connection(f"AUD{i}", "U328", P.M328_AUD[i], f"Ra2r{i}", "1", "docs APU R-2R"))
     m += [

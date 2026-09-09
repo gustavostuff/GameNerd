@@ -257,7 +257,7 @@ BOM: List[BomEntry] = [
         vcc_pin="VDD",
         gnd_pin="GND",
     ),
-    # AVR crystals (HC-49/U) — not cans; XTAL pins on 1284 / 328P
+    # AVR crystals (HC-49/U) - not cans; XTAL pins on 1284 / 328P
     BomEntry(
         "Y4",
         "XTAL_20M",
@@ -379,7 +379,7 @@ BOM: List[BomEntry] = [
     # Clock edge damping (docs/passive_rf_etc.md)
     BomEntry("Rphi", "R_33", "PHI2 series damp at Y1", IslandId.POWER_CLK, 2, _R0603, in_ic_count=False, vcc_pin=None, gnd_pin=None),
     BomEntry("Rdot", "R_33", "DOT_CLK series damp at Y2", IslandId.BEAM, 2, _R0603, in_ic_count=False, vcc_pin=None, gnd_pin=None),
-    # Cart edge ESD: series 33Ω on D/OE/WE/I2C; TVS on those + all address (no series on A — timing)
+    # Cart edge ESD: series 33ohm on D/OE/WE/I2C; TVS on those + all address (no series on A - timing)
     *[
         BomEntry(f"Rcd{i}", "R_33", f"cart D{i} series", IslandId.CART_SOCKET, 2, _R0603, in_ic_count=False, vcc_pin=None, gnd_pin=None)
         for i in range(8)
@@ -400,7 +400,7 @@ BOM: List[BomEntry] = [
         BomEntry(f"TvsCa{i}", "TVS_5V", f"cart A{i} ESD", IslandId.CART_SOCKET, 2, _TVS, in_ic_count=False, vcc_pin=None, gnd_pin=None, bringup_omit=True)
         for i in range(19)
     ],
-    # Arcade headers: 47Ω series on each bitfield line (docs/controllers.md). BRINGUP wires direct.
+    # Arcade headers: 47ohm series on each bitfield line (docs/controllers.md). BRINGUP wires direct.
     *[
         BomEntry(f"Rarc1_{i}", "R_47", f"arcade P1 bit {i} series", IslandId.MCU_LINEBUF, 2, _R0603, in_ic_count=False, vcc_pin=None, gnd_pin=None, bringup_omit=True)
         for i in range(1, 9)

@@ -258,7 +258,7 @@ class TestManifest(unittest.TestCase):
             set_passive_profile(PassiveProfile.BRINGUP)
 
     def test_video_prom_bit_mapping(self):
-        """Studio packing (R<<5)|(G<<2)|B → D7..D5 red, D4..D2 green, D1..D0 blue."""
+        """Studio packing (R<<5)|(G<<2)|B -> D7..D5 red, D4..D2 green, D1..D0 blue."""
         m = build_manifest()
         red_nets = {c.net for c in m if {c.a_refdes, c.b_refdes} & {"RR0", "RR1", "RR2"} and c.net.startswith("PROM_D")}
         self.assertEqual(red_nets, {"PROM_D5", "PROM_D6", "PROM_D7"})

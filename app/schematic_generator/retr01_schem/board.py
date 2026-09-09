@@ -298,7 +298,7 @@ def add_r2r_passives(parts: Dict[str, object]) -> None:
     if not skidl_available():
         return
     # Video: binary-weighted into each gun (MSB=1k, mid=2k, LSB=4k). Studio packing
-    # (rr<<5)|(gg<<2)|bb → PROM D7..D5=R, D4..D2=G, D1..D0=B (docs/passive_rf_etc.md).
+    # (rr<<5)|(gg<<2)|bb -> PROM D7..D5=R, D4..D2=G, D1..D0=B (docs/passive_rf_etc.md).
     for ref, mpn in (
         ("RR0", "R_4K"),
         ("RR1", "R_2K"),
