@@ -26,7 +26,7 @@ Same pattern as parent `retr01_schem/pinmap.py` / `kicad_pin_extract.json`:
 | Headers | Connector_Generic | Conn_01xN / Conn_02x03 | |
 
 SKiDL still builds `Part(tool=SKIDL)` with **physical pad numbers**. Official KiCad
-signal names are aliases (`PB5`, `~{CE}`, …).
+signal names are aliases (`PB5`, `~{CE}`, ...).
 
 ## Quick start
 

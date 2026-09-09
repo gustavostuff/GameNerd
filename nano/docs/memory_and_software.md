@@ -12,7 +12,7 @@
 | Cart 25LC1024 (128 KB) | Game image: maps, CHR banks, music/tables, soft logic data |
 | Cart 24C64 (8 KB) | Per-game saves (always fitted on the cart PCB) |
 
-**Flashing (locked intent):** **USBasp on J_ISP** fully programs the **ATmega1284P** (console firmware + fuses). Then, with that MCU **running**, firmware flashes the **plugged-in cart** over SPI (`PB4` = `SPI_SS#`) into the **25LC1024** with `.r01nano` (and I2C for 24C64 if needed). The USBasp does not program the cart chips. Details: [`hardware.md`](hardware.md#programming--usbasp-for-mcu-then-mcu-flashes-the-cart). Bench 2×8 slot remains a fallback. Community firmware builds are intentional.
+**Flashing (locked intent):** **USBasp on J_ISP** fully programs the **ATmega1284P** (console firmware + fuses). Then, with that MCU **running**, firmware flashes the **plugged-in cart** over SPI (`PB4` = `SPI_SS#`) into the **25LC1024** with `.r01nano` (and I2C for 24C64 if needed). The USBasp does not program the cart chips. Details: [`hardware.md`](hardware.md#programming-usbasp-for-mcu-then-mcu-flashes-the-cart). Bench 2x8 slot remains a fallback. Community firmware builds are intentional.
 
 ## MCU SRAM sketch
 

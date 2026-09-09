@@ -1,10 +1,10 @@
 # Retr01 Nano Emulator
 
-Software picture emulator for **`.r01nano`** carts. Independent of full [`app/emu`](../../../app/emu/) for now (see [`nano/README.md`](../../README.md)).
+Software Host Play runner for **`.r01nano`** carts. Independent of full [`app/emu`](../../../app/emu/) for now (see [`nano/README.md`](../../README.md)).
 
-**v1 scope:** load cart → world 0 CHR + spawn MAP → Host Play (`TILE_ENTER_PIXEL` move — see [`../../docs/movement.md`](../../docs/movement.md)) → stamp soft entities → compose **128×96** → present **256×192** (2×). No audio yet.
+**v1 scope:** load cart -> world 0 CHR + spawn MAP -> Host Play (`TILE_ENTER_PIXEL` move, see [`../../docs/movement.md`](../../docs/movement.md)) -> stamp soft entities -> compose **128x96** -> present **256x192** (2x). **No audio yet** (Studio Play has a host BGM/SFX overlay. This binary does not).
 
-Studio **Ctrl+E** also writes `output/nano/C/` (`base_game.c`, `custom_logic.c`, headers) — same export contract as full Retr01. Host Play mirrors that API (Idle=0, Walk=1 from `custom_logic`).
+Studio **Ctrl+E** also writes `output/nano/C/` (`base_game.c`, `custom_logic.c`, headers). Host Play mirrors that API (Idle=0, Walk=1 from `custom_logic`).
 
 ## Build / run
 
@@ -24,7 +24,7 @@ cmake --build build
 ./build/retr01_nano_emu ../../../output/nano/test.r01nano
 ```
 
-Export a cart from Nano Studio first (`Ctrl+E` → `output/nano/test.r01nano`).
+Export a cart from Nano Studio first (`Ctrl+E` -> `output/nano/test.r01nano`).
 
 **Controls:** Esc / close window = quit. WASD = move. `R` = reset. `Ctrl+1/2/3` = window scale.
 
@@ -34,9 +34,9 @@ Export a cart from Nano Studio first (`Ctrl+E` → `output/nano/test.r01nano`).
 |------|------|
 | `include/retr01_nano_emu/types.h` | Nano cart / screen constants |
 | `include/retr01_nano_emu/cart.h` | `.r01nano` parser |
-| `include/retr01_nano_emu/video.h` | CHR + MAP compose + 2× FB |
+| `include/retr01_nano_emu/video.h` | CHR + MAP compose + 2x FB |
 | `include/retr01_nano_emu/machine.h` | Boot / frame |
-| `src/main.c` | SDL host (picture only) |
+| `src/main.c` | SDL host (compose FB + Host Play) |
 | `tests/` | Cart + boot smoke tests |
 
 Contract: [`nano/docs/cart_format.md`](../../docs/cart_format.md), [`nano/docs/graphics.md`](../../docs/graphics.md), [`nano/docs/video.md`](../../docs/video.md).

@@ -91,7 +91,7 @@ void handle_world_click(UiState *ui, int col, int row, int ctrl, int dbl) {
         if (idx >= 0) {
             ui->project->active_screen = idx;
         } else if (r01_world_present_count(w) >= R01_MAX_PRESENT_SCREENS) {
-            ui_toast(ui, "32 present screens max", 1);
+            ui_toast(ui, "16 present screens max", 1);
         }
         return;
     }
@@ -180,7 +180,7 @@ int ui_world_screen_paste(UiState *ui) {
         idx = r01_world_create_screen(w, col, row);
         if (idx < 0) {
             if (r01_world_present_count(w) >= R01_MAX_PRESENT_SCREENS) {
-                ui_toast(ui, "32 present screens max", 1);
+                ui_toast(ui, "16 present screens max", 1);
             } else {
                 ui_toast(ui, "paste failed", 1);
             }

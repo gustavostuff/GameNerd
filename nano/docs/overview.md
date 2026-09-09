@@ -1,6 +1,6 @@
 # Overview
 
-**Status: design.** Ahead of any runner or silicon in `nano/`.
+**Status: design + host runners.** Nano Studio / Emu / Sim run today. Console firmware and PCB are still ahead of silicon.
 
 ## Intent
 
@@ -17,7 +17,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 
 1. One **ATmega1284P** (20 MHz preferred) as the whole console.
 2. Stable progressive **RGBS** at **60 Hz**.
-3. **Cute dual-sided carts** (**8+8** gold fingers, same pad pitch/width as full Retr01; see [`hardware.md`](hardware.md)).
+3. **Cute dual-sided carts** (**8+8** gold fingers, same pad pitch/width as full Retr01). See [`hardware.md`](hardware.md).
 4. Instant screen switches only (no scrolling).
 5. Soft **entities** in RAM (not hardware sprites).
 
@@ -37,7 +37,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 | Audio | **2 PWM channels** | Music pulse + SFX. Resistor mix to one jack ([`sound.md`](sound.md)) |
 | Input | **2 players** | Retr01 `$FE60` / `$FE61` bit spirit |
 | Console Flash | 128 KB on 1284 | Open firmware + kernel only |
-| Cart game ROM | **25LC1024** **128 KB** (PDIP-8) | PRG data, MAP, CHR, music — **8+8** edge ([`hardware.md`](hardware.md)) |
+| Cart game ROM | **25LC1024** **128 KB** (PDIP-8) | PRG data, MAP, CHR, music. **8+8** edge ([`hardware.md`](hardware.md)) |
 | Cart save | **24C64** always | Simpler cart routing than optional populate |
 
 ## Explicitly dropped (vs full Retr01)
@@ -68,12 +68,12 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 6. Tiny sample cart game.
 7. Only then push vertical resolution.
 
-PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardware.md); motherboard outline starts at **100 × 100 mm**, provisional). SKiDL: [`../schematic_generator/`](../schematic_generator/). Provisional port pin map: [`pinmap.md`](pinmap.md). SRAM cache policy: [`cache_architecture.md`](cache_architecture.md).
+PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardware.md)). Motherboard outline starts at **100 x 100 mm**, provisional. SKiDL: [`../schematic_generator/`](../schematic_generator/). Provisional port pin map: [`pinmap.md`](pinmap.md). SRAM cache policy: [`cache_architecture.md`](cache_architecture.md).
 
 ## Open items
 
 - Exact C SDK / host OS tooling
-- Cart image file format and community flash tools
-- Game authoring path (hand tools vs a future Studio Nano profile)
+- Community flash tools for cart images (Studio already exports `.r01nano`)
+- Game authoring polish beyond Nano Studio
 - Final RGBS connector shell
 - Later PCB: RCA mono audio + composite video, Retr01-C TRS gamepad footprints (same protocol), light gun on that bus ([`hardware.md`](hardware.md#planned-later-not-in-v1-netlist--pcb))

@@ -92,9 +92,9 @@ Each entity (minimum fields):
 | tile | 1 byte | Current **8x8** pattern index (swappable) |
 | color | 1 byte | Low bits = FG color **0-7**. Upper bits reserved for later |
 
-Movement patterns (player walk, enemy paths) use a **movement strategy** — default is tile-enter on press then 1 px/frame. See [`movement.md`](movement.md).
+Movement patterns (player walk, enemy paths) use a **movement strategy**. Default is tile-enter on press then 1 px/frame. See [`movement.md`](movement.md).
 
-**Draw always uses tile coords** (`tile_x * 8`, `tile_y * 8`). There is no sub-tile visual sliding — the soft tile jumps from cell to cell. Pixel positions exist so step timing and later physics can live underneath that.
+**Draw always uses tile coords** (`tile_x * 8`, `tile_y * 8`). There is no sub-tile visual sliding. The soft tile jumps from cell to cell. Pixel positions exist so step timing and later physics can live underneath that.
 
 ### Draw priority
 

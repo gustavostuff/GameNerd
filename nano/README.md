@@ -2,9 +2,9 @@
 
 **The smallest, cutest, simplest cartridge-based dual gaming system (arcade + console).**
 
-**Status: design + first SKiDL netlists.** Firmware / layout still early. Console MCU is a fixed open ATmega1284P image; games live on the cart.
+**Status: design + host runners + first SKiDL netlists.** Console firmware and PCB layout are still ahead of silicon. Console MCU is a fixed open ATmega1284P image. Games live on the cart.
 
-Retr01 Nano is a **spiritual child** of [Retr01](../README.md): same 128-wide arcade language, far less hardware. One **ATmega1284P** runs a **fixed, open console firmware**. Games live on a **tiny dual-sided cartridge** (SPI flash + save EEPROM). There is **no 6502** and **no external video ASIC**.
+Retr01 Nano is a **spiritual child** of [Retr01](../README.md): same 128-wide arcade language, far less hardware. One **ATmega1284P** runs a **fixed, open console firmware**. Games live on a **tiny dual-sided cartridge** (SPI EEPROM + save EEPROM). There is **no 6502** and **no external video ASIC**.
 
 | | Retr01 (full) | Retr01 Nano |
 |--|---------------|-------------|
@@ -26,7 +26,13 @@ For now, **Nano Studio**, **Nano Emu**, and **Nano Sim** are **independent** tre
 
 Later they are intended to **share common code** with the full Studio / Emu / Sim apps (shared libraries or extracted modules) instead of remaining permanent forks. Until that merge, prefer fixing Nano behavior in the Nano tree and keep full apps unchanged unless a change is deliberately shared.
 
-**Apps:** [`apps/studio/`](apps/studio/) is Nano Studio. [`apps/emu/`](apps/emu/) is Nano Emu (picture-only for now). See [`apps/README.md`](apps/README.md).
+**Apps:** [`apps/studio/`](apps/studio/) is Nano Studio. [`apps/emu/`](apps/emu/) is Nano Emu (picture + Host Play). [`apps/sim/`](apps/sim/) is the IC/netlist board. See [`apps/README.md`](apps/README.md).
+
+| Runner | Host Play move | Host audio overlay |
+|--------|----------------|--------------------|
+| Nano Studio Play | Yes | Yes |
+| `./nano_emu` | Yes | No (lagging) |
+| `./nano_sim` | Soft compose + pads | No |
 
 ## Docs
 
@@ -41,16 +47,16 @@ Later they are intended to **share common code** with the full Studio / Emu / Si
 | [`docs/sound.md`](docs/sound.md) | 2-channel music + SFX PWM |
 | [`docs/cart_format.md`](docs/cart_format.md) | `.r01proj` + `.r01nano` / 128 KB flash layout |
 | [`docs/hardware.md`](docs/hardware.md) | Mobo + cute cart connector, BOM sketch |
-| [`docs/pinmap.md`](docs/pinmap.md) | MCU PORT / TQFP map, headers, cart edge |
-| [`schematic_generator/`](schematic_generator/) | SKiDL → `nano_mobo.net` + `nano_cart.net` |
+| [`docs/pinmap.md`](docs/pinmap.md) | MCU PORT / PDIP-40 map, headers, cart edge |
+| [`schematic_generator/`](schematic_generator/) | SKiDL -> `nano_mobo.net` + `nano_cart.net` |
 
 From the repo root:
 
 | Command | Role |
 |---------|------|
 | `./nano_studio [project.r01proj]` | Nano Studio (`bin/nano_studio` from `./build-all`) |
-| `./nano_emu [cart.r01nano]` | Nano Emu picture viewer (`bin/nano_emu`) |
-| `./nano_sim [cart.r01nano]` | Nano Sim — IC/netlist board UI (islands + DIPs + SCR); not a fullscreen emu |
+| `./nano_emu [cart.r01nano]` | Nano Emu Host Play (`bin/nano_emu`) |
+| `./nano_sim [cart.r01nano]` | Nano Sim: IC/netlist board UI (islands + DIPs + SCR), not a fullscreen emu |
 
 Source concept notes also live in `temp/Retr01_Nano_Spec.md`. Where this tree disagrees, **these docs win**.
 
@@ -61,7 +67,17 @@ Source concept notes also live in `temp/Retr01_Nano_Spec.md`. Where this tree di
 - Hardware sprites, BG0, any screen scrolling
 - Full Retr01 Sim netlist reuse
 
-Authoring tools and exact host toolchain are **TBD**. Direction: open **C** firmware/SDK on the 1284 plus a tiny assembly video kernel. Game data is authored onto the SPI cart image.
+**Authoring:** Nano Studio exports `.r01nano` today. Console firmware / C SDK on the 1284 are still TBD. Direction: open **C** firmware/SDK plus a tiny assembly video kernel. Game data is authored onto the SPI cart image.
+
+## Screenshots
+
+<img src="../app/assets/png/cart_nano.png" alt="Nano cart" />
+
+<img src="../app/assets/png/main_pcb_nano.png" alt="Nano Main PCB" />
+
+<img src="../app/assets/png/sim_nano.png" alt="Nano Sim" />
+
+<img src="../app/assets/png/studio_nano.png" alt="Nano Studio" />
 
 ## License / ownership
 

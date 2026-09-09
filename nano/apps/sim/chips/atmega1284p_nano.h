@@ -22,7 +22,7 @@ struct R01sPads;
 /*
  * Nano-role ATmega1284P — sole console MCU.
  * Pin names follow nano/docs/pinmap.md (PORT.bit / datasheet signals).
- * Package on PCB is TQFP-44; sim draws PDIP-40 with the same signal names.
+ * Package on PCB is PDIP-40. Sim draws the same PORT / signal names.
  */
 typedef struct R01nsAtmega1284pNano {
     R01sEntity base;

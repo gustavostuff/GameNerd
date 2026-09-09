@@ -728,7 +728,7 @@ int r01_project_import_png(R01Project *p, const char *path, char *err_buf, size_
     png_get_IHDR(png, info, &width, &height, &bit_depth, NULL, NULL, NULL, NULL);
 
     if ((width % (png_uint_32)R01_SCREEN_PX_W) != 0 || (height % (png_uint_32)R01_SCREEN_PX_H) != 0) {
-        set_err(err_buf, err_cap, "size must be multiple of 128x120");
+        set_err(err_buf, err_cap, "size must be multiple of 128x96");
         goto fail;
     }
     cols = (int)(width / (png_uint_32)R01_SCREEN_PX_W);
