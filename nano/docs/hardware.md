@@ -157,7 +157,7 @@ All bring-up I/O uses **vertical 2.54 mm pin headers** unless noted.
 ```text
 +--------------------------------------------------+
 | [J_BARREL]     [J_ISP 2x3]      [J_PWR 1x4]      |
-|              ATmega1284P DIP-40                   |
+|              ATmega1284P DIP-40                  |
 |           xtal + decoupling                      |
 |   FG R-pack     PWM R-mix + DC block             |
 | [J_AV 1x8]              [J_CART 2x8 edge]        |
