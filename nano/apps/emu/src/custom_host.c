@@ -260,8 +260,8 @@ static uint8_t face_pad_from_hw(uint8_t hw) {
 
 static void sync_ctx_from_play(R01neMachine *m) {
     R01nePlay *pl = &m->play;
-    s_ctx.player_x = pl->player_tx * 8;
-    s_ctx.player_y = pl->player_ty * 8;
+    s_ctx.player_x = pl->player_px;
+    s_ctx.player_y = pl->player_py;
     s_ctx.player_anim_dir = pl->anim.player_anim_dir;
     s_ctx.player_anim_flip_h = pl->anim.player_anim_flip_h;
     s_ctx.player_anim_state = pl->anim.player_anim_state;

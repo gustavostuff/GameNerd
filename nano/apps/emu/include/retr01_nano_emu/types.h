@@ -62,7 +62,7 @@
 #define R01NE_INST_FLIP_H 0x01u
 #define R01NE_INST_FLIP_V 0x02u
 
-/* Pad bits — same map as full Retr01 / r01_pad_keys. */
+/* Pad bits - same map as full Retr01 / r01_pad_keys. */
 #define R01NE_PAD_RIGHT 0x01u
 #define R01NE_PAD_LEFT 0x02u
 #define R01NE_PAD_DOWN 0x04u
@@ -71,6 +71,10 @@
 #define R01NE_PAD_Y 0x20u
 #define R01NE_PAD_COIN 0x40u
 #define R01NE_PAD_START 0x80u
+
+/* Display sprites (pixel-positioned). See nano/docs/graphics.md + temp/nano_pixel_sprites_arch.md */
+#define R01NE_SPRITES_MAX 24
+#define R01NE_SPRITES_PER_LINE 8
 
 /* Logical compose; RGBS presentation is 2x nearest-neighbor. */
 #define R01NE_VISIBLE_W (R01NE_SCREEN_PX_W * 2) /* 256 */

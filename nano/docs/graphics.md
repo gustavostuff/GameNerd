@@ -1,6 +1,6 @@
 # Graphics
 
-**Status: design.** Ahead of firmware. This is the Nano picture model.
+**Status: design + emu Host Play.** Ahead of console firmware. This is the Nano picture model.
 
 ## Playfield
 
@@ -79,42 +79,54 @@ On a screen change (door, edge warp, menu):
 
 **VBlank fit:** One nametable load from SPI is comfortable. World CHR (about 8 KB planning) loads across one or more VBlanks when entering a world. Details: [`cache_architecture.md`](cache_architecture.md).
 
-## Entities (soft, not sprites)
+## Entities and display sprites
 
-No OAM. Up to **64** entities live in MCU RAM.
+Up to **64** entities live in MCU RAM for game logic.
 
 Each entity (minimum fields):
 
 | Field | Size | Notes |
 |-------|------|-------|
-| pixel_x, pixel_y | design TBD (sub-tile) | Movement integration |
-| tile_x, tile_y | 1 byte each (typical) | Derived from pixel coords for map / draw |
-| tile | 1 byte | Current **8x8** pattern index (swappable) |
-| color | 1 byte | Low bits = FG color **0-7**. Upper bits reserved for later |
+| pixel_x, pixel_y | world / screen pixels | Motion integration **and** sprite draw origin |
+| tile_x, tile_y | derived (`pixel / 8`) | MAP SOLID, screen presence, enter rules |
+| tile / state | pattern index | Current **8x8** CHR (swappable / anim state) |
+| color | FG 0-7 | Board resistor colors |
 
-Movement patterns (player walk, enemy paths) use a **movement strategy**. Default is tile-enter on press then 1 px/frame. See [`movement.md`](movement.md).
+Movement strategies use pixel coords. Default is tile-enter on press then 1 px/frame. See [`movement.md`](movement.md).
 
-**Draw always uses tile coords** (`tile_x * 8`, `tile_y * 8`). There is no sub-tile visual sliding. The soft tile jumps from cell to cell. Pixel positions exist so step timing and later physics can live underneath that.
+### Display sprites (picture)
+
+Entities expand to a **display sprite list** for the video path (v1: one entity -> one 8x8 sprite).
+
+| Cap | Value |
+|-----|-------|
+| Max sprites on screen | **24** |
+| Max sprites per scanline | **8** (overflow dropped by priority) |
+| Size | **8x8**, 1 bpp CHR |
+| Draw position | `pixel_x`, `pixel_y` (screen-relative) |
+| Transparency | Bit **1** = FG color. Bit **0** leaves MAP (or lower sprites) |
+
+**Player** is always a display sprite (priority slot 0): drawn at `player_px` / `player_py`, not snapped to the tile cell.
 
 ### Draw priority
 
-When an entity occupies a tile cell, it **fully overrides** the cart MAP cell for that position:
+```text
+1. MAP (opaque cells: bit0 = black backdrop)
+2. Sprites low -> high (player first), transparent 0-bits
+```
 
-- Entity pattern replaces the MAP tile index for draw
-- Entity FG color is used for **1** bits
-- Entity **0** bits stay **black** (backdrop). MAP does **not** show through
-
-So entities are opaque soft tiles, not transparent sprites.
+Collision against the world still uses MAP attr **SOLID** on **tile** coords. Sprite pixels do not punch MAP collision.
 
 ### Pipeline sketch (each frame)
 
 ```text
-1. Start from the in-RAM screen nametable (cart MAP load)
-2. Apply up to 64 entity stamps (priority over MAP)
-3. Scanline kernel renders the composed buffer with flips / FG colors
+1. In-RAM screen nametable (cart MAP load)
+2. Expand active entities (+ player, lasers) -> up to 24 sprites
+3. Per line (or host full-frame): MAP row, then up to 8 sprite strips
+4. Scanline kernel shifts the composed line (2x on RGBS)
 ```
 
-Collision against the world uses MAP attr **SOLID** (and later entity-vs-entity rules in game code).
+Host Play / Emu compose the full logical frame in software with the same caps.
 
 ## Compared to full Retr01 attr
 

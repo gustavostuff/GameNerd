@@ -172,7 +172,7 @@ int ui_play_screen_mark(const UiState *ui) {
     if (!w) {
         return -1;
     }
-    col = (m->play.player_tx * 8 + 4) / R01NE_SCREEN_PX_W;
-    row = (m->play.player_ty * 8 + 4) / R01NE_SCREEN_PX_H;
+    col = (m->play.player_px + 4) / R01NE_SCREEN_PX_W;
+    row = (m->play.player_py + 4) / R01NE_SCREEN_PX_H;
     return r01_world_screen_index(w, col, row);
 }

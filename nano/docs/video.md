@@ -55,24 +55,25 @@ Two line buffers in internal SRAM:
 Active display:
   Timed loop outputs the current line buffer at 2x H (and the line again for 2x V)
   Remaining cycles + HBlank render the next logical line
-  (apply bank, flip, FG color, entity-already-stamped cells)
+  (apply bank, flip, FG color, then up to 8 sprite strips with transparent 0-bits)
 
 VBlank:
   Game logic
   Instant screen load from cart SPI (nametable +/- CHR)
   Entity pixel integration
-  Compose entity stamps into the RAM screen
+  Expand entities -> display sprite list (max 24)
   Audio tick
   Pad read
 ```
 
 ## Rendering model
 
-See [`graphics.md`](graphics.md) for worlds, attr layout, and entities.
+See [`graphics.md`](graphics.md) for worlds, attr layout, entities, and display sprites.
 
 Hot path assumptions:
 
-- No sprites, no priority stack beyond **entity over MAP**
+- Soft **display sprites** (max **24**, **8** per scanline). Bit0 transparent over MAP
+- Player / entities draw at **pixel** origin (`pixel_x` / `pixel_y`)
 - No scroll registers
 - Backdrop black simplifies the DAC (FG only needs 8 levels plus grounded black)
 

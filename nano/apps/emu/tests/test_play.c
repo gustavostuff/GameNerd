@@ -65,6 +65,34 @@ int main(int argc, char **argv) {
         fprintf(stderr, "expected local x=3 before release, px=%d\n", m.play.player_px);
         return 1;
     }
+    /* Sprite draws at pixel origin (not tile*8): mid-tile walk must paint off the cell corner. */
+    {
+        int ox = m.video.screen_col * R01NE_SCREEN_PX_W;
+        int oy = m.video.screen_row * R01NE_SCREEN_PX_H;
+        int lx = m.play.player_px - ox;
+        int ly = m.play.player_py - oy;
+        int tile_lx = m.play.player_tx * 8 - ox;
+        int sy, sx, hit = 0;
+        r01ne_video_render_frame(&m);
+        for (sy = 0; sy < 8 && !hit; sy++) {
+            for (sx = 0; sx < 8; sx++) {
+                const uint8_t *p =
+                    m.video.logical + ((size_t)(ly + sy) * R01NE_SCREEN_PX_W + (size_t)(lx + sx)) * 3u;
+                if (p[0] | p[1] | p[2]) {
+                    hit = 1;
+                    break;
+                }
+            }
+        }
+        if (!hit) {
+            fprintf(stderr, "expected player sprite pixels at px origin (%d,%d)\n", lx, ly);
+            return 1;
+        }
+        if (lx == tile_lx) {
+            fprintf(stderr, "expected mid-tile sprite offset, lx=%d tile_lx=%d\n", lx, tile_lx);
+            return 1;
+        }
+    }
     {
         int tx = m.play.player_tx;
         r01ne_play_set_pad(&m, 0);

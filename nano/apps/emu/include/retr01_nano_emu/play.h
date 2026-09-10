@@ -36,15 +36,15 @@ typedef struct R01neLaser {
 } R01neLaser;
 
 /*
- * Nano motion: pixel_x/y integrate speed; tile_x/y track the occupied cell for
- * MAP/draw. The picture always stamps the entity on its tile cell — never at
- * sub-tile pixel offsets (nano/docs/graphics.md).
+ * Nano motion: pixel_x/y integrate speed and drive sprite draw.
+ * tile_x/y = pixel/8 for MAP SOLID, screen switch, and movement enter rules.
+ * Player is a display sprite (transparent 0-bits over MAP). See nano/docs/graphics.md.
  */
 typedef struct R01nePlay {
     int enabled;
-    int player_px; /* internal integration (world pixels) */
+    int player_px; /* world pixels: motion + sprite origin */
     int player_py;
-    int player_tx; /* occupied tile — draw / solid / screen */
+    int player_tx; /* occupied tile: solid / screen */
     int player_ty;
     int player_type; /* entity type index drawn as player; -1 = none */
     int player_fg;

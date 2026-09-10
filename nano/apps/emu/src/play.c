@@ -219,7 +219,7 @@ int r01ne_play_start(R01neMachine *m) {
     if (player_instance_spawn(m, &type, &fg, &sx, &sy)) {
         m->play.player_type = type;
         m->play.player_fg = fg;
-        /* Authoring places on tile origins; keep pixels tile-aligned at spawn. */
+        /* Studio instances are tile-placed. Snap spawn to tile origin; walk uses pixels. */
         m->play.player_px = (sx / 8) * 8;
         m->play.player_py = (sy / 8) * 8;
     } else {

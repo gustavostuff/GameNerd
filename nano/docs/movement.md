@@ -1,13 +1,13 @@
 # Movement
 
-**Status: design + host Play default.** Soft entities use world **pixel** coords for integration and **tile** coords for draw / MAP collision. Picture stamps always use the tile cell (`tile_x * 8`, `tile_y * 8`). No sub-tile sliding on screen.
+**Status: design + host Play default.** Soft entities use world **pixel** coords for integration **and** sprite draw. **Tile** coords (`pixel / 8`) drive MAP collision and screen switch.
 
 ## Coords
 
 | Field | Role |
 |-------|------|
-| `pixel_x`, `pixel_y` | World pixels. Resting pose is local **(0, 0)** inside the occupied tile (top-left). |
-| `tile_x`, `tile_y` | Occupied MAP cell. Derived when entering a tile. Used for draw, solid probes, screen switch. |
+| `pixel_x`, `pixel_y` | World pixels. Motion + **sprite top-left**. Resting pose is local **(0, 0)** inside the occupied tile (top-left). |
+| `tile_x`, `tile_y` | Occupied MAP cell. Derived when entering a tile. Used for solid probes and screen switch (not for draw). |
 
 Local pixel inside a tile: `(pixel_x % 8, pixel_y % 8)`.
 
@@ -26,7 +26,7 @@ Host Play and future game code pick a **movement strategy** per entity (or globa
 
 ### `TILE_ENTER_PIXEL` (default)
 
-**Feel:** first press jumps into the next cell immediately. Continued hold walks that cell at **1 px / frame**.
+**Feel:** first press jumps into the next cell immediately. Continued hold walks that cell at **1 px / frame**. The sprite **slides** on those pixels (transparent over MAP).
 
 **Rest:** local pixel **(0, 0)**.
 
@@ -72,4 +72,4 @@ Document new strategies here when they land. Keep Host Play default as `TILE_ENT
 
 ## Draw reminder
 
-Regardless of strategy, **draw uses `tile_x` / `tile_y` only**. Pixel coords exist so step timing and later physics can live under the soft-tile picture.
+**Sprites draw at `pixel_x` / `pixel_y`.** Tile coords stay for collision only. Caps: [`graphics.md`](graphics.md) (24 on screen, 8 per scanline).

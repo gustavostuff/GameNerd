@@ -20,7 +20,7 @@ Related: [`memory_and_software.md`](memory_and_software.md), [`graphics.md`](gra
 | CHR bank size | **2 KB** | 256 x 8 |
 | Four banks / world | **8 KB** | Fits in 1284P with room to spare |
 | Screen nametable | **384 B** | 16x12 x (tile + attr) |
-| Max entities | **64** | Soft tiles over MAP |
+| Max entities | **64** | Logic table. Display sprites: **24** / **8** per line |
 
 If a future cart format uses fewer tiles per bank, the CHR cache shrinks and headroom grows.
 
