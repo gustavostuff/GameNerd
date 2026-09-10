@@ -57,15 +57,23 @@ cd nano/schematic_generator
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
+# Phase 1 lab (MCU + crystal + RGBS + ISP, no cart):
+python generate_phase1.py --check
+python generate_phase1.py
+# -> output/nano_phase1.net
+
+# Full mobo + cart (later phases / final form):
 python generate.py --check
 python generate.py
+# -> output/nano_mobo.net + output/nano_cart.net
 ```
 
 ## Layout
 
 ```
 nano/schematic_generator/
-+-- generate.py
++-- generate.py              # full mobo + cart
++-- generate_phase1.py       # Phase 1 RGBS lab (no cart)
 +-- requirements.txt
 +-- nano_schem/
 |   +-- bom.py
@@ -76,6 +84,9 @@ nano/schematic_generator/
 |   +-- manifest.py
 |   +-- cart_manifest.py
 |   +-- board.py
+|   +-- phase1_bom.py
+|   +-- phase1_manifest.py
+|   +-- phase1_board.py
 +-- library/          # symlink to hw/kicad/Retr01_Lib.pretty
 +-- output/
 ```

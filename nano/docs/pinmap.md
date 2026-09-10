@@ -147,8 +147,8 @@ Standard AVR ISP: `MOSI`, `MISO`, `SCK`, `RESET#`, `VCC`, `GND` (same assignment
 
 ## SKiDL / Quilter handoff
 
-1. Generator: [`nano/schematic_generator/`](../schematic_generator/) (`python generate.py`).
-2. Symbols: `ATmega1284P-P` PDIP-40. Cart **25LC1024** + `24LC64` (both DIP-8).
-3. Cart footprint: `Retr01_Lib:Cart_Edge_2x8_P2.54mm` (same pad recipe as 2x18).
-4. Keep PORT names stable. DIP numbers are filled in the table above.
-5. Import `output/nano_mobo.net` + `output/nano_cart.net` into separate KiCad projects.
+1. Phase 1 lab: [`nano/schematic_generator/`](../schematic_generator/) `python generate_phase1.py` -> `output/nano_phase1.net` (MCU + crystal + RGBS + ISP, no cart).
+2. Full board (later): `python generate.py` -> `output/nano_mobo.net` + `output/nano_cart.net`.
+3. Symbols: `ATmega1284P-P` PDIP-40. Cart **25LC1024** + `24LC64` (both DIP-8) appear only in the full cart netlist.
+4. Cart footprint: `Retr01_Lib:Cart_Edge_2x8_P2.54mm` (same pad recipe as 2x18). Not used in Phase 1.
+5. Keep PORT names stable. DIP numbers are filled in the table above.

@@ -1,6 +1,6 @@
 # Overview
 
-**Status: design + host runners.** Nano Studio / Emu / Sim run today. Console firmware and PCB are still ahead of silicon.
+**Status: Phase 1 RGBS lab next.** Host Studio / Emu / Sim run a MAP-only picture path today. Console silicon starts with ATmega + proto + resistor RGBS only. Later phases grow toward the locked feature sketch below (worlds, sprites, 2P, audio, cart). Hardware is brought up **incrementally** (document, model, KiCad/BOM, proto test per phase). See [`../README.md`](../README.md#roadmap-phases).
 
 ## Intent
 
@@ -32,7 +32,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 | Screen | **16x12** tiles | Matches 128x96 |
 | World grid | **16x16** screens | Max **8** worlds, **16** present screens/world |
 | BG banks | **4** per world | Selected by attr bank bits |
-| Sprites | **None** (MAP-only host compose) | Soft sprites TBD; see [`graphics.md`](graphics.md) |
+| Sprites | **None** (MAP-only host compose) | Soft sprites TBD. See [`graphics.md`](graphics.md) |
 | Scroll | **None** | Instant screen switch in VBlank |
 | Audio | **2 PWM channels** | Music pulse + SFX. Resistor mix to one jack ([`sound.md`](sound.md)) |
 | Input | **2 players** | Retr01 `$FE60` / `$FE61` bit spirit |
@@ -76,4 +76,4 @@ PCB and cute-cart connector can proceed in parallel (see [`hardware.md`](hardwar
 - Community flash tools for cart images (Studio already exports `.r01nano`)
 - Game authoring polish beyond Nano Studio
 - Final RGBS connector shell
-- Later: TRS light gun on the pad bus ([`hardware.md`](hardware.md#planned-later-not-in-v1-netlist--pcb)); RCA/AD725/TRS are already in the mobo netlist
+- Later: TRS light gun on the pad bus ([`hardware.md`](hardware.md#planned-later-not-in-v1-netlist--pcb)). RCA/AD725/TRS are already in the mobo netlist
