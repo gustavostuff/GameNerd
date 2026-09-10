@@ -6,8 +6,8 @@
 
 | Where | Holds |
 |-------|--------|
-| ATmega1284P Flash (128 KB) | **Fixed open console firmware**: video kernel, cart SPI/I2C drivers, entity/compose helpers, pad/PWM services |
-| ATmega1284P SRAM (16 KB) | See [`cache_architecture.md`](cache_architecture.md): full world CHR cache, current MAP, entities, reserved headroom |
+| ATmega1284P Flash (128 KB) | **Fixed open console firmware**: video kernel, cart SPI/I2C drivers, pad/PWM services |
+| ATmega1284P SRAM (16 KB) | See [`cache_architecture.md`](cache_architecture.md): full world CHR cache, current MAP, reserved headroom |
 | ATmega1284P EEPROM (4 KB) | Machine config only (not game saves) |
 | Cart 25LC1024 (128 KB) | Game image: maps, CHR banks, music/tables, soft logic data |
 | Cart 24C64 (8 KB) | Per-game saves (always fitted on the cart PCB) |
@@ -23,7 +23,7 @@ High level only. The live map is in [`cache_architecture.md`](cache_architecture
 | CHR cache (4 banks) | **8 KB** | Entire active world, planning 256 tiles x 8 B |
 | Current screen nametable | **384 B** | 16x12 x (tile + attr) |
 | Prefetch nametable (optional) | **384 B** | Next screen MAP |
-| Entity table | **~1 KB** | Up to 64 x 16 B |
+| Soft sprite / game RAM (TBD) | **~1 KB** | Reserved; not used by MAP-only host |
 | Line buffers | **32 B** | Scanout |
 | World directory + audio scratch | **~0.5 KB** | |
 | Reserved headroom | **~2.5 KB** | Do not allocate caches here |
@@ -46,18 +46,9 @@ Rough planning (see [`cart_format.md`](cart_format.md) for the exported layout):
 
 **24C64** is **always present** on the cart so the motherboard and cart copper stay simple (no populate jumpers). Games that do not save can ignore it. I2C master is the **1284**.
 
-## Entities in RAM
+## Soft sprites (TBD)
 
-Cap: **64**.
-
-Minimum fields per entity:
-
-- `pixel_x`, `pixel_y` (sub-tile motion)
-- `tile_x`, `tile_y`
-- `tile` (current pattern index, swappable)
-- `color` (FG in low bits, upper bits reserved)
-
-See [`graphics.md`](graphics.md) for draw priority (entity opaque over MAP).
+Not in the picture path yet. Host compose is MAP-only. Rebuild from that base when ready.
 
 ## Input software contract
 
@@ -81,7 +72,7 @@ Music data can live on the cart. The console firmware owns both PWM ticks.
 Product direction:
 
 - Console firmware stays **open** (community forks welcome)
-- Thin HAL for cart read, screen load, entity table, pads, PWM
+- Thin HAL for cart read, screen load, pads, PWM
 - Assembly video kernel as a fixed object inside that firmware
 - Game authors ship **cart images**, not a private MCU binary (unless they also ship a custom open firmware build)
 
@@ -91,7 +82,6 @@ Exact host toolchain (avr-gcc Make, etc.) is still TBD. Authoring UI beyond hand
 
 - Stable 60 Hz at 128x96 should be comfortable
 - VBlank nametable SPI loads are the normal screen-change path
-- Entity stamp cost scales with live entity count (budget for 64)
 
 ## Validation path
 

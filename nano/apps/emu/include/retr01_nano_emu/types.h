@@ -15,9 +15,6 @@
 
 #define R01NE_MAX_WORLDS 8
 #define R01NE_MAX_PRESENT_SCREENS 16
-#define R01NE_MAX_ENTITY_TYPES 64
-#define R01NE_MAX_ENTITY_INSTANCES 64
-#define R01NE_ENTITY_STATES_MAX 4
 
 #define R01NE_SCREEN_TILES_X 16
 #define R01NE_SCREEN_TILES_Y 12
@@ -35,8 +32,6 @@
 #define R01NE_WORLD_DIR_BYTES (R01NE_MAX_WORLDS * 8u)
 #define R01NE_WORLD_HDR_BYTES 32u
 #define R01NE_SCREEN_DIR_BYTES 8u
-#define R01NE_ENTITY_TYPE_SIZE 10
-#define R01NE_INSTANCE_SIZE 8
 
 #define R01NE_CART_WHDR_SPAWN_CELL 0
 #define R01NE_CART_WHDR_DEFAULT_BANK 2
@@ -45,12 +40,7 @@
 #define R01NE_CART_WHDR_FLAGS 7
 #define R01NE_CART_WHDR_OFF_CHR 8
 #define R01NE_CART_WHDR_OFF_SCREEN_DIR 11
-#define R01NE_CART_WHDR_TYPE_COUNT 17
-#define R01NE_CART_WHDR_INST_COUNT 18
-#define R01NE_CART_WHDR_OFF_TYPES 19
-#define R01NE_CART_WHDR_OFF_INSTS 22
-#define R01NE_CART_WHDR_PLAYER_ENTITY 25
-#define R01NE_CART_PLAYER_ENTITY_NONE 0xFFu
+/* World header bytes 17..29 reserved (legacy entity tables); loaders ignore. */
 
 #define R01NE_ATTR_BANK_MASK 0x03u
 #define R01NE_ATTR_FLIP_H 0x04u
@@ -58,23 +48,6 @@
 #define R01NE_ATTR_FG_MASK 0x70u
 #define R01NE_ATTR_FG_SHIFT 4
 #define R01NE_ATTR_SOLID 0x80u
-
-#define R01NE_INST_FLIP_H 0x01u
-#define R01NE_INST_FLIP_V 0x02u
-
-/* Pad bits - same map as full Retr01 / r01_pad_keys. */
-#define R01NE_PAD_RIGHT 0x01u
-#define R01NE_PAD_LEFT 0x02u
-#define R01NE_PAD_DOWN 0x04u
-#define R01NE_PAD_UP 0x08u
-#define R01NE_PAD_X 0x10u
-#define R01NE_PAD_Y 0x20u
-#define R01NE_PAD_COIN 0x40u
-#define R01NE_PAD_START 0x80u
-
-/* Display sprites (pixel-positioned). See nano/docs/graphics.md + temp/nano_pixel_sprites_arch.md */
-#define R01NE_SPRITES_MAX 24
-#define R01NE_SPRITES_PER_LINE 8
 
 /* Logical compose; RGBS presentation is 2x nearest-neighbor. */
 #define R01NE_VISIBLE_W (R01NE_SCREEN_PX_W * 2) /* 256 */

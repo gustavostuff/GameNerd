@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "platform": "nano",
+  "name": "legacy",
+  "default_world": 0,
+  "active_world": 0,
+  "active_screen": 2,
+  "default_screen": 2,
+  "default_pal_row": 0,
+  "player_entity": 0,
+  "grid_cols": 16,
+  "grid_rows": 16,
+  "sprites": [{"bank": 0, "tile": 1, "pal": 1}],
+  "entities": [{"name": "Player", "state_count": 1, "states": []}],
+  "instances": [{"type": 0, "x": 8, "y": 8}],
+  "screens": [{"col": 2, "row": 0, "present": 1}]
+}

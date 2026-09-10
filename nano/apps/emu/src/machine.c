@@ -9,7 +9,6 @@ void r01ne_machine_shutdown(R01neMachine *m) {
     }
     r01ne_cart_free(&m->cart);
     r01ne_video_reset(&m->video);
-    r01ne_play_reset(&m->play);
     memset(&m->world, 0, sizeof(m->world));
     m->world_idx = 0;
     m->booted = 0;
@@ -39,7 +38,6 @@ static int machine_boot_after_cart(R01neMachine *m, char *err, size_t err_cap) {
         return -1;
     }
     m->booted = 1;
-    (void)r01ne_play_start(m);
     r01ne_video_render_frame(m);
     return 0;
 }
@@ -79,7 +77,6 @@ int r01ne_machine_reset(R01neMachine *m) {
     if (r01ne_video_load_screen(m, &m->world, m->world.spawn_col, m->world.spawn_row) != 0) {
         return -1;
     }
-    (void)r01ne_play_start(m);
     r01ne_video_render_frame(m);
     return 0;
 }
@@ -88,6 +85,5 @@ void r01ne_machine_frame(R01neMachine *m) {
     if (!m || !m->booted) {
         return;
     }
-    r01ne_play_tick(m);
     r01ne_video_render_frame(m);
 }

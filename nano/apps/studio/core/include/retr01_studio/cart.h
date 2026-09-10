@@ -22,9 +22,6 @@
 #define R01_CART_WHDR_PLAYER_HIT_H 29
 #define R01_CART_PLAYER_ENTITY_NONE 0xFFu
 
-#define R01_CART_ENTITY_PARTS_MAX R01_ENTITY_STATES_MAX
-/* Uses R01_CART_ENTITY_TYPE_SIZE / R01_CART_INSTANCE_SIZE from types.h */
-
 void r01_prom_fill(uint8_t out64[R01_MASTER_COLORS]);
 int r01_prom_write(const char *path, char *err_buf, size_t err_cap);
 int r01_prg_write_asm(const R01Project *p, const char *path, char *err_buf, size_t err_cap);

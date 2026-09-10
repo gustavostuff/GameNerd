@@ -29,10 +29,10 @@ void r01ne_video_reset(R01neVideo *vid);
 /* Cache all 4 CHR banks for the world. */
 int r01ne_video_load_chr(struct R01neMachine *m, const R01neWorldView *w);
 
-/* Load MAP for grid cell (col,row). Stamps entities for that screen into a compose buffer at render. */
+/* Load MAP for grid cell (col,row). */
 int r01ne_video_load_screen(struct R01neMachine *m, const R01neWorldView *w, int col, int row);
 
-/* Compose logical picture + 2x FB from MAP + entity stamps. */
+/* Compose logical picture + 2x FB from MAP tiles only. */
 void r01ne_video_render_frame(struct R01neMachine *m);
 
 #endif

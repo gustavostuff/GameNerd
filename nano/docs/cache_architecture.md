@@ -7,7 +7,7 @@ Related: [`memory_and_software.md`](memory_and_software.md), [`graphics.md`](gra
 ## Goals
 
 1. **Never SPI-fetch in the active scanline kernel.** RGBS timing plays only from SRAM.
-2. **Cache everything that makes 60 Hz easy:** current MAP screen, all **4** CHR banks for the active world, world directory, entity table, small audio scratch.
+2. **Cache everything that makes 60 Hz easy:** current MAP screen, all **4** CHR banks for the active world, world directory, small audio scratch.
 3. **Do not saturate** the 16 KB. Keep a reserved free band for stack growth and future firmware.
 4. Cart remains authoritative. Caches are disposable views refilled on world/screen changes.
 
@@ -20,7 +20,7 @@ Related: [`memory_and_software.md`](memory_and_software.md), [`graphics.md`](gra
 | CHR bank size | **2 KB** | 256 x 8 |
 | Four banks / world | **8 KB** | Fits in 1284P with room to spare |
 | Screen nametable | **384 B** | 16x12 x (tile + attr) |
-| Max entities | **64** | Logic table. Display sprites: **24** / **8** per line |
+| Soft sprites | **TBD** | Not in host compose yet |
 
 If a future cart format uses fewer tiles per bank, the CHR cache shrinks and headroom grows.
 
@@ -39,7 +39,7 @@ Target fill: about **70-80%** used when a world is hot. About **20-30%** kept fr
 +---------------------------+
 | Audio scratch / song ptrs |  ~0.25 KB
 +---------------------------+
-| Entity table (64)         |  ~1.0 KB   16 B/record planning
+| (sprite / game RAM TBD)   |  ~1.0 KB   reserved for future soft sprites
 +---------------------------+
 | Screen MAP cache          |  384 B     current nametable
 | Screen MAP prefetch (opt) |  384 B     next screen (optional)
@@ -62,7 +62,7 @@ Target fill: about **70-80%** used when a world is hot. About **20-30%** kept fr
 | Current screen nametable | **384 B** | Until screen switch |
 | Prefetch nametable (optional) | **384 B** | Until consumed / discarded |
 | World directory | **~256 B** | Until world change |
-| Entity table | **~1024 B** | Session (cleared on screen/world as game rules say) |
+| Soft sprite / game RAM (TBD) | **~1024 B** | Reserved; unused in MAP-only hosts |
 | Line buffers | **32 B** | Permanent |
 | Audio scratch | **~256 B** | Permanent / track change |
 | Firmware BSS + pads | **~512 B** | Permanent |
@@ -82,7 +82,7 @@ WARM   World directory + CHR banks 0..3 in SRAM
          |
          |  screen enter (one VBlank)
          v
-HOT    Current nametable (+ optional prefetch) + entities + linebufs
+HOT    Current nametable (+ optional prefetch) + linebufs
          |
          |  active display
          v
@@ -95,8 +95,7 @@ When `world` changes:
 
 1. SPI-read world directory into RAM.
 2. SPI-read **all four** CHR banks into the 8 KB CHR cache.
-3. Clear or rebuild entity table as the game requests.
-4. May span **several VBlanks** (8 KB SPI is fine across a few frames at 60 Hz). Show a black frame or previous screen until WARM is valid.
+3. May span **several VBlanks** (8 KB SPI is fine across a few frames at 60 Hz). Show a black frame or previous screen until WARM is valid.
 
 ### Screen enter (HOT fill)
 
@@ -105,16 +104,14 @@ When the screen switches (only motion model):
 1. SPI-read **384 B** nametable for the new screen into the current MAP slot (one VBlank, easy).
 2. If prefetch holds that screen already, **swap pointers** instead of reading.
 3. Optionally kick a prefetch read for a predicted neighbor (door / edge) into the second 384 B slot during later spare VBlank time.
-4. Entity stamps apply in RAM after MAP is valid (see below).
 
 ### Active frame (no SPI)
 
 Each frame in HOT:
 
 1. Start from cached nametable.
-2. Stamp up to **64** entities (opaque over MAP).
-3. Scanline kernel walks tiles, indexes **CHR cache[bank][tile]**, applies flip + FG color, backdrop black.
-4. Game logic may move entities using pixel/tile coords. It must not touch SPI in the timed region.
+2. Scanline kernel walks tiles, indexes **CHR cache[bank][tile]**, applies flip + FG color, backdrop black.
+3. Soft sprites (when reintroduced) stamp after MAP; not in the host path yet.
 
 ## What is not cached (stays on cart)
 
@@ -137,21 +134,9 @@ Because Nano has **no scrolling**, the expensive case is only screen switches.
 
 CHR does **not** need prefetch if all four banks for the world are already WARM.
 
-## Entity record (planning)
+## Soft sprites (TBD)
 
-16 bytes per entity keeps alignment simple (64 x 16 = 1024 B):
-
-| Offset | Field | Notes |
-|--------|-------|-------|
-| 0-1 | pixel_x | Sub-tile |
-| 2-3 | pixel_y | Sub-tile |
-| 4 | tile_x | |
-| 5 | tile_y | |
-| 6 | tile | Pattern index (bank policy TBD: fixed bank or field later) |
-| 7 | color | FG in low bits, upper reserved |
-| 8-15 | reserved / flags | Speed, anim, owner, etc. later |
-
-Entity patterns come from the **same CHR cache** (or a reserved tile range). No per-entity SPI.
+Reserved ~1 KB in the SRAM sketch for a future soft sprite / game table. Host compose is MAP-only until that path is rebuilt.
 
 ## Failure / overflow rules
 

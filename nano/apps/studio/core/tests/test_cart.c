@@ -2,7 +2,6 @@
 
 #include "retr01_studio/cart.h"
 #include "retr01_studio/chr_pack.h"
-#include "retr01_studio/entities.h"
 #include "retr01_studio/project.h"
 
 #include <stdio.h>
@@ -11,10 +10,6 @@
 
 static uint32_t rd_u24(const uint8_t *p) {
     return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16);
-}
-
-static uint16_t rd_u16(const uint8_t *p) {
-    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
 }
 
 static int tile_1bpp_nonzero(const uint8_t tile[R01_NANO_TILE_BYTES]) {
@@ -33,8 +28,6 @@ TEST_MAIN() {
     uint8_t tile[R01_TILE_BYTES];
     char err[128];
     int tile_id;
-    int type_id;
-    int inst;
 
     EXPECT(p != NULL, "alloc project");
     if (!p) {
@@ -57,14 +50,6 @@ TEST_MAIN() {
     tile[0] = 0xFF;
     tile[8] = 0xFF;
     EXPECT(r01_chr_write_tile(w, 0, tile_id, tile) == 0, "write bg tile");
-
-    type_id = r01_world_entity_add(w);
-    EXPECT(type_id == 0, "entity type");
-    EXPECT(r01_entity_nano_set_state_tile(&w->entities[0], 0, 0, (uint8_t)tile_id) == 0, "set state tile");
-
-    inst = r01_world_place_entity(w, type_id, 40, 50);
-    EXPECT(inst == 0, "instance");
-    w->instances[0].flip_h = 1;
 
     EXPECT(r01_cart_write(p, "test_cart.r01nano", err, sizeof(err)) == 0, "cart write");
     {
@@ -93,10 +78,7 @@ TEST_MAIN() {
                 uint8_t ptrs[R01_CART_PTR_TABLE_BYTES];
                 uint8_t slot[8];
                 uint8_t hdr[R01_CART_WORLD_HDR_BYTES];
-                uint32_t off_wdir, world_base, off_chr, off_types, off_insts;
-                uint8_t type_n, inst_n;
-                uint8_t trec[R01_CART_ENTITY_TYPE_SIZE];
-                uint8_t irec[R01_CART_INSTANCE_SIZE];
+                uint32_t off_wdir, world_base, off_chr;
                 uint8_t chr_tile[R01_NANO_TILE_BYTES];
 
                 EXPECT(fseek(f, 0, SEEK_SET) == 0, "rewind");
@@ -112,17 +94,15 @@ TEST_MAIN() {
                 EXPECT(slot[0] != 0, "world0 present");
                 world_base = rd_u24(slot + 2);
                 memcpy(hdr, img + world_base, R01_CART_WORLD_HDR_BYTES);
-                type_n = hdr[R01_CART_WHDR_TYPE_COUNT];
-                inst_n = hdr[R01_CART_WHDR_INST_COUNT];
-                off_types = rd_u24(hdr + R01_CART_WHDR_OFF_TYPES);
-                off_insts = rd_u24(hdr + R01_CART_WHDR_OFF_INSTS);
-                EXPECT(type_n == 1, "type count");
-                EXPECT(inst_n == 1, "inst count");
+                EXPECT(hdr[R01_CART_WHDR_TYPE_COUNT] == 0, "type count zero");
+                EXPECT(hdr[R01_CART_WHDR_INST_COUNT] == 0, "inst count zero");
+                EXPECT(rd_u24(hdr + R01_CART_WHDR_OFF_TYPES) == 0, "off_types zero");
+                EXPECT(rd_u24(hdr + R01_CART_WHDR_OFF_INSTS) == 0, "off_insts zero");
+                EXPECT(hdr[R01_CART_WHDR_PLAYER_ENTITY] == R01_CART_PLAYER_ENTITY_NONE, "no player entity");
                 EXPECT(hdr[R01_CART_WHDR_SCREEN_COUNT] == 1, "one present screen");
 
                 off_chr = rd_u24(hdr + R01_CART_WHDR_OFF_CHR);
                 EXPECT(off_chr == R01_CART_WORLD_HDR_BYTES, "off_chr");
-                /* Tile 0 is reserved blank; painted data is tile 1. */
                 memcpy(chr_tile, img + world_base + off_chr + R01_NANO_TILE_BYTES, R01_NANO_TILE_BYTES);
                 EXPECT(tile_1bpp_nonzero(chr_tile), "chr tile 1bpp nonzero");
                 {
@@ -141,17 +121,6 @@ TEST_MAIN() {
                     EXPECT(payload_off + R01_CART_SCREEN_PAYLOAD <= (uint32_t)flen - world_base,
                            "screen payload 384 fits");
                 }
-
-                memcpy(trec, img + world_base + off_types, R01_CART_ENTITY_TYPE_SIZE);
-                EXPECT(trec[0] == 1, "type state_count");
-                EXPECT(trec[2] == 0 && trec[3] == 1, "type bank/tile");
-
-                memcpy(irec, img + world_base + off_insts, R01_CART_INSTANCE_SIZE);
-                EXPECT(irec[0] == 0, "inst type");
-                EXPECT(irec[1] == 0, "inst fg");
-                EXPECT(irec[2] == 1, "inst flip_h");
-                EXPECT(rd_u16(irec + 4) == 40, "inst x");
-                EXPECT(rd_u16(irec + 6) == 50, "inst y");
                 free(img);
             }
             fclose(f);

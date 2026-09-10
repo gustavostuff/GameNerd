@@ -29,11 +29,6 @@ typedef struct R01neWorldView {
     uint8_t flags;
     uint32_t off_chr; /* relative to world base */
     uint32_t off_screen_dir;
-    uint8_t entity_type_count;
-    uint8_t entity_inst_count;
-    uint32_t off_entity_types;
-    uint32_t off_entity_insts;
-    uint8_t player_entity;
 } R01neWorldView;
 
 void r01ne_cart_free(R01neCart *c);
@@ -48,22 +43,14 @@ int r01ne_cart_world(const R01neCart *c, int world_idx, R01neWorldView *out);
 /* Absolute pointer into cart for a world-relative offset. */
 const uint8_t *r01ne_world_ptr(const R01neCart *c, const R01neWorldView *w, uint32_t rel_off, size_t need);
 
-/* Mutable world blob pointer (for live MAP edits). */
-uint8_t *r01ne_world_ptr_mut(R01neCart *c, const R01neWorldView *w, uint32_t rel_off, size_t need);
-
 /* Find present screen dir index for grid cell; -1 if absent. */
 int r01ne_world_find_screen(const R01neCart *c, const R01neWorldView *w, int col, int row);
 
 /* Copy 384-byte screen payload (tiles||attrs). Returns 0 on success. */
-int r01ne_world_load_screen(const R01neCart *c, const R01neWorldView *w, int dir_idx, uint8_t out[R01NE_SCREEN_PAYLOAD]);
+int r01ne_world_load_screen(const R01neCart *c, const R01neWorldView *w, int dir_idx,
+                            uint8_t out[R01NE_SCREEN_PAYLOAD]);
 
-/* Writable screen payload pointer, or NULL. */
-uint8_t *r01ne_world_screen_payload_mut(R01neCart *c, const R01neWorldView *w, int dir_idx);
-
-/* MAP attr / solid queries in world pixels (non-entity tiles only). */
 int r01ne_cart_has_screen(const R01neCart *c, int world_idx, int col, int row);
 int r01ne_cart_attr_at(const R01neCart *c, int world_idx, int wx, int wy, uint8_t *out_attr);
-int r01ne_cart_solid_at(const R01neCart *c, int world_idx, int wx, int wy);
-int r01ne_cart_aabb_ok(const R01neCart *c, int world_idx, int px, int py, int bw, int bh);
 
 #endif

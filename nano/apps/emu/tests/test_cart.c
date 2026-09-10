@@ -37,9 +37,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "payload\n");
         return 1;
     }
-    printf("ok cart=%s screens=%u spawn=(%u,%u) types=%u insts=%u\n", path, (unsigned)w.screen_count,
-           (unsigned)w.spawn_col, (unsigned)w.spawn_row, (unsigned)w.entity_type_count,
-           (unsigned)w.entity_inst_count);
+    printf("ok cart=%s screens=%u spawn=(%u,%u)\n", path, (unsigned)w.screen_count,
+           (unsigned)w.spawn_col, (unsigned)w.spawn_row);
     r01ne_cart_free(&cart);
     return 0;
 }

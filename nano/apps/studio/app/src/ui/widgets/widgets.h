@@ -85,19 +85,6 @@ void ui_text_mouse_drag(UiState *ui, int lx, int x, int w);
 int ui_text_key(UiState *ui, SDL_Keycode sym, Uint16 mod);
 int ui_text_input(UiState *ui, const char *utf8);
 
-int ui_compose_clamp_part(int v);
-int ui_compose_clamp_origin(int v);
-void ui_compose_draw_grid(SDL_Renderer *r, int ox, int oy, int size_px, int cell_px);
-void ui_compose_draw_part(SDL_Renderer *r, const R01Project *p, const struct R01World *w, const R01EntityPart *pt,
-                          int ox, int oy, int scale, int selected);
-void ui_compose_draw_frame(SDL_Renderer *r, const R01Project *p, const struct R01World *w, const R01EntityFrame *fr,
-                           int ox, int oy, int scale, int sel_part);
-/* Center parts on bbox mid-point inside icon_size x icon_size (clipped). */
-void ui_compose_draw_frame_icon(SDL_Renderer *r, const R01Project *p, const struct R01World *w,
-                                const R01EntityFrame *fr, int dx, int dy, int icon_size);
-int ui_compose_part_at(const R01EntityFrame *fr, int px, int py, int prefer_sel);
-void ui_compose_paint_part(R01Project *p, struct R01World *w, R01EntityPart *pt, int cx, int cy, int paint_color);
-
 /* Compatibility aliases (existing call sites). */
 #define draw_dot_strip ui_dot_strip_draw
 #define dot_strip_hit ui_dot_strip_hit

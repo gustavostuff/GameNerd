@@ -51,12 +51,15 @@ add_library(retr01_nano_sim_core
 target_include_directories(retr01_nano_sim_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/chips
+  ${R01_COMMON_DIR}
 )
 target_link_libraries(retr01_nano_sim_core PUBLIC
   retr01_nano_sim_net
   retr01_nano_emu_core
   PkgConfig::SDL2
 )
+# Keyboard -> pad bit overlay for the netlist PADS chip (no game Play path).
+target_sources(retr01_nano_sim_core PRIVATE ${R01_COMMON_DIR}/r01_pad_keys.c)
 target_compile_definitions(retr01_nano_sim_core PUBLIC "R01NS_DEFAULT_CART=\"${R01_TEST_CART}\"")
 
 add_executable(retr01_nano_sim src/main.c)
@@ -66,7 +69,3 @@ enable_testing()
 add_executable(test_nano_sim_boot tests/test_boot.c)
 target_link_libraries(test_nano_sim_boot PRIVATE retr01_nano_sim_core)
 add_test(NAME test_nano_sim_boot COMMAND test_nano_sim_boot ${R01_TEST_CART})
-
-add_executable(test_nano_sim_pads tests/test_pads_move.c)
-target_link_libraries(test_nano_sim_pads PRIVATE retr01_nano_sim_core)
-add_test(NAME test_nano_sim_pads COMMAND test_nano_sim_pads ${R01_TEST_CART})

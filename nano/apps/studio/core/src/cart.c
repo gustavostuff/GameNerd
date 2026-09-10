@@ -1,6 +1,5 @@
 #include "retr01_studio/cart.h"
 #include "retr01_studio/chr_pack.h"
-#include "retr01_studio/entities.h"
 #include "retr01_studio/export_codegen.h"
 #include "retr01_studio/project.h"
 
@@ -60,11 +59,6 @@ static void wr_u8(uint8_t *p, uint8_t v) {
     p[0] = v;
 }
 
-static void wr_u16(uint8_t *p, uint16_t v) {
-    p[0] = (uint8_t)(v & 0xFFu);
-    p[1] = (uint8_t)((v >> 8) & 0xFFu);
-}
-
 static void wr_u24(uint8_t *p, uint32_t v) {
     p[0] = (uint8_t)(v & 0xFFu);
     p[1] = (uint8_t)((v >> 8) & 0xFFu);
@@ -85,62 +79,15 @@ static void tile_2bpp_to_1bpp(const uint8_t src[R01_TILE_BYTES], uint8_t dst[R01
     }
 }
 
-static void pack_entity_type_rec(uint8_t out[R01_CART_ENTITY_TYPE_SIZE], const R01EntityType *ent) {
-    R01EntityType norm;
-    int si;
-    int sc;
-    memset(out, 0, R01_CART_ENTITY_TYPE_SIZE);
-    if (!ent) {
-        return;
-    }
-    norm = *ent;
-    r01_entity_nano_normalize(&norm);
-    sc = norm.state_count;
-    if (sc < 1) {
-        sc = 1;
-    }
-    if (sc > R01_ENTITY_STATES_MAX) {
-        sc = R01_ENTITY_STATES_MAX;
-    }
-    out[0] = (uint8_t)sc;
-    out[1] = 0;
-    for (si = 0; si < sc && si < 4; si++) {
-        const R01EntityState *st = &norm.states[si];
-        const R01EntityFrame *fr;
-        int bank = 0;
-        int tile_id = 0;
-        if (st->frame_count < 1) {
-            continue;
-        }
-        fr = &st->frames[0];
-        if (fr->part_count >= 1) {
-            bank = fr->parts[0].bank & 3;
-            tile_id = fr->parts[0].tile_id;
-            if (tile_id < 0) {
-                tile_id = 0;
-            }
-            if (tile_id > 255) {
-                tile_id = 255;
-            }
-        }
-        out[2 + si * 2] = (uint8_t)bank;
-        out[3 + si * 2] = (uint8_t)tile_id;
-    }
-}
-
 static int build_world_blob(Buf *blob, const R01World *w) {
     uint8_t hdr[R01_CART_WORLD_HDR_BYTES];
     uint8_t dir[R01_MAX_PRESENT_SCREENS * R01_CART_SCREEN_DIR_BYTES];
     size_t off_chr;
     size_t off_sdir;
     size_t off_spay;
-    size_t off_types;
-    size_t off_insts;
     int si;
     int bi;
     int present_n = 0;
-    int type_n;
-    int inst_n;
 
     if (!blob || !w) {
         return -1;
@@ -153,20 +100,10 @@ static int build_world_blob(Buf *blob, const R01World *w) {
     if (present_n > R01_MAX_PRESENT_SCREENS) {
         return -1;
     }
-    type_n = w->entity_count;
-    if (type_n > R01_MAX_ENTITY_TYPES) {
-        type_n = R01_MAX_ENTITY_TYPES;
-    }
-    inst_n = w->instance_count;
-    if (inst_n > R01_MAX_ENTITY_INSTANCES) {
-        inst_n = R01_MAX_ENTITY_INSTANCES;
-    }
 
     off_chr = R01_CART_WORLD_HDR_BYTES;
     off_sdir = off_chr + (size_t)R01_BG_BANKS * R01_NANO_BANK_CHR_BYTES;
     off_spay = off_sdir + (size_t)present_n * R01_CART_SCREEN_DIR_BYTES;
-    off_types = off_spay + (size_t)present_n * R01_CART_SCREEN_PAYLOAD;
-    off_insts = off_types + (size_t)type_n * R01_CART_ENTITY_TYPE_SIZE;
 
     memset(hdr, 0, sizeof(hdr));
     {
@@ -180,22 +117,16 @@ static int build_world_blob(Buf *blob, const R01World *w) {
     wr_u8(hdr + R01_CART_WHDR_FLAGS, 0);
     wr_u24(hdr + R01_CART_WHDR_OFF_CHR, (uint32_t)off_chr);
     wr_u24(hdr + R01_CART_WHDR_OFF_SCREEN_DIR, (uint32_t)off_sdir);
-    wr_u8(hdr + R01_CART_WHDR_TYPE_COUNT, (uint8_t)type_n);
-    wr_u8(hdr + R01_CART_WHDR_INST_COUNT, (uint8_t)inst_n);
-    wr_u24(hdr + R01_CART_WHDR_OFF_TYPES, (uint32_t)off_types);
-    wr_u24(hdr + R01_CART_WHDR_OFF_INSTS, (uint32_t)off_insts);
-    {
-        int pe = r01_world_player_entity(w);
-        if (pe >= 0 && pe < type_n) {
-            wr_u8(hdr + R01_CART_WHDR_PLAYER_ENTITY, (uint8_t)pe);
-        } else {
-            wr_u8(hdr + R01_CART_WHDR_PLAYER_ENTITY, R01_CART_PLAYER_ENTITY_NONE);
-        }
-    }
+    /* Tile-only cart: no entity type/instance tables. */
+    wr_u8(hdr + R01_CART_WHDR_TYPE_COUNT, 0);
+    wr_u8(hdr + R01_CART_WHDR_INST_COUNT, 0);
+    wr_u24(hdr + R01_CART_WHDR_OFF_TYPES, 0);
+    wr_u24(hdr + R01_CART_WHDR_OFF_INSTS, 0);
+    wr_u8(hdr + R01_CART_WHDR_PLAYER_ENTITY, R01_CART_PLAYER_ENTITY_NONE);
     wr_u8(hdr + R01_CART_WHDR_PLAYER_HIT_X, 0);
     wr_u8(hdr + R01_CART_WHDR_PLAYER_HIT_Y, 0);
-    wr_u8(hdr + R01_CART_WHDR_PLAYER_HIT_W, 8);
-    wr_u8(hdr + R01_CART_WHDR_PLAYER_HIT_H, 8);
+    wr_u8(hdr + R01_CART_WHDR_PLAYER_HIT_W, 0);
+    wr_u8(hdr + R01_CART_WHDR_PLAYER_HIT_H, 0);
 
     if (buf_append(blob, hdr, sizeof(hdr)) != 0) {
         return -1;
@@ -242,44 +173,6 @@ static int build_world_blob(Buf *blob, const R01World *w) {
         if (buf_append(blob, s->tiles, R01_TILES_PER_SCREEN) != 0 ||
             buf_append(blob, s->attrs, R01_ATTRS_PER_SCREEN) != 0) {
             return -1;
-        }
-    }
-
-    {
-        int ti;
-        for (ti = 0; ti < type_n; ti++) {
-            uint8_t rec[R01_CART_ENTITY_TYPE_SIZE];
-            pack_entity_type_rec(rec, &w->entities[ti]);
-            if (buf_append(blob, rec, sizeof(rec)) != 0) {
-                return -1;
-            }
-        }
-    }
-
-    {
-        int ii;
-        for (ii = 0; ii < inst_n; ii++) {
-            uint8_t rec[R01_CART_INSTANCE_SIZE];
-            const R01EntityInstance *inst = &w->instances[ii];
-            memset(rec, 0, sizeof(rec));
-            rec[0] = (uint8_t)inst->type_id;
-            {
-                int fg = 0;
-                if (inst->type_id >= 0 && inst->type_id < type_n) {
-                    const R01EntityType *ent = &w->entities[inst->type_id];
-                    if (ent->state_count > 0 && ent->states[0].frame_count > 0 &&
-                        ent->states[0].frames[0].part_count > 0) {
-                        fg = ent->states[0].frames[0].parts[0].pal & 7;
-                    }
-                }
-                rec[1] = (uint8_t)fg;
-            }
-            rec[2] = (uint8_t)((inst->flip_h ? 1u : 0u) | (inst->flip_v ? 2u : 0u));
-            wr_u16(rec + 4, (uint16_t)inst->world_x);
-            wr_u16(rec + 6, (uint16_t)inst->world_y);
-            if (buf_append(blob, rec, sizeof(rec)) != 0) {
-                return -1;
-            }
         }
     }
     return 0;

@@ -14,20 +14,8 @@ static inline int r01_attr_hw_match(uint8_t a, uint8_t b) {
     return r01_attr_hw(a) == r01_attr_hw(b);
 }
 
-/* Attr byte at world pixel, or -1 if no screen / OOB. */
-int r01_world_attr_at(const R01World *w, int wx, int wy, uint8_t *out_attr);
-
-int r01_world_solid_at(const R01World *w, int wx, int wy);
-
-/* AABB vs present screens and BG solid tiles (corner samples). */
-int r01_world_aabb_ok(const R01World *w, int px, int py, int bw, int bh);
-
-/* Player stub AABB (8x8) vs present screens and BG solid tiles. */
-int r01_world_player_aabb_ok(const R01World *w, int px, int py);
-
 /*
  * Set or clear R01_ATTR_SOLID on every MAP cell in w that uses CHR bank+tile_id.
- * (Matching bank/FG/flips alone would solid empty cells en masse — wrong for Nano.)
  * Returns number of cells touched.
  */
 int r01_world_apply_solid_tile(R01World *w, int bank, uint8_t tile_id, int set_solid);

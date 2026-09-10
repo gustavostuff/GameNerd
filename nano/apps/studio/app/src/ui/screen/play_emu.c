@@ -7,15 +7,12 @@
 #include "retr01_studio/paths.h"
 #include "retr01_studio/project.h"
 #include "retr01_nano_emu/machine.h"
-#include "retr01_nano_emu/play.h"
 #include "r01_bgm_host.h"
 #include "r01_custom_logic_scan.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 static void play_destroy_textures(UiPlaySession *pl) {
     if (!pl) {
@@ -40,17 +37,13 @@ static void play_shutdown_machine(UiPlaySession *pl) {
 }
 
 static void ui_play_start_bgm(UiState *ui) {
-    char logic[R01_PATH_MAX];
     char root[R01_PATH_MAX];
     char bin[R01_PATH_MAX];
-    int track = 0;
+    int track = 1;
     (void)ui;
     ui_sound_play_stop(ui);
-    if (r01_path_resolve(R01_OUTPUT_DIR "/C/custom_logic.c", logic, sizeof(logic)) != 0) {
-        snprintf(logic, sizeof(logic), "%s", R01_OUTPUT_DIR "/C/custom_logic.c");
-    }
-    if (r01_custom_logic_scan_bgm_play(logic, &track) != 0) {
-        return;
+    if (ui && ui->project && ui->project->bgm.present && ui->project->bgm.track_count > 0) {
+        track = 1;
     }
     if (r01_path_resolve(R01_OUTPUT_DIR, root, sizeof(root)) != 0) {
         snprintf(root, sizeof(root), "%s", R01_OUTPUT_DIR);
@@ -159,20 +152,14 @@ void ui_play_boot_finish(UiState *ui, SDL_Renderer *ren) {
 
 int ui_play_screen_mark(const UiState *ui) {
     const R01neMachine *m;
-    int col, row;
     const R01World *w;
     if (!ui || !ui->play.active || ui->play.booting || !ui->play.machine) {
         return -1;
     }
     m = ui->play.machine;
-    if (!m->play.enabled) {
-        return -1;
-    }
     w = r01_project_active_world_const(ui->project);
     if (!w) {
         return -1;
     }
-    col = (m->play.player_px + 4) / R01NE_SCREEN_PX_W;
-    row = (m->play.player_py + 4) / R01NE_SCREEN_PX_H;
-    return r01_world_screen_index(w, col, row);
+    return r01_world_screen_index(w, m->video.screen_col, m->video.screen_row);
 }

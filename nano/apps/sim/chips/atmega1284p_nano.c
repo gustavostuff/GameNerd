@@ -7,7 +7,6 @@
 #include "video_sink.h"
 
 #include "retr01_nano_emu/cart.h"
-#include "retr01_nano_emu/play.h"
 #include "retr01_nano_emu/types.h"
 #include "retr01_sim/bus.h"
 
@@ -85,23 +84,10 @@ static void spi_clock_bytes(R01nsAtmega1284pNano *c, uint32_t nbytes) {
     }
 }
 
-static uint8_t read_port_byte(R01nsAtmega1284pNano *c, const char *const *names) {
-    uint8_t pad = 0;
-    int i;
-    for (i = 0; i < 8; i++) {
-        if (r01s_level_is_high(r01s_entity_sense(&c->base, names[i]))) {
-            pad |= (uint8_t)(1u << i);
-        }
-    }
-    return pad;
-}
-
 static void vblank_enter_services(R01nsAtmega1284pNano *c) {
     uint8_t before;
     uint8_t after;
 
-    /* P1 drives Host Play for now (P2 sensed on pins for netlist / future). */
-    r01ne_play_set_pad(&c->machine, read_port_byte(c, P1_PINS));
     before = c->last_screen;
     r01ne_machine_frame(&c->machine);
     after = (uint8_t)((c->machine.video.screen_col & 0x0f) |

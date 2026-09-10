@@ -5,8 +5,6 @@
 #include "retr01_studio/project.h"
 
 #include "retr01_nano_emu/machine.h"
-#include "retr01_nano_emu/play.h"
-#include "r01_pad_keys.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -136,18 +134,16 @@ int ui_init(UiState *ui) {
     ui->sel_x1 = -1;
     ui->sel_y1 = -1;
     ui->sel_drag = 0;
-    ui->inst_drag = 0;
     ui->last_paint_tx = -1;
     ui->last_paint_ty = -1;
     ui->screen_mode = UI_SCREEN_MODE_SEL;
     ui->screen_layer = UI_SCREEN_LAYER_BG;
     ui->banks_idx = 0;
-    ui->banks_plane = UI_BANKS_PLANE_SPR;
+    ui->banks_plane = UI_BANKS_PLANE_BG;
     ui->accordion_open = UI_ACC_WORLDS;
     accordion_init_heights(ui);
     ui->logic_scale = 1;
     ui->menu.world_screen_idx = -1;
-    ui->sel_instance = -1;
     ui->app_mode = UI_APP_GRAPHICS;
     ui_sound_init(ui);
     if (ui_sound_audio_init() != 0) {
@@ -213,7 +209,6 @@ void ui_shutdown(UiState *ui) {
 }
 
 void ui_tick(UiState *ui) {
-    const Uint8 *keys;
     if (!ui) {
         return;
     }
@@ -231,8 +226,6 @@ void ui_tick(UiState *ui) {
         }
         ui->play.last_tick = now;
     }
-    keys = SDL_GetKeyboardState(NULL);
-    r01ne_play_set_pad(ui->play.machine, r01_pad_bits_p1(keys));
     r01ne_machine_frame(ui->play.machine);
 }
 

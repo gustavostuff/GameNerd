@@ -2,8 +2,8 @@
 
 #include "retr01_studio/json_io.h"
 #include "retr01_studio/project.h"
-#include "retr01_studio/sprites.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -34,20 +34,35 @@ TEST_MAIN() {
     EXPECT(p2->global_pal_bg[1][2].idx[1] == 42, "palette roundtrip");
     EXPECT(p2->worlds[0].screens[2].attrs[0] == r01_attr_pack(0, 2, 1, 0), "tile attr roundtrip");
     EXPECT(p2->worlds[0].screen_count == R01_GRID_MAX * R01_GRID_MAX, "screen slot count roundtrip");
-    EXPECT(p2->worlds[0].sprite_count == 0, "legacy empty sprites");
 
-    /* v5 sprite catalog roundtrip */
+    /* Legacy entity/sprite keys in an otherwise valid file must not fail load. */
     {
-        uint8_t tile[R01_TILE_BYTES];
-        int id = r01_chr_alloc_spr_tile(&p->worlds[0], 0);
-        memset(tile, 0xA5, sizeof(tile));
-        EXPECT(id >= 0, "alloc spr");
-        EXPECT(r01_chr_write_spr_tile(&p->worlds[0], 0, id, tile) == 0, "write spr");
-        EXPECT(r01_world_sprite_add(&p->worlds[0], 0, id, 1) == 0, "add sprite");
-        EXPECT(r01_project_save_json(p, "test_roundtrip.r01proj", err, sizeof(err)) == 0, "save v5");
-        EXPECT(r01_project_load_json(p2, "test_roundtrip.r01proj", err, sizeof(err)) == 0, "load v5");
-        EXPECT(p2->worlds[0].sprite_count == 1, "sprite count v5");
-        EXPECT(p2->worlds[0].sprites[0].pal == 1, "sprite pal v5");
+        FILE *f = fopen("test_legacy_ignore.r01proj", "w");
+        EXPECT(f != NULL, "write legacy");
+        if (f) {
+            fprintf(f,
+                    "{\n"
+                    "  \"version\": 1,\n"
+                    "  \"platform\": \"nano\",\n"
+                    "  \"name\": \"legacy\",\n"
+                    "  \"default_world\": 0,\n"
+                    "  \"active_world\": 0,\n"
+                    "  \"active_screen\": 2,\n"
+                    "  \"default_screen\": 2,\n"
+                    "  \"default_pal_row\": 0,\n"
+                    "  \"player_entity\": 0,\n"
+                    "  \"grid_cols\": 16,\n"
+                    "  \"grid_rows\": 16,\n"
+                    "  \"sprites\": [{\"bank\": 0, \"tile\": 1, \"pal\": 1}],\n"
+                    "  \"entities\": [{\"name\": \"Player\", \"state_count\": 1, \"states\": []}],\n"
+                    "  \"instances\": [{\"type\": 0, \"x\": 8, \"y\": 8}],\n"
+                    "  \"screens\": [{\"col\": 2, \"row\": 0, \"present\": 1}]\n"
+                    "}\n");
+            fclose(f);
+            EXPECT(r01_project_load_json(p2, "test_legacy_ignore.r01proj", err, sizeof(err)) == 0,
+                   "load ignores entity keys");
+            EXPECT(p2->worlds[0].screens[2].present, "legacy screen present");
+        }
     }
 
     free(p);

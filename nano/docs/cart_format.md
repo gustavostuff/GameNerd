@@ -56,12 +56,8 @@ Offsets in the pointer table and world directory are **absolute** file offsets. 
   [7]     flags
   [8-10]  off_chr
   [11-13] off_screen_dir
-  [17]    entity_type_count
-  [18]    entity_instance_count
-  [19-21] off_entity_types
-  [22-24] off_entity_instances
-  [25]    player_entity (0xFF = none)
-  [26-29] player hitbox x,y,w,h (tile-sized 0,0,8,8)
+  [17-29] reserved (legacy entity fields). Exporters write zeros /
+          player_entity=0xFF. Loaders ignore these bytes.
 
 CHR
   4 banks x 2048 B = 8192 B
@@ -72,12 +68,6 @@ Screen directory
 
 Screen payloads
   count x 384 B: tiles[192] then attrs[192] (16x12)
-
-Entity types
-  count x 10 B: state_count, pad, then up to 4 x (bank, tile_id)
-
-Entity instances
-  count x 8 B: type_id, fg, flags(flip_h/v), pad, world_x u16, world_y u16
 ```
 
 ## Attribute byte (on cart and in Nano project)

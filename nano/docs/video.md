@@ -11,7 +11,7 @@
 Pixels are **1 bpp**. Hardware presents:
 
 - Backdrop: always **black**
-- Foreground: one of **8** fixed board colors (resistor DAC / GPIO levels), chosen per tile or entity via attributes
+- Foreground: one of **8** fixed board colors (resistor DAC / GPIO levels), chosen per MAP tile via attributes
 
 RGB guns + CSYNC feed both the header and the AD725 AC-coupled inputs.
 
@@ -28,7 +28,7 @@ RGB guns + CSYNC feed both the header and the AD725 AC-coupled inputs.
 
 Primary ship target: compose **128x96 @ 60 Hz**, then shift each logical pixel out **twice** horizontally and emit each scanline **twice** vertically so the RGBS picture is **256x192**.
 
-That keeps MAP/CHR/entity math on a small 128x96 grid while the analog picture sits closer to classic 256x192 class displays and is easier to see on CRTs and capture boxes.
+That keeps MAP/CHR math on a small 128x96 grid while the analog picture sits closer to classic 256x192 class displays and is easier to see on CRTs and capture boxes.
 
 ```text
 Logical (SRAM compose)     RGBS out (timed kernel)
@@ -55,25 +55,23 @@ Two line buffers in internal SRAM:
 Active display:
   Timed loop outputs the current line buffer at 2x H (and the line again for 2x V)
   Remaining cycles + HBlank render the next logical line
-  (apply bank, flip, FG color, then up to 8 sprite strips with transparent 0-bits)
+  (apply bank, flip, FG color from the MAP row)
 
 VBlank:
-  Game logic
+  Game logic (future)
   Instant screen load from cart SPI (nametable +/- CHR)
-  Entity pixel integration
-  Expand entities -> display sprite list (max 24)
   Audio tick
-  Pad read
+  Pad read (future)
 ```
 
 ## Rendering model
 
-See [`graphics.md`](graphics.md) for worlds, attr layout, entities, and display sprites.
+See [`graphics.md`](graphics.md) for worlds, attr layout, and MAP compose.
 
 Hot path assumptions:
 
-- Soft **display sprites** (max **24**, **8** per scanline). Bit0 transparent over MAP
-- Player / entities draw at **pixel** origin (`pixel_x` / `pixel_y`)
+- **MAP tiles only** (opaque cells: bit0 = black backdrop, bit1 = FG)
+- No soft sprites yet
 - No scroll registers
 - Backdrop black simplifies the DAC (FG only needs 8 levels plus grounded black)
 

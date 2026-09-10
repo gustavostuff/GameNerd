@@ -1,7 +1,5 @@
 #include "retr01_nano_emu/machine.h"
 
-#include "r01_pad_keys.h"
-
 #include <SDL.h>
 
 #include <stdio.h>
@@ -72,12 +70,10 @@ int main(int argc, char **argv) {
     }
 
     printf("nano_emu: %s (%zu bytes)\n", path, machine.cart.len);
-    printf("  world 0: %u screens, spawn (%u,%u), player type %d tile (%d,%d) px (%d,%d)\n",
+    printf("  world 0: %u screens, spawn (%u,%u) — MAP preview only (no sprites/input)\n",
            (unsigned)machine.world.screen_count, (unsigned)machine.world.spawn_col,
-           (unsigned)machine.world.spawn_row, machine.play.player_type, machine.play.player_tx,
-           machine.play.player_ty, machine.play.player_px, machine.play.player_py);
-    printf("Pads: WASD move, G=fire laser (custom_logic / P1 X). Esc quit. R reset. Ctrl+1/2/3 scale.\n");
-    printf("No audio yet. Game logic: output/nano/C/custom_logic.c (pose + lasers).\n");
+           (unsigned)machine.world.spawn_row);
+    printf("Esc quit. R reset. Ctrl+1/2/3 scale.\n");
 
     SDL_UpdateTexture(tex, NULL, machine.video.fb, R01NE_VISIBLE_W * 3);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
@@ -89,7 +85,6 @@ int main(int argc, char **argv) {
     last_ticks = SDL_GetTicks();
     while (running) {
         SDL_Event ev;
-        const Uint8 *keys;
         int framed = 0;
         while (SDL_PollEvent(&ev)) {
             if (ev.type == SDL_QUIT) {
@@ -112,9 +107,6 @@ int main(int argc, char **argv) {
                 }
             }
         }
-
-        keys = SDL_GetKeyboardState(NULL);
-        r01ne_play_set_pad(&machine, r01_pad_bits_p1(keys));
 
         {
             Uint32 now = SDL_GetTicks();

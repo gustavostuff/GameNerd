@@ -140,7 +140,7 @@ Standard AVR ISP: `MOSI`, `MISO`, `SCK`, `RESET#`, `VCC`, `GND` (same assignment
 |-------|----------|
 | Islands / wire settle / pin levels | Yes. MCU PORT nets above |
 | RGBS scanline kernel | Yes. One board step / RGBS line |
-| Host Play + soft compose | Behavioral (emu core) |
+| Soft compose (MAP) | Behavioral (emu core) |
 | SPI MAP refill in VBlank | Byte-clocked on pins |
 | Cart 8+8 / headers as entities | Documented. UI still abstract pads |
 | AVR ISA / pixel FG DAC | **No** |

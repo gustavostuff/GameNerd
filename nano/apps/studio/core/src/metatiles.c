@@ -1,9 +1,37 @@
 #include "retr01_studio/metatiles.h"
 
-#include "retr01_studio/entities.h"
-
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+
+static void id_slugify(char *dst, size_t cap, const char *src) {
+    size_t o = 0;
+    int i;
+    if (!dst || cap < 1) {
+        return;
+    }
+    dst[0] = '\0';
+    if (!src) {
+        return;
+    }
+    for (i = 0; src[i] && o + 1 < cap; i++) {
+        unsigned char c = (unsigned char)src[i];
+        if (isalnum(c)) {
+            dst[o++] = (char)tolower(c);
+        } else if (c == ' ' || c == '-' || c == '_') {
+            if (o > 0 && dst[o - 1] != '_') {
+                dst[o++] = '_';
+            }
+        }
+    }
+    while (o > 0 && dst[o - 1] == '_') {
+        o--;
+    }
+    dst[o] = '\0';
+    if (o == 0) {
+        snprintf(dst, cap, "item");
+    }
+}
 
 void r01_metatile_init(R01MetatileDef *mt, const char *name) {
     if (!mt) {
@@ -11,9 +39,9 @@ void r01_metatile_init(R01MetatileDef *mt, const char *name) {
     }
     memset(mt, 0, sizeof(*mt));
     if (name && name[0]) {
-        strncpy(mt->name, name, R01_ENTITY_NAME_MAX - 1);
+        strncpy(mt->name, name, R01_LABEL_MAX - 1);
     } else {
-        strncpy(mt->name, "Metatile", R01_ENTITY_NAME_MAX - 1);
+        strncpy(mt->name, "Metatile", R01_LABEL_MAX - 1);
     }
 }
 
@@ -25,11 +53,11 @@ const char *r01_metatile_display_name(const R01MetatileDef *mt) {
 }
 
 void r01_metatile_id(char *dst, size_t cap, int world_idx, const R01MetatileDef *mt) {
-    char slug[R01_ENTITY_NAME_MAX];
+    char slug[R01_LABEL_MAX];
     if (!dst || cap < 1) {
         return;
     }
-    r01_id_slugify(slug, sizeof(slug), r01_metatile_display_name(mt));
+    id_slugify(slug, sizeof(slug), r01_metatile_display_name(mt));
     if (world_idx < 0) {
         world_idx = 0;
     }

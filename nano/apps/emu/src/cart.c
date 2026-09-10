@@ -69,8 +69,7 @@ int r01ne_cart_load_mem(R01neCart *out, const uint8_t *img, size_t len, char *er
     out->off_music = get_u24(ptrs + 6);
     out->len_music = get_u24(ptrs + 9);
 
-    if (out->len_world_dir < 8 ||
-        !r01ne_cart_ptr(out, out->off_world_dir, out->len_world_dir)) {
+    if (out->len_world_dir < 8 || !r01ne_cart_ptr(out, out->off_world_dir, out->len_world_dir)) {
         r01ne_cart_free(out);
         set_err(err, err_cap, "bad world directory");
         return -1;
@@ -149,19 +148,9 @@ int r01ne_cart_world(const R01neCart *c, int world_idx, R01neWorldView *out) {
     out->flags = hdr[R01NE_CART_WHDR_FLAGS];
     out->off_chr = get_u24(hdr + R01NE_CART_WHDR_OFF_CHR);
     out->off_screen_dir = get_u24(hdr + R01NE_CART_WHDR_OFF_SCREEN_DIR);
-    out->entity_type_count = hdr[R01NE_CART_WHDR_TYPE_COUNT];
-    out->entity_inst_count = hdr[R01NE_CART_WHDR_INST_COUNT];
-    out->off_entity_types = get_u24(hdr + R01NE_CART_WHDR_OFF_TYPES);
-    out->off_entity_insts = get_u24(hdr + R01NE_CART_WHDR_OFF_INSTS);
-    out->player_entity = hdr[R01NE_CART_WHDR_PLAYER_ENTITY];
+    /* Header bytes 17..29 are reserved; ignored (legacy entity tables). */
     if (out->screen_count > R01NE_MAX_PRESENT_SCREENS) {
         out->screen_count = R01NE_MAX_PRESENT_SCREENS;
-    }
-    if (out->entity_type_count > R01NE_MAX_ENTITY_TYPES) {
-        out->entity_type_count = R01NE_MAX_ENTITY_TYPES;
-    }
-    if (out->entity_inst_count > R01NE_MAX_ENTITY_INSTANCES) {
-        out->entity_inst_count = R01NE_MAX_ENTITY_INSTANCES;
     }
     return 0;
 }
@@ -174,19 +163,6 @@ const uint8_t *r01ne_world_ptr(const R01neCart *c, const R01neWorldView *w, uint
         return NULL;
     }
     return r01ne_cart_ptr(c, w->base + rel_off, need);
-}
-
-uint8_t *r01ne_world_ptr_mut(R01neCart *c, const R01neWorldView *w, uint32_t rel_off, size_t need) {
-    if (!c || !c->data || !w || !w->present) {
-        return NULL;
-    }
-    if ((size_t)rel_off + need > w->len) {
-        return NULL;
-    }
-    if ((size_t)w->base + (size_t)rel_off + need > c->len) {
-        return NULL;
-    }
-    return c->data + w->base + rel_off;
 }
 
 int r01ne_world_find_screen(const R01neCart *c, const R01neWorldView *w, int col, int row) {
@@ -230,20 +206,6 @@ int r01ne_world_load_screen(const R01neCart *c, const R01neWorldView *w, int dir
     return 0;
 }
 
-uint8_t *r01ne_world_screen_payload_mut(R01neCart *c, const R01neWorldView *w, int dir_idx) {
-    const uint8_t *dir;
-    uint32_t off;
-    if (!c || !w || dir_idx < 0 || dir_idx >= w->screen_count) {
-        return NULL;
-    }
-    dir = r01ne_world_ptr(c, w, w->off_screen_dir, (size_t)w->screen_count * R01NE_SCREEN_DIR_BYTES);
-    if (!dir) {
-        return NULL;
-    }
-    off = get_u24(dir + (size_t)dir_idx * R01NE_SCREEN_DIR_BYTES + 3);
-    return r01ne_world_ptr_mut(c, w, off, R01NE_SCREEN_PAYLOAD);
-}
-
 int r01ne_cart_has_screen(const R01neCart *c, int world_idx, int col, int row) {
     R01neWorldView w;
     if (r01ne_cart_world(c, world_idx, &w) != 0) {
@@ -277,37 +239,4 @@ int r01ne_cart_attr_at(const R01neCart *c, int world_idx, int wx, int wy, uint8_
         *out_attr = map[R01NE_TILES_PER_SCREEN + cell];
     }
     return 0;
-}
-
-int r01ne_cart_solid_at(const R01neCart *c, int world_idx, int wx, int wy) {
-    uint8_t attr;
-    if (r01ne_cart_attr_at(c, world_idx, wx, wy, &attr) != 0) {
-        return 0;
-    }
-    return (attr & R01NE_ATTR_SOLID) != 0;
-}
-
-int r01ne_cart_aabb_ok(const R01neCart *c, int world_idx, int px, int py, int bw, int bh) {
-    int x1, y1, c0, c1, r0, r1, col, row;
-    if (!c || px < 0 || py < 0 || bw < 1 || bh < 1) {
-        return 0;
-    }
-    x1 = px + bw - 1;
-    y1 = py + bh - 1;
-    c0 = px / R01NE_SCREEN_PX_W;
-    c1 = x1 / R01NE_SCREEN_PX_W;
-    r0 = py / R01NE_SCREEN_PX_H;
-    r1 = y1 / R01NE_SCREEN_PX_H;
-    for (col = c0; col <= c1; col++) {
-        for (row = r0; row <= r1; row++) {
-            if (!r01ne_cart_has_screen(c, world_idx, col, row)) {
-                return 0;
-            }
-        }
-    }
-    if (r01ne_cart_solid_at(c, world_idx, px, py) || r01ne_cart_solid_at(c, world_idx, x1, py) ||
-        r01ne_cart_solid_at(c, world_idx, px, y1) || r01ne_cart_solid_at(c, world_idx, x1, y1)) {
-        return 0;
-    }
-    return 1;
 }

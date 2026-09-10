@@ -27,14 +27,12 @@
 
 #define R01_MAX_WORLDS 8
 #define R01_BG_BANKS 4
-#define R01_SPR_BANKS 4 /* authoring leftover; not exported to Nano cart */
 #define R01_TILES_PER_BANK 256
 /* Studio still authors 2bpp 16-byte tiles; ROM export packs 1bpp (8 bytes). */
 #define R01_TILE_BYTES 16
 #define R01_NANO_TILE_BYTES 8
 #define R01_BANK_CHR_BYTES (R01_TILES_PER_BANK * R01_TILE_BYTES)
 #define R01_NANO_BANK_CHR_BYTES (R01_TILES_PER_BANK * R01_NANO_TILE_BYTES)
-#define R01_SPR_PLAYER_TILE_ID 1
 
 #define R01_BG0_SCREENS_MAX 8
 
@@ -58,8 +56,9 @@
 #define R01_CART_WORLD_DIR_BYTES (R01_MAX_WORLDS * 8u)
 #define R01_CART_WORLD_HDR_BYTES 32u
 #define R01_CART_SCREEN_DIR_BYTES 8u
-#define R01_CART_ENTITY_TYPE_SIZE 10 /* state_count + pad + 4*(bank,tile) */
-#define R01_CART_INSTANCE_SIZE 8     /* type, fg, flags, pad, x u16, y u16 */
+/* Cart header still reserves entity slots (always zero / unused). */
+#define R01_CART_ENTITY_TYPE_SIZE 10
+#define R01_CART_INSTANCE_SIZE 8
 #define R01_CART_OTHER_MAX 48
 #define R01_CART_OTHER_TITLE 0
 #define R01_CART_OTHER_INTER 1
@@ -80,29 +79,8 @@
 #define R01_DEFAULT_PROJECT R01_OUTPUT_DIR "/test.r01proj"
 #define R01_DEFAULT_CART_STEM R01_OUTPUT_DIR "/test"
 
-/* Per-world sprite catalog (CHR patterns in spr_banks + authoring metadata). */
-#define R01_MAX_SPRITES 256
-#define R01_MAX_METASPRITES 64
 #define R01_MAX_METATILES 64
-
-/* Entity types (docs/selling_points). Arrays sized for 1..4 states and frames. */
-#define R01_MAX_ENTITY_TYPES 64
-#define R01_ENTITY_STATES_MAX 4
-#define R01_ENTITY_FRAMES_MAX 4
-#define R01_ENTITY_PARTS_MAX 4 /* 2x2 tile frame budget */
-#define R01_ENTITY_COMPOSE_PX 32 /* authoring canvas (px); Studio viewport zooms into this */
-#define R01_ENTITY_NAME_MAX 32
-#define R01_ID_MAX 96
-#define R01_ENTITY_HITBOX_W 8
-#define R01_ENTITY_HITBOX_H 8
-#define R01_MAX_ENTITY_INSTANCES 64
-#define R01_OAM_MAX 128
-
-#define R01_MAX_WARP_ENTRANCES 32
-#define R01_MAX_WARP_EXITS 32
-#define R01_WARP_FADE_OUT 0x01u
-#define R01_WARP_FADE_IN 0x02u
-#define R01_WARP_FADE_WHITE 0x04u
+#define R01_LABEL_MAX 32
 
 /* Studio BGM editor (Audio tab). Host flatten uses R01_BGM_* from r01_bgm_host.h. */
 #define R01_BGM_TRACKS_MAX 8
@@ -158,91 +136,13 @@ typedef struct R01ChrBank {
 } R01ChrBank;
 
 typedef R01ChrBank R01BgBank;
-typedef R01ChrBank R01SprBank;
-
-/* Catalog entry: one 8x8 pattern in a SPR bank + default palette. */
-typedef struct R01SpriteDef {
-    int bank;    /* 0..R01_SPR_BANKS-1 */
-    int tile_id; /* index in spr_banks[bank] */
-    int pal;     /* 0..3 within the active sprite palette row */
-} R01SpriteDef;
-
-/* One OAM-like part in an entity frame (dx/dy relative to state origin). */
-typedef struct R01EntityPart {
-    int bank;
-    int tile_id;
-    int pal; /* Nano: FG color 0..7 (entity color attr) */
-    int flip_h;
-    int flip_v;
-    int dx;
-    int dy;
-} R01EntityPart;
-
-typedef struct R01EntityFrame {
-    R01EntityPart parts[R01_ENTITY_PARTS_MAX];
-    int part_count;
-} R01EntityFrame;
-
-/* Reusable multi-part sprite group (no origin/hitbox). */
-typedef struct R01MetaspriteDef {
-    char name[R01_ENTITY_NAME_MAX];
-    R01EntityFrame frame;
-} R01MetaspriteDef;
 
 /* 2x2 BG tile group (TL, TR, BL, BR). */
 typedef struct R01MetatileDef {
-    char name[R01_ENTITY_NAME_MAX];
+    char name[R01_LABEL_MAX];
     uint8_t tile[4];
     uint8_t attr[4];
 } R01MetatileDef;
-
-typedef struct R01EntityState {
-    char name[R01_ENTITY_NAME_MAX]; /* authoring label (idle, walk, ...) */
-    int origin_x;
-    int origin_y;
-    int hitbox_x;
-    int hitbox_y;
-    int hitbox_w; /* fixed 8 for now */
-    int hitbox_h;
-    R01EntityFrame frames[R01_ENTITY_FRAMES_MAX];
-    int frame_count; /* 1..R01_ENTITY_FRAMES_MAX */
-} R01EntityState;
-
-typedef struct R01EntityType {
-    int present;
-    char name[R01_ENTITY_NAME_MAX]; /* authoring label (player, slime, ...) */
-    R01EntityState states[R01_ENTITY_STATES_MAX];
-    int state_count; /* 1..R01_ENTITY_STATES_MAX */
-} R01EntityType;
-
-/* Placed instance in world pixel space (world_x/y = user state origin). */
-typedef struct R01EntityInstance {
-    int type_id;
-    int world_x;
-    int world_y;
-    int flip_h; /* 1 = mirror parts around state origin at draw/OAM time */
-    int flip_v;
-} R01EntityInstance;
-
-/* Intra-world warp: entrance tile triggers a jump to an exit destination tile. */
-typedef struct R01WarpEntrance {
-    int present;
-    char id[R01_ID_MAX]; /* autogen: w_00, w_01, ... */
-    int screen_col;
-    int screen_row;
-    int tile_col;
-    int tile_row;
-} R01WarpEntrance;
-
-typedef struct R01WarpExit {
-    int present;
-    int entrance_idx; /* index into warp_entrances[] */
-    int dest_screen_col;
-    int dest_screen_row;
-    int dest_tile_col;
-    int dest_tile_row;
-    uint8_t flags; /* R01_WARP_FADE_* */
-} R01WarpExit;
 
 /* Global off-grid MAP payloads (title, interstitial, credits pages). See docs/graphics. */
 typedef struct R01OtherScreen {
@@ -267,22 +167,8 @@ typedef struct R01World {
     int bg0_screen_count;  /* slots used in bg0_screens[] (0..8, may include holes) */
     int bg0_active_screen; /* index into bg0_screens[]; -1 none */
     R01BgBank bg_banks[R01_BG_BANKS];
-    R01SprBank spr_banks[R01_SPR_BANKS];
-    R01SpriteDef sprites[R01_MAX_SPRITES];
-    int sprite_count;
-    R01MetaspriteDef metasprites[R01_MAX_METASPRITES];
-    int metasprite_count;
     R01MetatileDef metatiles[R01_MAX_METATILES];
     int metatile_count;
-    R01EntityType entities[R01_MAX_ENTITY_TYPES];
-    int entity_count;
-    int player_entity; /* type index marked as Play player; -1 = stub tile */
-    R01EntityInstance instances[R01_MAX_ENTITY_INSTANCES];
-    int instance_count;
-    R01WarpEntrance warp_entrances[R01_MAX_WARP_ENTRANCES];
-    int warp_entrance_count;
-    R01WarpExit warp_exits[R01_MAX_WARP_EXITS];
-    int warp_exit_count;
 } R01World;
 
 typedef struct R01Project {

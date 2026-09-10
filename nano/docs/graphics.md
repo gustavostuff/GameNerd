@@ -1,6 +1,6 @@
 # Graphics
 
-**Status: design + emu Host Play.** Ahead of console firmware. This is the Nano picture model.
+**Status: design + emu MAP compose.** Ahead of console firmware. This is the Nano picture model.
 
 ## Playfield
 
@@ -46,7 +46,7 @@ BG attr byte
 | | | | | | |_|__ BANK 0-3
 | | | | |_|______ FLIP_H (bit2), FLIP_V (bit3)
 | |_|_|__________ FG color 0-7
-|________________ SOLID (world collision, software)
+|________________ SOLID (authoring / future collision; video ignores)
 ```
 
 | Field | Bits | Role |
@@ -55,15 +55,15 @@ BG attr byte
 | FLIP_H | 2 | Mirror horizontally when drawing |
 | FLIP_V | 3 | Mirror vertically when drawing |
 | FG | 6:4 | Foreground color index (**8** board colors) |
-| SOLID | 7 | Collision for rocks, trees, labyrinth walls, etc. Video may ignore this bit |
+| SOLID | 7 | Paint metadata for later game logic. Video ignores this bit |
 
 Tile **1** bits are drawn with the attr FG color. Tile **0** bits are backdrop **black**. There is no second background layer.
 
 ## CHR banks
 
 - Up to **4** banks per world on the cart
-- 1 bpp patterns (8 bytes per 8x8 tile if packed like a classic planar tile)
-- Bank count and tiles per bank are sized to fit **25LC1024** (128 KB) with maps and music. Exact tiles/bank freeze with the cart image format later.
+- 1 bpp patterns (8 bytes per 8x8 tile)
+- Bank count and tiles per bank are sized to fit **25LC1024** (128 KB) with maps and music
 
 Preferred runtime: on world enter, cache **all four** CHR banks in MCU SRAM (see [`cache_architecture.md`](cache_architecture.md)). Screen switches then SPI-load MAP only.
 
@@ -79,54 +79,17 @@ On a screen change (door, edge warp, menu):
 
 **VBlank fit:** One nametable load from SPI is comfortable. World CHR (about 8 KB planning) loads across one or more VBlanks when entering a world. Details: [`cache_architecture.md`](cache_architecture.md).
 
-## Entities and display sprites
+## Picture compose (current host)
 
-Up to **64** entities live in MCU RAM for game logic.
-
-Each entity (minimum fields):
-
-| Field | Size | Notes |
-|-------|------|-------|
-| pixel_x, pixel_y | world / screen pixels | Motion integration **and** sprite draw origin |
-| tile_x, tile_y | derived (`pixel / 8`) | MAP SOLID, screen presence, enter rules |
-| tile / state | pattern index | Current **8x8** CHR (swappable / anim state) |
-| color | FG 0-7 | Board resistor colors |
-
-Movement strategies use pixel coords. Default is **`PIXEL_CONTINUOUS`** (1 px/frame, no press/release tile snap). See [`movement.md`](movement.md).
-
-### Display sprites (picture)
-
-Entities expand to a **display sprite list** for the video path (v1: one entity -> one 8x8 sprite).
-
-| Cap | Value |
-|-----|-------|
-| Max sprites on screen | **24** |
-| Max sprites per scanline | **8** (overflow dropped by priority) |
-| Size | **8x8**, 1 bpp CHR |
-| Draw position | `pixel_x`, `pixel_y` (screen-relative) |
-| Transparency | Bit **1** = FG color. Bit **0** leaves MAP (or lower sprites) |
-
-**Player** is always a display sprite (priority slot 0): drawn at `player_px` / `player_py`, not snapped to the tile cell.
-
-### Draw priority
-
-```text
-1. MAP (opaque cells: bit0 = black backdrop)
-2. Sprites low -> high (player first), transparent 0-bits
-```
-
-Collision against the world still uses MAP attr **SOLID** on **tile** coords. Sprite pixels do not punch MAP collision.
-
-### Pipeline sketch (each frame)
+Host / emu compose is **MAP only**:
 
 ```text
 1. In-RAM screen nametable (cart MAP load)
-2. Expand active entities (+ player, lasers) -> up to 24 sprites
-3. Per line (or host full-frame): MAP row, then up to 8 sprite strips
-4. Scanline kernel shifts the composed line (2x on RGBS)
+2. Draw all 16x12 opaque MAP tiles into the logical 128x96 buffer
+3. Scale 2x to the RGBS FB (256x192)
 ```
 
-Host Play / Emu compose the full logical frame in software with the same caps.
+Sprites / soft entities are **not** in the picture path yet. They will be rebuilt from this MAP-only base.
 
 ## Compared to full Retr01 attr
 

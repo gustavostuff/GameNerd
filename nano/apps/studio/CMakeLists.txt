@@ -17,20 +17,17 @@ set(R01_ASSETS_PNG "${R01_ASSETS_DIR}/png")
 set(R01_ASSETS_OTHER "${R01_ASSETS_DIR}/other")
 set(R01_NANO_EMU_DIR "${R01_REPO_ROOT}/nano/apps/emu")
 
-# Host helpers for Studio core (camera / custom_logic scan / softsynth).
+# Host BGM softsynth for Studio Audio / Play preview.
 if(NOT TARGET r01_play_common)
   add_library(r01_play_common
-    ${R01_COMMON_DIR}/r01_play_anim.c
-    ${R01_COMMON_DIR}/r01_play_anim_cart.c
-    ${R01_COMMON_DIR}/r01_play_camera.c
-    ${R01_COMMON_DIR}/r01_custom_logic_scan.c
     ${R01_COMMON_DIR}/r01_nes_synth.c
+    ${R01_COMMON_DIR}/r01_custom_logic_scan.c
   )
   target_include_directories(r01_play_common PUBLIC ${R01_COMMON_DIR})
   target_link_libraries(r01_play_common PUBLIC m)
 endif()
 
-# Nano emu core for Studio Play (standalone ./nano_emu from nano/apps/emu).
+# Nano emu core for Studio Play (MAP preview via cart boot).
 if(NOT TARGET retr01_nano_emu_core)
   add_subdirectory(${R01_NANO_EMU_DIR} ${CMAKE_BINARY_DIR}/retr01_nano_emu EXCLUDE_FROM_ALL)
 endif()
@@ -40,19 +37,12 @@ add_library(retr01_studio_core
   core/src/chr_pack.c
   core/src/json_io.c
   core/src/palette.c
-  core/src/play.c
   core/src/collision.c
   core/src/prg_phase1.c
   core/src/cart.c
   core/src/export_codegen.c
   core/src/paths.c
-  core/src/sprites.c
-  core/src/entities.c
-  core/src/metasprites.c
   core/src/metatiles.c
-  core/src/warps.c
-  core/src/game_runtime.c
-  core/src/player_anim.c
 )
 target_include_directories(retr01_studio_core PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/core/include
@@ -82,19 +72,10 @@ function(r01_studio_add_test name)
 endfunction()
 
 r01_studio_add_test(project)
-r01_studio_add_test(play)
 r01_studio_add_test(chr)
 r01_studio_add_test(json)
 r01_studio_add_test(cart)
 r01_studio_add_test(palette)
-r01_studio_add_test(sprites)
-r01_studio_add_test(entities)
-r01_studio_add_test(metasprites)
-r01_studio_add_test(prg_phase1)
-r01_studio_add_test(export_codegen)
-r01_studio_add_test(warps)
-r01_studio_add_test(game_runtime)
-r01_studio_add_test(player_anim)
 r01_studio_add_test(nano)
 
 add_executable(test_fixture core/tests/test_fixture.c ${STUDIO_TEST_HARNESS})
@@ -117,7 +98,6 @@ add_library(retr01_studio_app
   app/src/ui/widgets/tabs.c
   app/src/ui/widgets/modal.c
   app/src/ui/widgets/textfield.c
-  app/src/ui/widgets/compose.c
   app/src/ui/layout.c
   app/src/ui/draw/frame.c
   app/src/ui/draw/sidebar.c
@@ -126,7 +106,6 @@ add_library(retr01_studio_app
   app/src/ui/sound/audio.c
   app/src/ui/sound/bgm_edit.c
   ${R01_PKG_ROOT}/common/r01_bgm_host.c
-  ${R01_PKG_ROOT}/common/r01_pad_keys.c
   app/src/ui/screen/selection.c
   app/src/ui/screen/paint.c
   app/src/ui/screen/edit.c
@@ -140,9 +119,6 @@ add_library(retr01_studio_app
   app/src/ui/modals/pal_edit.c
   app/src/ui/modals/pal_edit_draw.c
   app/src/ui/modals/tile_edit.c
-  app/src/ui/modals/sprite_edit.c
-  app/src/ui/modals/metasprite_edit.c
-  app/src/ui/modals/entity_edit.c
 )
 target_include_directories(retr01_studio_app PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/app/src

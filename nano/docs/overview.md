@@ -19,7 +19,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 2. Stable progressive **RGBS** at **60 Hz**.
 3. **Cute dual-sided carts** (**8+8** gold fingers, same pad pitch/width as full Retr01). See [`hardware.md`](hardware.md).
 4. Instant screen switches only (no scrolling).
-5. Soft **entities** in RAM that expand to **display sprites** (pixel-positioned, not hardware OAM).
+5. **MAP-only** picture path today. Soft sprites will be rebuilt later from this base.
 
 ## Locked feature sketch
 
@@ -32,7 +32,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 | Screen | **16x12** tiles | Matches 128x96 |
 | World grid | **16x16** screens | Max **8** worlds, **16** present screens/world |
 | BG banks | **4** per world | Selected by attr bank bits |
-| Sprites | Soft display list: **24** max, **8**/scanline | Pixel-positioned. Player is a sprite. See [`graphics.md`](graphics.md) |
+| Sprites | **None** (MAP-only host compose) | Soft sprites TBD; see [`graphics.md`](graphics.md) |
 | Scroll | **None** | Instant screen switch in VBlank |
 | Audio | **2 PWM channels** | Music pulse + SFX. Resistor mix to one jack ([`sound.md`](sound.md)) |
 | Input | **2 players** | Retr01 `$FE60` / `$FE61` bit spirit |
@@ -44,7 +44,7 @@ It drops the heavy motherboard: no 6502, no PLD tile engine, no OAM, no BG0, no 
 
 - 6502 CPU and `$FExx` bus as a product requirement
 - Large 36-pin cart edge / SST39SF040 class flash
-- Hardware tile engine / full Retr01 OAM ASIC path (Nano uses a software sprite list)
+- Hardware tile engine / full Retr01 OAM ASIC path (Nano has no sprites yet)
 - Color PROM and multi-layer BG0
 - Fine pixel or tile scrolling
 - Complex multi-channel APU

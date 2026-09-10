@@ -123,8 +123,7 @@ static const R01Screen *world_sel_src(const UiState *ui, const R01World *w) {
 }
 
 static int world_edit_blocked(const UiState *ui) {
-    return !ui || ui->play.active || ui->menu.open || ui->tile_edit.open || ui->sprite_edit.open ||
-           ui->metasprite_edit.open || ui->entity_edit.open || ui->pal_edit.open;
+    return !ui || ui->play.active || ui->menu.open || ui->tile_edit.open || ui->pal_edit.open;
 }
 
 int ui_world_screen_copy(UiState *ui) {
