@@ -12,7 +12,7 @@ void r01ne_play_reset(R01nePlay *pl) {
     pl->player_type = -1;
     pl->player_fg = 0;
     pl->laser_type = -1;
-    pl->move_strategy = R01NE_MOVE_TILE_ENTER_PIXEL;
+    pl->move_strategy = R01NE_MOVE_PIXEL_CONTINUOUS;
     r01_play_anim_init(&pl->anim);
 }
 
@@ -129,11 +129,40 @@ static int try_enter_tile(R01neMachine *m, int ntx, int nty, int entry_ox, int e
 }
 
 /*
- * Default strategy (TILE_ENTER_PIXEL):
- * - From tile rest (local 0,0) on a fresh direction press: immediately enter the
- *   adjacent tile at the direction entry pixel (R:0,0 L:7,0 U:0,7 D:0,0).
- * - While held afterward: 1 px/frame; crossing a boundary uses the same entry
- *   pixels and the same solid/screen checks.
+ * PIXEL_CONTINUOUS (default for sprite entities):
+ * Each held frame moves +/-1 px. Crossing a tile boundary requires the
+ * destination MAP cell to be enterable (present + not SOLID). No press jump
+ * and no release snap back to the tile origin.
+ */
+static void try_move_axis_pixel_continuous(R01neMachine *m, int dpx, int dpy) {
+    R01nePlay *pl;
+    int nx, ny, ntx, nty;
+    if (!m || (dpx == 0 && dpy == 0)) {
+        return;
+    }
+    pl = &m->play;
+    nx = pl->player_px + dpx;
+    ny = pl->player_py + dpy;
+    if (nx < 0 || ny < 0) {
+        return;
+    }
+    ntx = nx / 8;
+    nty = ny / 8;
+    if (ntx != pl->player_tx || nty != pl->player_ty) {
+        if (!tile_enter_ok(m, ntx, nty)) {
+            return;
+        }
+    }
+    pl->player_px = nx;
+    pl->player_py = ny;
+    sync_tiles_from_pixels(pl);
+}
+
+/*
+ * Legacy TILE_ENTER_PIXEL:
+ * From tile rest (local 0,0) on a fresh direction press: immediately enter the
+ * adjacent tile at the direction entry pixel (R:0,0 L:7,0 U:0,7 D:0,0).
+ * While held afterward: 1 px/frame. Release snaps that axis to local 0.
  */
 static void try_move_axis_tile_enter_pixel(R01neMachine *m, int dpx, int dpy, int pressed) {
     R01nePlay *pl;
@@ -170,7 +199,6 @@ static void try_move_axis_tile_enter_pixel(R01neMachine *m, int dpx, int dpy, in
         return;
     }
 
-    /* Boundary cross → direction entry pixel on the destination tile. */
     entry_ox = 0;
     entry_oy = 0;
     if (dpx > 0) {
@@ -203,8 +231,12 @@ static void try_move_axis(R01neMachine *m, int dpx, int dpy, int pressed) {
     }
     switch (m->play.move_strategy) {
     case R01NE_MOVE_TILE_ENTER_PIXEL:
-    default:
         try_move_axis_tile_enter_pixel(m, dpx, dpy, pressed);
+        break;
+    case R01NE_MOVE_PIXEL_CONTINUOUS:
+    default:
+        (void)pressed;
+        try_move_axis_pixel_continuous(m, dpx, dpy);
         break;
     }
 }
@@ -250,8 +282,8 @@ void r01ne_play_sync_screen(R01neMachine *m) {
     if (!m || !m->play.enabled) {
         return;
     }
-    cx = m->play.player_tx * 8 + 4;
-    cy = m->play.player_ty * 8 + 4;
+    cx = m->play.player_px + 4;
+    cy = m->play.player_py + 4;
     col = cx / R01NE_SCREEN_PX_W;
     row = cy / R01NE_SCREEN_PX_H;
     if (col == m->video.screen_col && row == m->video.screen_row && m->video.map_loaded) {

@@ -20,8 +20,8 @@ struct R01neMachine;
  * Default: tile-enter on press from rest, then 1 px/frame while held.
  */
 typedef enum R01neMoveStrategy {
-    R01NE_MOVE_TILE_ENTER_PIXEL = 0
-    /* Future: continuous pixel, grid-locked per frame, etc. */
+    R01NE_MOVE_PIXEL_CONTINUOUS = 0, /* default: 1 px/frame, no press/release tile snap */
+    R01NE_MOVE_TILE_ENTER_PIXEL = 1  /* legacy: press enters next tile, release snaps to local 0 */
 } R01neMoveStrategy;
 
 typedef struct R01neLaser {

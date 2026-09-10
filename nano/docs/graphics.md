@@ -92,7 +92,7 @@ Each entity (minimum fields):
 | tile / state | pattern index | Current **8x8** CHR (swappable / anim state) |
 | color | FG 0-7 | Board resistor colors |
 
-Movement strategies use pixel coords. Default is tile-enter on press then 1 px/frame. See [`movement.md`](movement.md).
+Movement strategies use pixel coords. Default is **`PIXEL_CONTINUOUS`** (1 px/frame, no press/release tile snap). See [`movement.md`](movement.md).
 
 ### Display sprites (picture)
 
